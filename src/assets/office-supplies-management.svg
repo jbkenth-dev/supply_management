@@ -1,0 +1,155 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Office Background -->
+  <rect width="400" height="300" fill="url(#officeGradient)" rx="16"/>
+  
+  <!-- Office Desk/Workspace -->
+  <rect x="40" y="180" width="320" height="80" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2" rx="8"/>
+  
+  <!-- Supply Cabinet/Storage -->
+  <rect x="60" y="80" width="80" height="120" fill="#64748b" rx="4"/>
+  
+  <!-- Cabinet Shelves -->
+  <line x1="60" y1="110" x2="140" y2="110" stroke="#475569" stroke-width="2"/>
+  <line x1="60" y1="140" x2="140" y2="140" stroke="#475569" stroke-width="2"/>
+  <line x1="60" y1="170" x2="140" y2="170" stroke="#475569" stroke-width="2"/>
+  
+  <!-- Office Supplies on Shelves -->
+  <g>
+    <!-- Paper Reams -->
+    <rect x="70" y="85" width="15" height="20" fill="white" rx="2"/>
+    <rect x="88" y="85" width="15" height="20" fill="white" rx="2"/>
+    <rect x="106" y="85" width="15" height="20" fill="white" rx="2"/>
+    
+    <!-- File Folders -->
+    <rect x="70" y="115" width="18" height="12" fill="#3b82f6" rx="1"/>
+    <rect x="91" y="115" width="18" height="12" fill="#10b981" rx="1"/>
+    <rect x="112" y="115" width="18" height="12" fill="#f59e0b" rx="1"/>
+    
+    <!-- Supply Boxes -->
+    <rect x="70" y="145" width="12" height="12" fill="#8b5cf6" rx="1"/>
+    <rect x="86" y="145" width="12" height="12" fill="#ec4899" rx="1"/>
+    <rect x="102" y="145" width="12" height="12" fill="#06b6d4" rx="1"/>
+    <rect x="118" y="145" width="12" height="12" fill="#84cc16" rx="1"/>
+  </g>
+  
+  <!-- Documentation/Records Area -->
+  <g transform="translate(160, 80)">
+    <!-- Filing System -->
+    <rect x="0" y="0" width="60" height="80" fill="#94a3b8" rx="4"/>
+    <rect x="5" y="10" width="50" height="8" fill="#e2e8f0" rx="1"/>
+    <rect x="5" y="22" width="50" height="8" fill="#e2e8f0" rx="1"/>
+    <rect x="5" y="34" width="50" height="8" fill="#e2e8f0" rx="1"/>
+    <rect x="5" y="46" width="50" height="8" fill="#e2e8f0" rx="1"/>
+    <rect x="5" y="58" width="50" height="8" fill="#e2e8f0" rx="1"/>
+    
+    <!-- Document Icons -->
+    <g transform="translate(8, 12)">
+      <rect width="8" height="6" fill="#3b82f6" rx="1"/>
+      <rect x="12" width="8" height="6" fill="#10b981" rx="1"/>
+      <rect x="24" width="8" height="6" fill="#f59e0b" rx="1"/>
+    </g>
+  </g>
+  
+  <!-- Distribution/Tracking System -->
+  <g transform="translate(230, 80)">
+    <!-- Computer/Terminal -->
+    <rect x="0" y="0" width="80" height="60" fill="#1e293b" rx="4"/>
+    <rect x="5" y="5" width="70" height="40" fill="#334155" rx="2"/>
+    
+    <!-- Screen Content -->
+    <rect x="10" y="10" width="60" height="8" fill="#10b981" rx="1"/>
+    <rect x="10" y="20" width="45" height="4" fill="#64748b" rx="1"/>
+    <rect x="10" y="26" width="35" height="4" fill="#64748b" rx="1"/>
+    <rect x="10" y="32" width="50" height="4" fill="#64748b" rx="1"/>
+    
+    <!-- Keyboard -->
+    <rect x="5" y="48" width="70" height="10" fill="#475569" rx="2"/>
+    
+    <!-- Status Indicators -->
+    <circle cx="65" cy="15" r="3" fill="#10b981"/>
+    <circle cx="72" cy="15" r="3" fill="#f59e0b"/>
+    <circle cx="65" cy="25" r="3" fill="#3b82f6"/>
+  </g>
+  
+  <!-- Supply Items on Desk -->
+  <g>
+    <!-- Pens/Pencils -->
+    <g transform="translate(80, 190)">
+      <rect x="0" y="0" width="3" height="20" fill="#3b82f6" rx="1"/>
+      <rect x="5" y="0" width="3" height="20" fill="#10b981" rx="1"/>
+      <rect x="10" y="0" width="3" height="20" fill="#f59e0b" rx="1"/>
+      <rect x="15" y="0" width="3" height="20" fill="#ef4444" rx="1"/>
+    </g>
+    
+    <!-- Sticky Notes -->
+    <g transform="translate(110, 190)">
+      <rect x="0" y="0" width="15" height="15" fill="#fef08a" rx="2"/>
+      <rect x="2" y="2" width="11" height="2" fill="#ca8a04" rx="1"/>
+    </g>
+    
+    <!-- Stapler -->
+    <g transform="translate(130, 195)">
+      <rect x="0" y="0" width="20" height="8" fill="#6b7280" rx="2"/>
+      <rect x="2" y="2" width="16" height="4" fill="#9ca3af" rx="1"/>
+    </g>
+    
+    <!-- Tape Dispenser -->
+    <g transform="translate(155, 195)">
+      <rect x="0" y="0" width="18" height="10" fill="#374151" rx="3"/>
+      <circle cx="15" cy="5" r="4" fill="#6b7280"/>
+    </g>
+  </g>
+  
+  <!-- Distribution Network -->
+  <g opacity="0.4">
+    <!-- Arrows showing distribution flow -->
+    <path d="M140 120 L180 120" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M220 110 L270 110" stroke="#10b981" stroke-width="2" marker-end="url(#arrowhead2)"/>
+    <path d="M270 140 L320 140" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowhead3)"/>
+    
+    <!-- Distribution points -->
+    <circle cx="320" cy="140" r="8" fill="#f59e0b" opacity="0.3"/>
+    <circle cx="340" cy="160" r="6" fill="#10b981" opacity="0.3"/>
+    <circle cx="350" cy="120" r="5" fill="#3b82f6" opacity="0.3"/>
+  </g>
+  
+  <!-- Title -->
+  <text x="200" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">
+    Office Supplies Management System
+  </text>
+  
+  <!-- Supply Management Icons -->
+  <g transform="translate(340, 60)">
+    <!-- Inventory Icon -->
+    <rect x="0" y="0" width="20" height="15" fill="#3b82f6" rx="2" opacity="0.7"/>
+    <rect x="2" y="2" width="16" height="2" fill="white" rx="1"/>
+    <rect x="2" y="6" width="16" height="2" fill="white" rx="1"/>
+    <rect x="2" y="10" width="16" height="2" fill="white" rx="1"/>
+    
+    <!-- Tracking Icon -->
+    <g transform="translate(0, 20)">
+      <circle cx="10" cy="5" r="8" fill="#10b981" opacity="0.7"/>
+      <path d="M6 5 L9 8 L14 3" stroke="white" stroke-width="2" fill="none"/>
+    </g>
+  </g>
+  
+  <!-- Gradient Definitions -->
+  <defs>
+    <linearGradient id="officeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+    
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+    </marker>
+    
+    <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+    </marker>
+    
+    <marker id="arrowhead3" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+    </marker>
+  </defs>
+</svg>

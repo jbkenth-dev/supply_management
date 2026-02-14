@@ -1,0 +1,88 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Warehouse Background -->
+  <rect width="400" height="300" fill="url(#warehouseGradient)" rx="16"/>
+  
+  <!-- Warehouse Structure -->
+  <rect x="40" y="80" width="320" height="180" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2" rx="8"/>
+  
+  <!-- Loading Dock -->
+  <rect x="60" y="200" width="280" height="40" fill="#64748b" rx="4"/>
+  
+  <!-- Storage Shelves -->
+  <g>
+    <!-- Left Shelf -->
+    <rect x="80" y="100" width="60" height="80" fill="#94a3b8" rx="4"/>
+    <rect x="85" y="110" width="50" height="15" fill="#e2e8f0" rx="2"/>
+    <rect x="85" y="130" width="50" height="15" fill="#e2e8f0" rx="2"/>
+    <rect x="85" y="150" width="50" height="15" fill="#e2e8f0" rx="2"/>
+    
+    <!-- Center Shelf -->
+    <rect x="170" y="100" width="60" height="80" fill="#94a3b8" rx="4"/>
+    <rect x="175" y="110" width="50" height="15" fill="#e2e8f0" rx="2"/>
+    <rect x="175" y="130" width="50" height="15" fill="#e2e8f0" rx="2"/>
+    <rect x="175" y="150" width="50" height="15" fill="#e2e8f0" rx="2"/>
+    
+    <!-- Right Shelf -->
+    <rect x="260" y="100" width="60" height="80" fill="#94a3b8" rx="4"/>
+    <rect x="265" y="110" width="50" height="15" fill="#e2e8f0" rx="2"/>
+    <rect x="265" y="130" width="50" height="15" fill="#e2e8f0" rx="2"/>
+    <rect x="265" y="150" width="50" height="15" fill="#e2e8f0" rx="2"/>
+  </g>
+  
+  <!-- Forklift -->
+  <g transform="translate(120, 180)">
+    <rect x="0" y="10" width="40" height="20" fill="#f97316" rx="4"/>
+    <rect x="5" y="0" width="30" height="10" fill="#1e293b" rx="2"/>
+    <circle cx="8" cy="25" r="4" fill="#374151"/>
+    <circle cx="32" cy="25" r="4" fill="#374151"/>
+    <rect x="35" y="5" width="8" height="15" fill="#6b7280" rx="2"/>
+  </g>
+  
+  <!-- Boxes/Inventory -->
+  <g>
+    <!-- Box 1 -->
+    <rect x="90" y="185" width="12" height="12" fill="#3b82f6" rx="2"/>
+    <rect x="93" y="188" width="6" height="6" fill="#1e40af" rx="1"/>
+    
+    <!-- Box 2 -->
+    <rect x="180" y="185" width="12" height="12" fill="#10b981" rx="2"/>
+    <rect x="183" y="188" width="6" height="6" fill="#047857" rx="1"/>
+    
+    <!-- Box 3 -->
+    <rect x="270" y="185" width="12" height="12" fill="#f59e0b" rx="2"/>
+    <rect x="273" y="188" width="6" height="6" fill="#d97706" rx="1"/>
+  </g>
+  
+  <!-- Roof -->
+  <path d="M40 80 L200 40 L360 80" stroke="#475569" stroke-width="3" fill="none"/>
+  
+  <!-- Supply Chain Arrows -->
+  <g opacity="0.3">
+    <path d="M320 120 L360 120" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M320 140 L360 140" stroke="#10b981" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M320 160 L360 160" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowhead)"/>
+  </g>
+  
+  <!-- Title -->
+  <text x="200" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">
+    Supply Chain Management
+  </text>
+  
+  <!-- Icons -->
+  <g transform="translate(340, 60)">
+    <circle cx="0" cy="0" r="15" fill="#3b82f6" opacity="0.2"/>
+    <path d="M-8 -5 L-8 5 L-3 5 L-3 8 L3 8 L3 5 L8 5 L8 -5 L3 -5 L3 -8 L-3 -8 L-3 -5 Z" fill="#3b82f6"/>
+  </g>
+  
+  <!-- Gradient Definitions -->
+  <defs>
+    <linearGradient id="warehouseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f1f5f9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+    
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+    </marker>
+  </defs>
+</svg>
