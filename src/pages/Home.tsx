@@ -1,26 +1,18 @@
-import { useState, useEffect } from "react";
 import { Button } from "../components/ui/Button";
 import { Link } from "react-router-dom";
 import SystemOverview from "../components/home/SystemOverview";
 import Announcements from "../components/home/Announcements";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, type Variants } from "framer-motion";
 import { ArrowRight, Boxes, ChevronDown, Sparkles } from "lucide-react";
 import { AnimatedBackground } from "../components/ui/AnimatedBackground";
-import { Skeleton } from "../components/ui/Skeleton";
 import sfcgBg from "../assets/sfcg-bg.png";
 
 export default function Home() {
-  const [isLoading, setIsLoading] = useState(true);
   const { scrollY } = useScroll();
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
   const scale = useTransform(scrollY, [0, 300], [1, 0.9]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -30,7 +22,7 @@ export default function Home() {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -69,8 +61,7 @@ export default function Home() {
               variants={itemVariants}
               className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed font-light"
             >
-              Streamline your operations with accurate documentation, real-time updates,
-              and seamless coordination across all departments.
+              a vital function in educational institutions, as it ensures that office supplies and consumable materials are properly monitored, recorded, distributed, and utilized to support both administrative and academic operations.
             </motion.p>
 
             <motion.div
@@ -90,7 +81,7 @@ export default function Home() {
                   className="group px-8 py-6 text-lg rounded-2xl border-white/20 bg-white/5 text-white hover:bg-white/10 backdrop-blur-md"
                 >
                   <Boxes className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform text-secondary-400" />
-                  View Catalog
+                  View Supplies
                 </Button>
               </Link>
             </motion.div>
@@ -111,22 +102,10 @@ export default function Home() {
       <div className="container mx-auto px-4 py-24 space-y-32">
         <section>
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Comprehensive Solutions</h2>
-            <p className="text-slate-600 max-w-2xl mx-auto">Everything you need to manage your inventory efficiently and effectively.</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">System Overview</h2>
+            <p className="text-slate-600 max-w-3xl mx-auto">A project-based overview of the actual modules, roles, and live inventory information available in this supply management system.</p>
           </div>
-          {isLoading ? (
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="space-y-4">
-                  <Skeleton className="h-48 w-full rounded-[2rem]" />
-                  <Skeleton className="h-6 w-3/4 mx-auto" />
-                  <Skeleton className="h-4 w-5/6 mx-auto" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <SystemOverview />
-          )}
+          <SystemOverview />
         </section>
 
         <section className="bg-white rounded-[3.5rem] p-8 md:p-16 shadow-2xl shadow-slate-200/40 border border-slate-100 relative overflow-hidden">
@@ -163,7 +142,7 @@ export default function Home() {
             </div>
 
             <div className="lg:w-3/5">
-              <Announcements isLoading={isLoading} />
+              <Announcements />
             </div>
           </div>
         </section>

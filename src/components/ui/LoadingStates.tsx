@@ -1,6 +1,6 @@
 import { motion } from "framer-motion"
 import { StaggerContainer, StaggerItem } from "./animations"
-import { Skeleton, SkeletonCard, SkeletonTable, SkeletonChart } from "./Skeleton"
+import { Skeleton, SkeletonCard, SkeletonTable, SkeletonChart, SkeletonStat } from "./Skeleton"
 
 interface LoadingStateProps {
   type?: "dashboard" | "inventory" | "table" | "cards"
@@ -13,15 +13,15 @@ export function LoadingState({ type = "table", count = 5 }: LoadingStateProps) {
       {type === "dashboard" && (
         <>
           <StaggerItem>
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {[...Array(4)].map((_, i) => (
-                <SkeletonCard key={i} />
+                <SkeletonStat key={i} />
               ))}
             </div>
           </StaggerItem>
           
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-            <StaggerItem className="xl:col-span-2">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <StaggerItem className="lg:col-span-2">
               <SkeletonChart />
             </StaggerItem>
             <StaggerItem>

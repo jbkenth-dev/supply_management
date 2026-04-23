@@ -4,13 +4,21 @@ interface FadeInProps {
   children: React.ReactNode
   delay?: number
   className?: string
+  direction?: "up" | "down" | "left" | "right"
 }
 
-export function FadeIn({ children, delay = 0, className = "" }: FadeInProps) {
+export function FadeIn({ children, delay = 0, className = "", direction = "up" }: FadeInProps) {
+  const directions = {
+    up: { y: 20, x: 0 },
+    down: { y: -20, x: 0 },
+    left: { x: 20, y: 0 },
+    right: { x: -20, y: 0 }
+  }
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, ...directions[direction] }}
+      animate={{ opacity: 1, y: 0, x: 0 }}
       transition={{ duration: 0.5, delay, ease: "easeOut" }}
       className={className}
     >

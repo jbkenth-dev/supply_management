@@ -3,40 +3,57 @@ import SupplyItem from "./SupplyItem";
 import { LoadingState } from "../ui";
 import { motion, AnimatePresence } from "framer-motion";
 import { CubeIcon } from "@heroicons/react/24/outline";
-import { items as realItems } from "../../data/items";
+import type { SupplyItem as PublicSupplyItem } from "../../types/adminInventory";
 
 export default function SupplyList({ searchTerm, selectedCategory }: { searchTerm: string; selectedCategory: string }) {
   const [loading, setLoading] = useState(true);
-  const [supplies, setSupplies] = useState(realItems);
+  const [supplies, setSupplies] = useState<PublicSupplyItem[]>([]);
 
   useEffect(() => {
-    setLoading(true);
-    const t = setTimeout(() => {
-      setSupplies(realItems);
-      setLoading(false);
-    }, 1200);
-    return () => clearTimeout(t);
+    let cancelled = false
+
+    const loadSupplies = async () => {
+      setLoading(true)
+
+      try {
+        const response = await fetch("/api/public-supplies.php")
+        const result = await response.json()
+
+        if (!response.ok) {
+          throw new Error(result.message ?? "Unable to load supplies.")
+        }
+
+        if (!cancelled) {
+          setSupplies(result.supplies ?? [])
+        }
+      } catch {
+        if (!cancelled) {
+          setSupplies([])
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void loadSupplies()
+
+    return () => {
+      cancelled = true
+    }
   }, []);
 
   const filteredSupplies = supplies.filter((supply) => {
     const matchesSearch = supply.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         supply.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "All" || supply.category === selectedCategory;
+                         supply.categoryName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         supply.itemCode.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "All" || supply.categoryName === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   return (
     <div className="space-y-10">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-8">
-        <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-            Supplies
-          </h2>
-          <p className="text-slate-500 text-sm font-medium mt-1">
-            Viewing {filteredSupplies.length} {filteredSupplies.length === 1 ? 'paper product' : 'paper products'} in this collection
-          </p>
-        </div>
-      </div>
 
       {loading ? (
         <LoadingState type="cards" count={8} />

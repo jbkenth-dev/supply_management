@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, NavLink } from "react-router-dom";
 import {
   HomeIcon,
@@ -6,17 +6,24 @@ import {
   InformationCircleIcon,
   Bars3Icon,
   XMarkIcon,
-  MagnifyingGlassIcon,
-  BellIcon,
-  UserCircleIcon,
   ArrowRightOnRectangleIcon,
   UserPlusIcon
 } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageTransition } from "../components/ui";
+import { getDashboardPath, getStoredAuthUser, type AuthUser } from "../lib/auth";
 
 export default function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(() => getStoredAuthUser());
+
+  useEffect(() => {
+    const syncAuthUser = () => setAuthUser(getStoredAuthUser());
+
+    window.addEventListener("storage", syncAuthUser);
+
+    return () => window.removeEventListener("storage", syncAuthUser);
+  }, []);
 
   const getLinkClass = ({ isActive }: { isActive: boolean }) =>
     `relative flex items-center gap-2 px-5 py-2.5 text-sm font-bold transition-all duration-300 rounded-full group ${
@@ -82,16 +89,27 @@ export default function Layout() {
             </div>
 
             <div className="hidden md:flex items-center gap-3">
-              <NavLink to="/login" className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-slate-600 hover:text-primary-600 hover:bg-primary-50/50 rounded-full transition-all duration-300">
-                <ArrowRightOnRectangleIcon className="w-5 h-5" />
-                Login
-              </NavLink>
-              <NavLink to="/auth/signup">
-                <button className="flex items-center gap-2 bg-primary-600 text-white px-7 py-2.5 rounded-full text-sm font-black shadow-xl shadow-primary-500/20 hover:bg-primary-700 hover:shadow-primary-500/30 hover:-translate-y-0.5 transition-all duration-300 active:scale-95 uppercase tracking-wider">
-                  <UserPlusIcon className="w-5 h-5" />
-                  Get Started
-                </button>
-              </NavLink>
+              {!authUser ? (
+                <>
+                  <NavLink to="/auth/login" className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-slate-600 hover:text-primary-600 hover:bg-primary-50/50 rounded-full transition-all duration-300">
+                    <ArrowRightOnRectangleIcon className="w-5 h-5" />
+                    Login
+                  </NavLink>
+                  <NavLink to="/auth/signup">
+                    <button className="flex items-center gap-2 bg-primary-600 text-white px-7 py-2.5 rounded-full text-sm font-black shadow-xl shadow-primary-500/20 hover:bg-primary-700 hover:shadow-primary-500/30 hover:-translate-y-0.5 transition-all duration-300 active:scale-95 uppercase tracking-wider">
+                      <UserPlusIcon className="w-5 h-5" />
+                      Get Started
+                    </button>
+                  </NavLink>
+                </>
+              ) : (
+                <NavLink
+                  to={getDashboardPath(authUser.role)}
+                  className="flex items-center gap-2 rounded-full bg-primary-600 px-6 py-2.5 text-sm font-black uppercase tracking-wider text-white shadow-xl shadow-primary-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-700 hover:shadow-primary-500/30"
+                >
+                  Open Dashboard
+                </NavLink>
+              )}
             </div>
 
             <div className="md:hidden">
@@ -140,23 +158,35 @@ export default function Layout() {
                   About
                 </NavLink>
                 <div className="h-px bg-slate-100 my-2" />
-                <NavLink
-                  to="/login"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-3 p-4 rounded-2xl text-lg font-bold text-slate-600 hover:bg-slate-50 transition-all"
-                >
-                  <ArrowRightOnRectangleIcon className="w-6 h-6" />
-                  Login
-                </NavLink>
-                <NavLink
-                  to="/auth/signup"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <button className="w-full flex items-center justify-center gap-3 bg-primary-600 text-white p-4 rounded-2xl font-black shadow-lg shadow-primary-500/20 uppercase tracking-widest text-sm">
-                    <UserPlusIcon className="w-6 h-6" />
-                    Get Started
-                  </button>
-                </NavLink>
+                {!authUser ? (
+                  <>
+                    <NavLink
+                      to="/auth/login"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center gap-3 p-4 rounded-2xl text-lg font-bold text-slate-600 hover:bg-slate-50 transition-all"
+                    >
+                      <ArrowRightOnRectangleIcon className="w-6 h-6" />
+                      Login
+                    </NavLink>
+                    <NavLink
+                      to="/auth/signup"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <button className="w-full flex items-center justify-center gap-3 bg-primary-600 text-white p-4 rounded-2xl font-black shadow-lg shadow-primary-500/20 uppercase tracking-widest text-sm">
+                        <UserPlusIcon className="w-6 h-6" />
+                        Get Started
+                      </button>
+                    </NavLink>
+                  </>
+                ) : (
+                  <NavLink
+                    to={getDashboardPath(authUser.role)}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center justify-center gap-3 rounded-2xl bg-primary-600 p-4 text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-primary-500/20 transition-all"
+                  >
+                    Open Dashboard
+                  </NavLink>
+                )}
               </div>
             </motion.div>
           )}

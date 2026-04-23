@@ -1,7 +1,7 @@
 export { StatCard } from './StatCard'
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card'
 export { Button } from './Button'
-export { Skeleton, SkeletonCard, SkeletonTable, SkeletonChart, SkeletonItemDetails } from './Skeleton'
+export { Skeleton, SkeletonCard, SkeletonTable, SkeletonChart, SkeletonItemDetails, SkeletonStat } from './Skeleton'
 export { LoadingState, ErrorState, EmptyState } from './LoadingStates'
 export { PageTransition } from './PageTransition'
 export { FadeIn, ScaleIn, StaggerContainer, StaggerItem } from './animations'

@@ -6,15 +6,15 @@ import {
 } from "../ui/Card";
 import { CubeIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import type { Item } from "../../data/items";
+import type { SupplyItem as PublicSupplyItem } from "../../types/adminInventory";
 
-export default function SupplyItem({ supply }: { supply: Item }) {
+export default function SupplyItem({ supply }: { supply: PublicSupplyItem }) {
   const [loaded, setLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  const getStatusStyles = (quantity: number, reorderLevel: number) => {
+  const getStatusStyles = (quantity: number) => {
     if (quantity === 0) return {
       bg: 'bg-rose-50',
       text: 'text-rose-700',
@@ -22,7 +22,7 @@ export default function SupplyItem({ supply }: { supply: Item }) {
       dot: 'bg-rose-500',
       label: 'Out of Stock'
     };
-    if (quantity <= reorderLevel) return {
+    if (quantity <= 10) return {
       bg: 'bg-amber-50',
       text: 'text-amber-700',
       border: 'border-amber-100',
@@ -38,7 +38,7 @@ export default function SupplyItem({ supply }: { supply: Item }) {
     };
   };
 
-  const status = getStatusStyles(supply.quantity, supply.reorderLevel);
+  const status = getStatusStyles(supply.quantityOnHand);
 
   return (
     <Link to={`/supplies/${supply.itemCode}`} className="group h-full block">
@@ -49,7 +49,7 @@ export default function SupplyItem({ supply }: { supply: Item }) {
               <div className="absolute inset-0 bg-slate-100 animate-pulse" />
             )}
             <img
-              src={imageError ? "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop" : (supply.imageUrl || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop")}
+              src={imageError ? "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop" : (supply.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop")}
               alt={supply.name}
               loading="lazy"
               onLoad={() => setLoaded(true)}
@@ -71,7 +71,7 @@ export default function SupplyItem({ supply }: { supply: Item }) {
           {/* Category Badge on Image */}
           <div className="absolute top-4 left-4">
             <span className="px-4 py-1.5 bg-white/95 backdrop-blur-md text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-full shadow-sm border border-slate-100">
-              {supply.category}
+              {supply.categoryName}
             </span>
           </div>
           </div>
@@ -98,8 +98,7 @@ export default function SupplyItem({ supply }: { supply: Item }) {
             <div className="space-y-1">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Available Stock</p>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-3xl font-black text-slate-900 tracking-tighter">{supply.quantity}</span>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{supply.unit}</span>
+                <span className="text-3xl font-black text-slate-900 tracking-tighter">{supply.quantityOnHand}</span>
               </div>
             </div>
             
@@ -111,16 +110,16 @@ export default function SupplyItem({ supply }: { supply: Item }) {
           <div className="space-y-2">
             <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
               <span>Stock Level</span>
-              <span>{Math.round(Math.min((supply.quantity / (supply.reorderLevel * 2 || 100)) * 100, 100))}%</span>
+              <span>{Math.round(Math.min((supply.quantityOnHand / 100) * 100, 100))}%</span>
             </div>
             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden p-0.5">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${Math.min((supply.quantity / (supply.reorderLevel * 2 || 100)) * 100, 100)}%` }}
+                animate={{ width: `${Math.min((supply.quantityOnHand / 100) * 100, 100)}%` }}
                 transition={{ duration: 1.5, ease: "circOut" }}
                 className={`h-full rounded-full ${
-                  supply.quantity > supply.reorderLevel ? 'bg-emerald-500' :
-                  supply.quantity > 0 ? 'bg-amber-500' : 'bg-rose-500'
+                  supply.quantityOnHand > 10 ? 'bg-emerald-500' :
+                  supply.quantityOnHand > 0 ? 'bg-amber-500' : 'bg-rose-500'
                 }`}
               />
             </div>

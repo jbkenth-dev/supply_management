@@ -1,35 +1,23 @@
-import { Card } from "../ui/Card";
-import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Bell, ArrowRight, Sparkles, AlertCircle, Info } from "lucide-react";
-import { Skeleton } from "../ui/Skeleton";
+import { useEffect, useState } from "react"
+import dayjs from "dayjs"
+import { motion, AnimatePresence } from "framer-motion"
+import { Calendar, Bell, ArrowRight, Sparkles, AlertCircle, Info } from "lucide-react"
+import { Card } from "../ui/Card"
+import { Skeleton } from "../ui/Skeleton"
 
-interface Announcement {
-  title: string;
-  date: string;
-  description: string;
-  type: "feature" | "maintenance" | "update";
+type Announcement = {
+  id: number
+  title: string
+  publishedAt: string
+  description: string
+  type: "feature" | "maintenance" | "update"
 }
 
-const announcements: Announcement[] = [
-  {
-    title: "New Feature: Real-time Analytics",
-    date: "2026-02-10",
-    description: "We've launched a new real-time analytics dashboard to provide you with up-to-the-minute insights.",
-    type: "feature",
-  },
-  {
-    title: "System Maintenance",
-    date: "2026-02-15",
-    description: "We will be performing scheduled maintenance on February 15th from 2:00 AM to 4:00 AM UTC.",
-    type: "maintenance",
-  },
-  {
-    title: "New Supplier Integration",
-    date: "2026-02-05",
-    description: "We've added a new integration with a major supplier to expand our network.",
-    type: "update",
-  },
-];
+type AnnouncementsResponse = {
+  success: boolean
+  announcements: Announcement[]
+  message?: string
+}
 
 const getTypeStyles = (type: Announcement["type"]) => {
   switch (type) {
@@ -37,38 +25,28 @@ const getTypeStyles = (type: Announcement["type"]) => {
       return {
         bg: "bg-blue-50",
         text: "text-blue-700",
-        icon: <Sparkles className="w-4 h-4" />,
-        border: "border-blue-100"
-      };
+        icon: <Sparkles className="h-4 w-4" />,
+      }
     case "maintenance":
       return {
         bg: "bg-amber-50",
         text: "text-amber-700",
-        icon: <AlertCircle className="w-4 h-4" />,
-        border: "border-amber-100"
-      };
-    case "update":
+        icon: <AlertCircle className="h-4 w-4" />,
+      }
+    default:
       return {
         bg: "bg-emerald-50",
         text: "text-emerald-700",
-        icon: <Info className="w-4 h-4" />,
-        border: "border-emerald-100"
-      };
-    default:
-      return {
-        bg: "bg-slate-50",
-        text: "text-slate-700",
-        icon: <Bell className="w-4 h-4" />,
-        border: "border-slate-100"
-      };
+        icon: <Info className="h-4 w-4" />,
+      }
   }
-};
+}
 
 export function SkeletonAnnouncements() {
   return (
     <div className="space-y-4">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="flex gap-4 p-4 rounded-3xl bg-white border border-slate-100">
+        <div key={i} className="flex gap-4 rounded-3xl bg-white p-4 border border-slate-100">
           <Skeleton height="h-12" width="w-12" className="shrink-0 rounded-2xl" />
           <div className="flex-grow space-y-2">
             <div className="flex justify-between">
@@ -81,20 +59,71 @@ export function SkeletonAnnouncements() {
         </div>
       ))}
     </div>
-  );
+  )
 }
 
-export default function Announcements({ isLoading = false }: { isLoading?: boolean }) {
-  if (isLoading) return <SkeletonAnnouncements />;
+export default function Announcements() {
+  const [loading, setLoading] = useState(true)
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadAnnouncements = async () => {
+      setLoading(true)
+
+      try {
+        const response = await fetch("/api/announcements.php?limit=3")
+        const result = (await response.json()) as AnnouncementsResponse
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message ?? "Unable to load announcements.")
+        }
+
+        if (!cancelled) {
+          setAnnouncements(result.announcements ?? [])
+        }
+      } catch {
+        if (!cancelled) {
+          setAnnouncements([])
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void loadAnnouncements()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (loading) {
+    return <SkeletonAnnouncements />
+  }
+
+  if (announcements.length === 0) {
+    return (
+      <div className="rounded-[2rem] border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
+        <Bell className="mx-auto h-10 w-10 text-slate-300" />
+        <p className="mt-4 text-sm font-semibold text-slate-900">No announcements yet</p>
+        <p className="mt-2 text-sm text-slate-500">Announcements posted by administrators will appear here.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
       <AnimatePresence mode="popLayout">
         {announcements.map((announcement, index) => {
-          const styles = getTypeStyles(announcement.type);
+          const styles = getTypeStyles(announcement.type)
+
           return (
             <motion.div
-              key={announcement.title}
+              key={announcement.id}
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -102,39 +131,37 @@ export default function Announcements({ isLoading = false }: { isLoading?: boole
               whileHover={{ x: 8 }}
               className="group cursor-pointer"
             >
-              <Card className="h-full border border-slate-100 bg-white hover:border-primary-100 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 rounded-[2rem] overflow-hidden">
+              <Card className="h-full overflow-hidden rounded-[2rem] border border-slate-100 bg-white transition-all duration-300 hover:border-primary-100 hover:shadow-xl hover:shadow-primary-500/5">
                 <div className="flex items-start gap-4 p-5">
-                  <div className={`shrink-0 w-12 h-12 rounded-2xl ${styles.bg} ${styles.text} flex items-center justify-center transition-transform group-hover:scale-110 duration-300`}>
+                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${styles.bg} ${styles.text} transition-transform duration-300 group-hover:scale-110`}>
                     {styles.icon}
                   </div>
-                  <div className="flex-grow min-w-0">
-                    <div className="flex items-center justify-between mb-1">
+                  <div className="min-w-0 flex-grow">
+                    <div className="mb-1 flex items-center justify-between">
                       <span className={`text-[10px] font-black uppercase tracking-widest ${styles.text}`}>
                         {announcement.type}
                       </span>
-                      <div className="flex items-center text-slate-400 text-[10px] font-bold">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {announcement.date}
+                      <div className="flex items-center text-[10px] font-bold text-slate-400">
+                        <Calendar className="mr-1 h-3 w-3" />
+                        {dayjs(announcement.publishedAt).format("MMM D, YYYY")}
                       </div>
                     </div>
-                    <h3 className="text-base font-bold text-slate-900 mb-1 group-hover:text-primary-600 transition-colors line-clamp-1">
+                    <h3 className="mb-1 line-clamp-1 text-base font-bold text-slate-900 transition-colors group-hover:text-primary-600">
                       {announcement.title}
                     </h3>
-                    <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
-                      {announcement.description}
-                    </p>
+                    <p className="line-clamp-2 text-xs leading-relaxed text-slate-500">{announcement.description}</p>
                   </div>
-                  <div className="shrink-0 self-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center">
-                      <ArrowRight className="w-4 h-4" />
+                  <div className="shrink-0 self-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-50 text-primary-600">
+                      <ArrowRight className="h-4 w-4" />
                     </div>
                   </div>
                 </div>
               </Card>
             </motion.div>
-          );
+          )
         })}
       </AnimatePresence>
     </div>
-  );
+  )
 }

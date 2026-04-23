@@ -28,6 +28,21 @@ export function Skeleton({
   )
 }
 
+export function SkeletonStat() {
+  return (
+    <div className="rounded-xl border bg-white p-6 shadow-sm h-full">
+      <div className="animate-pulse flex items-center justify-between">
+        <div className="space-y-3 w-full">
+          <Skeleton height="h-4" width="w-24" />
+          <Skeleton height="h-8" width="w-16" />
+          <Skeleton height="h-4" width="w-32" />
+        </div>
+        <Skeleton height="h-12" width="w-12" rounded className="ml-4" />
+      </div>
+    </div>
+  )
+}
+
 export function SkeletonCard() {
   return (
     <div className="bg-white rounded-3xl border border-slate-200 p-0 overflow-hidden h-full flex flex-col">

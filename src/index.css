@@ -13,6 +13,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root {
+  --auth-bg: #f4f8ff;
+  --auth-ink: rgba(37, 99, 235, 0.08);
+  --auth-ink-strong: rgba(37, 99, 235, 0.14);
+  --auth-line: rgba(148, 163, 184, 0.14);
+  --auth-card: rgba(255, 255, 255, 0.82);
+  --auth-card-border: rgba(255, 255, 255, 0.68);
+  --auth-shadow: 0 32px 80px rgba(37, 99, 235, 0.12);
+}
+
 /* Custom animations */
 @keyframes fadeIn {
   from {
@@ -129,4 +139,114 @@ html {
     padding-left: 2rem; /* lg:px-8 */
     padding-right: 2rem; /* lg:px-8 */
   }
+}
+
+.auth-shell {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 34%),
+    radial-gradient(circle at 85% 18%, rgba(37, 99, 235, 0.1), transparent 24%),
+    radial-gradient(circle at 50% 100%, rgba(37, 99, 235, 0.1), transparent 34%),
+    linear-gradient(135deg, #f8fbff 0%, #eef4ff 46%, #f7faff 100%);
+}
+
+.auth-shell::before,
+.auth-shell::after {
+  content: "";
+  position: absolute;
+  inset: auto;
+  border-radius: 999px;
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.auth-shell::before {
+  width: 42rem;
+  height: 42rem;
+  top: -16rem;
+  left: -10rem;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.08) 42%, transparent 72%),
+    radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.12), rgba(37, 99, 235, 0.03) 52%, transparent 74%);
+  opacity: 0.95;
+}
+
+.auth-shell::after {
+  width: 40rem;
+  height: 24rem;
+  right: -9rem;
+  bottom: -7rem;
+  transform: rotate(-10deg);
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.72), transparent 34%),
+    linear-gradient(135deg, rgba(37, 99, 235, 0.06), rgba(37, 99, 235, 0.16));
+  opacity: 0.9;
+}
+
+.auth-orb {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.75), rgba(59, 130, 246, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 30px 60px rgba(37, 99, 235, 0.08);
+}
+
+.auth-orb-one {
+  width: min(34rem, 72vw);
+  height: min(18rem, 44vw);
+  top: 8%;
+  right: -10%;
+  transform: rotate(-14deg);
+}
+
+.auth-orb-two {
+  width: min(30rem, 74vw);
+  height: min(16rem, 46vw);
+  bottom: 10%;
+  left: -12%;
+  transform: rotate(12deg);
+  opacity: 0.78;
+}
+
+.auth-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, transparent 0, transparent calc(100% - 1px), var(--auth-line) 100%),
+    linear-gradient(to bottom, transparent 0, transparent calc(100% - 1px), var(--auth-line) 100%);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(circle at center, black 26%, transparent 88%);
+  opacity: 0.45;
+}
+
+.auth-wave {
+  position: absolute;
+  left: 50%;
+  width: 130vw;
+  height: 15rem;
+  transform: translateX(-50%);
+  pointer-events: none;
+  border-radius: 50%;
+  border: 1px solid rgba(37, 99, 235, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.02));
+}
+
+.auth-wave-top {
+  top: -10rem;
+}
+
+.auth-wave-bottom {
+  bottom: -10.5rem;
+}
+
+.auth-card {
+  position: relative;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), var(--auth-card));
+  border: 1px solid var(--auth-card-border);
+  box-shadow: var(--auth-shadow);
 }

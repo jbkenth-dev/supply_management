@@ -23,9 +23,9 @@ export default function Users() {
                   <Td>
                     <span
                       className={`inline-flex rounded-md px-2 py-1 text-xs ring-1 ring-inset ${
-                        u.role === "Admin"
+                        u.role === "Administrator"
                           ? "bg-purple-50 text-purple-700 ring-purple-600/20"
-                          : u.role === "Manager"
+                          : u.role === "Property Custodian"
                           ? "bg-blue-50 text-blue-700 ring-blue-600/20"
                           : "bg-slate-50 text-slate-700 ring-slate-600/20"
                       }`}

@@ -1,20 +1,47 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SupplyList from "../components/supplies/SupplyList";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MagnifyingGlassIcon,
-  CubeIcon,
   AdjustmentsHorizontalIcon,
   XMarkIcon
 } from "@heroicons/react/24/outline";
 import { FadeIn, StaggerContainer, StaggerItem } from "../components/ui/animations";
 
-const categories = ["All", "Bond Paper", "Notebooks", "Writing Pads", "Art Paper", "Filing"];
-
 export default function Supplies() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
+  const [categories, setCategories] = useState<string[]>(["All"]);
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadCategories = async () => {
+      try {
+        const response = await fetch("/api/public-supplies.php")
+        const result = await response.json()
+
+        if (!response.ok) {
+          throw new Error(result.message ?? "Unable to load categories.")
+        }
+
+        if (!cancelled) {
+          setCategories(["All", ...(result.categories ?? [])])
+        }
+      } catch {
+        if (!cancelled) {
+          setCategories(["All"])
+        }
+      }
+    }
+
+    void loadCategories()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-slate-50/50">

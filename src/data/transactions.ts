@@ -8,55 +8,61 @@ export type Transaction = {
   reference: string
   requestedBy?: string
   notes?: string
+  status?: "Pending" | "Approved" | "Rejected"
 }
 
 export const transactions: Transaction[] = [
   {
     id: "TX-20260208-001",
     type: "OUT",
-    itemCode: "FIN-312",
+    itemCode: "PPR-001",
     quantity: 8,
-    unit: "units",
+    unit: "reams",
     date: "2026-02-08",
     reference: "SO-11983",
     requestedBy: "Sales Ops",
+    status: "Approved"
   },
   {
     id: "TX-20260208-002",
     type: "OUT",
-    itemCode: "CMP-221",
-    quantity: 400,
-    unit: "pcs",
+    itemCode: "PPR-002",
+    quantity: 15,
+    unit: "reams",
     date: "2026-02-08",
     reference: "WO-82711",
     requestedBy: "Assembly Line A",
+    status: "Pending"
   },
   {
     id: "TX-20260206-001",
     type: "IN",
-    itemCode: "SAF-101",
+    itemCode: "PPR-003",
     quantity: 60,
-    unit: "boxes",
+    unit: "pcs",
     date: "2026-02-06",
     reference: "PO-55321",
     notes: "Delivered to central stores",
+    status: "Approved"
   },
   {
     id: "TX-20260205-001",
     type: "IN",
-    itemCode: "PKG-010",
-    quantity: 2000,
-    unit: "pcs",
+    itemCode: "PPR-004",
+    quantity: 100,
+    unit: "pads",
     date: "2026-02-05",
     reference: "PO-55290",
+    status: "Approved"
   },
   {
     id: "TX-20260202-001",
     type: "OUT",
-    itemCode: "RM-001",
+    itemCode: "PPR-005",
     quantity: 20,
-    unit: "tons",
+    unit: "packs",
     date: "2026-02-02",
     reference: "WO-82310",
+    status: "Rejected"
   },
 ]
