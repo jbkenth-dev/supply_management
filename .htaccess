@@ -1,0 +1,5 @@
+RewriteEngine On
+
+# Map /uploads/ to /public/uploads/ so uploaded images are served correctly
+# PHP stores files in public/uploads/ but returns /uploads/ URLs.
+RewriteRule ^uploads/(.*)$ public/uploads/$1 [L]

@@ -5,6 +5,10 @@
       "source": "/api/(.*)",
       "destination": "http://sfcg-supply.atwebpages.com/api/$1"
     },
+    {
+      "source": "/uploads/(.*)",
+      "destination": "http://sfcg-supply.atwebpages.com/uploads/$1"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
