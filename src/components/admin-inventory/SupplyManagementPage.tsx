@@ -726,7 +726,7 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 12, scale: 0.96 }}
               transition={{ duration: 0.22 }}
-              className="w-full max-w-5xl overflow-hidden rounded-[2rem] border border-brown-200 bg-white shadow-2xl"
+              className="w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-[2rem] border border-brown-200 bg-white shadow-2xl"
               role="dialog"
               aria-modal="true"
               aria-labelledby="supply-modal-title"

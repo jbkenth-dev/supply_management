@@ -110,14 +110,14 @@ const SignUp = () => {
       <div className="auth-wave auth-wave-top" />
       <div className="auth-wave auth-wave-bottom" />
 
-      <div className="auth-card w-full max-w-[520px] rounded-[2.5rem] p-8 sm:p-12">
+      <div className="auth-card w-full max-w-full sm:max-w-[520px] mx-4 sm:mx-0 rounded-[2.5rem] p-6 sm:p-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           <div className="mb-10 text-center">
-            <h2 className="text-3xl font-black text-brown-900 mb-2">Create Account</h2>
+            <h2 className="text-2xl sm:text-3xl font-black text-brown-900 mb-2">Create Account</h2>
             <p className="text-brown-500 font-medium">Register as faculty staff/property custodian to start managing supplies.</p>
           </div>
 

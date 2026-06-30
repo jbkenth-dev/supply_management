@@ -484,7 +484,7 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
                 </button>
 
                 {notificationMenuOpen ? (
-                  <div className="absolute right-0 top-12 z-50 w-[24rem] overflow-hidden rounded-3xl border border-brown-200 bg-white shadow-2xl">
+                  <div className="fixed right-4 left-4 sm:absolute sm:left-auto sm:right-0 top-16 sm:top-12 z-50 max-w-[24rem] w-auto sm:w-[24rem] overflow-hidden rounded-3xl border border-brown-200 bg-white shadow-2xl">
                     <div className="flex items-center justify-between border-b border-brown-200 px-5 py-4">
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Notifications</p>

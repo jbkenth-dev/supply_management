@@ -899,7 +899,7 @@ function ModalShell({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="w-full max-w-4xl rounded-[2rem] border border-brown-200 bg-white p-6 shadow-2xl sm:p-8"
+        className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[2rem] border border-brown-200 bg-white p-6 shadow-2xl sm:p-8"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-6 flex items-center justify-between gap-4">

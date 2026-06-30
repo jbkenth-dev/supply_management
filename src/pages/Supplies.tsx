@@ -62,7 +62,7 @@ export default function Supplies() {
                     <input
                       type="text"
                       placeholder="Search for bond paper, notebooks, pads..."
-                      className="w-full pl-14 pr-14 py-6 bg-brown-50/50 border border-brown-200 rounded-[2rem] focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500/50 focus:bg-white transition-all text-xl placeholder:text-brown-400 shadow-sm"
+                      className="w-full pl-14 pr-14 py-4 sm:py-6 bg-brown-50/50 border border-brown-200 rounded-[2rem] focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500/50 focus:bg-white transition-all text-base sm:text-xl placeholder:text-brown-400 shadow-sm"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />

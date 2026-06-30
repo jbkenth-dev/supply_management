@@ -146,7 +146,7 @@ export default function Login() {
           transition={{ duration: 0.5 }}
         >
           <div className="mb-10">
-            <h2 className="text-3xl font-black text-brown-900 mb-3">Sign In</h2>
+            <h2 className="text-2xl sm:text-3xl font-black text-brown-900 mb-3">Sign In</h2>
             <p className="text-brown-500">Welcome back! Please enter your details.</p>
           </div>
 
@@ -183,7 +183,7 @@ export default function Login() {
                       setServerMessage("")
                       setAttemptsRemaining(null)
                     }}
-                    className="w-full pl-11 pr-4 py-3.5 bg-brown-50 border border-brown-200 rounded-xl text-brown-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                    className="w-full pl-11 pr-4 py-3.5 bg-brown-50 border border-brown-200 rounded-xl text-sm text-brown-900 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                     placeholder="Enter your email or username"
                     required
                     disabled={isLoading || isLocked}

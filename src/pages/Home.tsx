@@ -49,7 +49,7 @@ export default function Home() {
           >
             <motion.h1
               variants={itemVariants}
-              className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-8 leading-[1.1]"
+              className="text-3xl sm:text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-8 leading-[1.1]"
             >
               WEB-BASED STOCKS & <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-secondary-400">
@@ -59,7 +59,7 @@ export default function Home() {
 
             <motion.p
               variants={itemVariants}
-              className="text-xl text-brown-300 mb-10 max-w-2xl mx-auto leading-relaxed font-light"
+              className="text-base sm:text-xl text-brown-300 mb-10 max-w-2xl mx-auto leading-relaxed font-light"
             >
               a vital function in educational institutions, as it ensures that office supplies and consumable materials are properly monitored, recorded, distributed, and utilized to support both administrative and academic operations.
             </motion.p>
