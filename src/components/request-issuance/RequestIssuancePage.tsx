@@ -416,16 +416,16 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
       <div className="space-y-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">Admin Request & Issuance</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Request and Issuance</h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Admin Request & Issuance</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-brown-900">Request and Issuance</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-brown-500">
               Review all faculty supply requests.
             </p>
           </div>
           <button
             type="button"
             onClick={printReport}
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm font-semibold text-brown-700 transition hover:border-brown-300 hover:bg-brown-50"
           >
             <PrinterIcon className="mr-2 h-4 w-4" />
             Print Reports
@@ -450,20 +450,20 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
           <SummaryCard label="Issued" value={summary.fulfilledRequests} tone="emerald" />
         </div>
 
-        <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Search</p>
-              <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">All Supply Requests</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Search</p>
+              <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">All Supply Requests</h2>
             </div>
             <div className="relative w-full max-w-lg">
-              <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+              <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-brown-400" />
               <input
                 type="search"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Search request no, requester, ID, email, slip no, or item"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3 pl-11 pr-4 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
               />
             </div>
           </div>
@@ -475,13 +475,13 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
               <EmptyState title="No request records found" description="Requests submitted by faculty will appear here." />
             ) : (
               paginatedRequests.map((request) => (
-                <article key={request.id} className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+                <article key={request.id} className="rounded-[1.75rem] border border-brown-200 bg-brown-50 p-5">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="flex items-start gap-4">
                       <RequesterAvatar request={request} sizeClassName="h-14 w-14" textClassName="text-lg" />
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                          <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brown-500">
                             {request.requestNumber}
                           </span>
                           <StatusBadge status={request.status} />
@@ -491,11 +491,11 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                             </span>
                           ) : null}
                         </div>
-                        <h3 className="mt-3 text-xl font-black tracking-tight text-slate-900">{request.requestedByName}</h3>
-                        <p className="mt-2 text-sm text-slate-500">
+                        <h3 className="mt-3 text-xl font-black tracking-tight text-brown-900">{request.requestedByName}</h3>
+                        <p className="mt-2 text-sm text-brown-500">
                           ID Number: {request.requestedByIdNumber || "Not available"} • {request.requestedByEmail || "No email"}
                         </p>
-                        <p className="mt-1 text-sm text-slate-500">
+                        <p className="mt-1 text-sm text-brown-500">
                           Submitted {formatDateTime(request.createdAt)} • {request.totalItems} item{request.totalItems === 1 ? "" : "s"} • Quantity: {request.totalQuantity}
                         </p>
                       </div>
@@ -516,9 +516,9 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
 
                   <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                     {request.items.map((item) => (
-                      <div key={item.requestItemId} className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <div key={item.requestItemId} className="rounded-2xl border border-brown-200 bg-white p-4">
                         <div className="flex items-start gap-4">
-                          <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                          <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-brown-200 bg-brown-50">
                             <img
                               src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop"}
                               alt={item.name}
@@ -526,14 +526,14 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                             />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-slate-900">{item.name}</p>
-                            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                            <p className="font-semibold text-brown-900">{item.name}</p>
+                            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-brown-400">
                               {item.itemCode} • {item.categoryName}
                             </p>
                             <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                              <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-700">Requested: {item.quantityRequested}</span>
+                              <span className="rounded-full bg-brown-100 px-3 py-1 text-brown-700">Requested: {item.quantityRequested}</span>
                               {item.quantityApproved !== null ? (
-                                <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">Approved: {item.quantityApproved}</span>
+                                <span className="rounded-full bg-primary-50 px-3 py-1 text-primary-700">Approved: {item.quantityApproved}</span>
                               ) : null}
                               {item.quantityFulfilled > 0 ? (
                                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">Issued: {item.quantityFulfilled}</span>
@@ -561,21 +561,21 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
           ) : null}
         </section>
 
-        <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Issuance</p>
-              <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Issuance History</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Issuance</p>
+              <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Issuance History</h2>
             </div>
             <div className="w-full max-w-lg">
               <div className="relative">
-                <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-brown-400" />
                 <input
                   type="search"
                   value={issuanceSearchTerm}
                   onChange={(event) => setIssuanceSearchTerm(event.target.value)}
                   placeholder="Search slip no, request no, requester, issuer, or item"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3 pl-11 pr-4 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                 />
               </div>
             </div>
@@ -595,16 +595,16 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
               />
             ) : (
               paginatedIssuanceHistory.map((request) => (
-                <div key={request.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div key={request.id} className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                     <div className="flex items-start gap-4">
                       <RequesterAvatar request={request} sizeClassName="h-12 w-12" textClassName="text-base" />
                       <div>
-                        <p className="font-semibold text-slate-900">{request.requestedByName}</p>
-                        <p className="mt-1 text-sm text-slate-500">
+                        <p className="font-semibold text-brown-900">{request.requestedByName}</p>
+                        <p className="mt-1 text-sm text-brown-500">
                           {request.issuanceSlipNo ?? request.requestNumber} • Issued {request.fulfilledAt ? formatDateTime(request.fulfilledAt) : "Not recorded"}
                         </p>
-                        <p className="mt-1 text-sm text-slate-500">
+                        <p className="mt-1 text-sm text-brown-500">
                           Issued by {request.fulfilledByName || role} • Total quantity: {request.totalQuantity}
                         </p>
                       </div>
@@ -635,12 +635,12 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
       {selectedRequest ? (
         <ModalShell onClose={() => setSelectedRequest(null)} title="Request Details">
           <div className="space-y-5">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
               <div className="flex items-start gap-4">
                 <RequesterAvatar request={selectedRequest} sizeClassName="h-16 w-16" textClassName="text-xl" />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                    <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brown-500">
                       {selectedRequest.requestNumber}
                     </span>
                     <StatusBadge status={selectedRequest.status} />
@@ -650,11 +650,11 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-3 text-lg font-black text-slate-900">{selectedRequest.requestedByName}</p>
-                  <p className="mt-2 text-sm text-slate-500">
+                  <p className="mt-3 text-lg font-black text-brown-900">{selectedRequest.requestedByName}</p>
+                  <p className="mt-2 text-sm text-brown-500">
                     ID Number: {selectedRequest.requestedByIdNumber || "Not available"} • {selectedRequest.requestedByEmail || "No email"}
                   </p>
-                  <p className="mt-2 text-sm text-slate-500">
+                  <p className="mt-2 text-sm text-brown-500">
                     Submitted {formatDateTime(selectedRequest.createdAt)}
                     {selectedRequest.reviewedAt ? ` • Reviewed ${formatDateTime(selectedRequest.reviewedAt)}` : ""}
                     {selectedRequest.fulfilledAt ? ` • Issued ${formatDateTime(selectedRequest.fulfilledAt)}` : ""}
@@ -665,9 +665,9 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
 
             <div className="grid gap-4 md:grid-cols-2">
               {selectedRequest.items.map((item) => (
-                <div key={item.requestItemId} className="rounded-2xl border border-slate-200 bg-white p-4">
+                <div key={item.requestItemId} className="rounded-2xl border border-brown-200 bg-white p-4">
                   <div className="flex items-start gap-4">
-                    <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                    <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-brown-200 bg-brown-50">
                       <img
                         src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=240&h=240&fit=crop"}
                         alt={item.name}
@@ -675,13 +675,13 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-slate-900">{item.name}</p>
-                      <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                      <p className="font-semibold text-brown-900">{item.name}</p>
+                      <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-brown-400">
                         {item.itemCode} • {item.categoryName}
                       </p>
                       <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-700">Requested: {item.quantityRequested}</span>
-                        <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">Approved: {item.quantityApproved ?? 0}</span>
+                        <span className="rounded-full bg-brown-100 px-3 py-1 text-brown-700">Requested: {item.quantityRequested}</span>
+                        <span className="rounded-full bg-primary-50 px-3 py-1 text-primary-700">Approved: {item.quantityApproved ?? 0}</span>
                         <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">Issued: {item.quantityFulfilled}</span>
                       </div>
                     </div>
@@ -704,7 +704,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
               <button
                 type="button"
                 onClick={() => setSelectedRequest(null)}
-                className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                className="inline-flex items-center justify-center rounded-xl border border-brown-200 px-4 py-2.5 text-sm font-semibold text-brown-700 transition hover:bg-brown-50"
               >
                 Close
               </button>
@@ -716,18 +716,18 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
       {actionRequest && actionType ? (
         <ModalShell onClose={closeActionModal} title={getActionTitle(actionType)}>
           <div className="space-y-5">
-            <p className="text-sm leading-6 text-slate-500">
-              {getActionDescription(actionType)} <span className="font-semibold text-slate-900">{actionRequest.requestNumber}</span> for{" "}
-              <span className="font-semibold text-slate-900">{actionRequest.requestedByName}</span>.
+            <p className="text-sm leading-6 text-brown-500">
+              {getActionDescription(actionType)} <span className="font-semibold text-brown-900">{actionRequest.requestNumber}</span> for{" "}
+              <span className="font-semibold text-brown-900">{actionRequest.requestedByName}</span>.
             </p>
 
             <div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Notes</label>
+              <label className="mb-2 block text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Notes</label>
               <textarea
                 value={reviewNotes}
                 onChange={(event) => setReviewNotes(event.target.value)}
                 rows={4}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                 placeholder="Add approval, rejection, or issuance notes"
               />
             </div>
@@ -737,7 +737,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                 type="button"
                 onClick={closeActionModal}
                 disabled={busyAction !== null}
-                className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel
               </button>
@@ -745,7 +745,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                 type="button"
                 onClick={() => void submitAction()}
                 disabled={busyAction !== null}
-                className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {busyAction === actionType ? "Saving..." : getActionButtonLabel(actionType)}
               </button>
@@ -759,16 +759,16 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
 
 function SummaryCard({ label, value, tone }: { label: string; value: number; tone: "slate" | "amber" | "blue" | "rose" | "emerald" }) {
   const classes = {
-    slate: "bg-slate-100 text-slate-700",
+    slate: "bg-brown-100 text-brown-700",
     amber: "bg-amber-50 text-amber-700",
-    blue: "bg-blue-50 text-blue-700",
+    blue: "bg-primary-50 text-primary-700",
     rose: "bg-rose-50 text-rose-700",
     emerald: "bg-emerald-50 text-emerald-700",
   }
 
   return (
-    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+    <div className="rounded-[1.5rem] border border-brown-200 bg-white p-5 shadow-sm">
+      <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">{label}</p>
       <div className={`mt-4 inline-flex rounded-full px-3 py-1 text-xs font-bold ${classes[tone]}`}>{value.toLocaleString()}</div>
     </div>
   )
@@ -779,12 +779,12 @@ function StatusBadge({ status }: { status: AdminRequestRecord["status"] }) {
     status === "Pending"
       ? "bg-amber-100 text-amber-700"
       : status === "Approved"
-        ? "bg-blue-100 text-blue-700"
+        ? "bg-primary-100 text-primary-700"
         : status === "Fulfilled"
           ? "bg-emerald-100 text-emerald-700"
           : status === "Rejected"
             ? "bg-rose-100 text-rose-700"
-            : "bg-slate-200 text-slate-700"
+            : "bg-brown-200 text-brown-700"
 
   return <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${className}`}>{status}</span>
 }
@@ -801,10 +801,10 @@ function ActionButton({
   tone?: "slate" | "emerald" | "rose" | "blue"
 }) {
   const classes = {
-    slate: "border-slate-200 text-slate-700 hover:bg-slate-50",
+    slate: "border-brown-200 text-brown-700 hover:bg-brown-50",
     emerald: "border-emerald-200 text-emerald-700 hover:bg-emerald-50",
     rose: "border-rose-200 text-rose-700 hover:bg-rose-50",
-    blue: "border-blue-200 text-blue-700 hover:bg-blue-50",
+    blue: "border-primary-200 text-primary-700 hover:bg-primary-50",
   }
 
   return (
@@ -823,7 +823,7 @@ function LoadingCards({ count }: { count: number }) {
   return (
     <div className="space-y-4">
       {Array.from({ length: count }).map((_, index) => (
-        <div key={index} className="h-36 animate-pulse rounded-[1.75rem] bg-slate-100" />
+        <div key={index} className="h-36 animate-pulse rounded-[1.75rem] bg-brown-100" />
       ))}
     </div>
   )
@@ -831,10 +831,10 @@ function LoadingCards({ count }: { count: number }) {
 
 function EmptyState({ title, description }: { title: string; description: string }) {
   return (
-    <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
-      <ClipboardDocumentListIcon className="mx-auto h-10 w-10 text-slate-300" />
-      <p className="mt-4 text-sm font-semibold text-slate-900">{title}</p>
-      <p className="mt-2 text-sm text-slate-500">{description}</p>
+    <div className="rounded-[1.5rem] border border-dashed border-brown-200 bg-brown-50 px-6 py-12 text-center">
+      <ClipboardDocumentListIcon className="mx-auto h-10 w-10 text-brown-300" />
+      <p className="mt-4 text-sm font-semibold text-brown-900">{title}</p>
+      <p className="mt-2 text-sm text-brown-500">{description}</p>
     </div>
   )
 }
@@ -858,8 +858,8 @@ function PaginationControls({
   const endItem = Math.min(currentPage * pageSize, totalItems)
 
   return (
-    <div className="mt-5 flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-slate-500">
+    <div className="mt-5 flex flex-col gap-3 border-t border-brown-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm text-brown-500">
         Showing {startItem}-{endItem} of {totalItems} {itemLabel}
       </p>
       <div className="flex items-center gap-2">
@@ -867,18 +867,18 @@ function PaginationControls({
           type="button"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-xl border border-brown-200 bg-white px-4 py-2 text-sm font-semibold text-brown-700 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Previous
         </button>
-        <span className="min-w-20 text-center text-sm font-semibold text-slate-600">
+        <span className="min-w-20 text-center text-sm font-semibold text-brown-600">
           Page {currentPage} of {totalPages}
         </span>
         <button
           type="button"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-xl border border-brown-200 bg-white px-4 py-2 text-sm font-semibold text-brown-700 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Next
         </button>
@@ -897,17 +897,17 @@ function ModalShell({
   onClose: () => void
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="w-full max-w-4xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl sm:p-8"
+        className="w-full max-w-4xl rounded-[2rem] border border-brown-200 bg-white p-6 shadow-2xl sm:p-8"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-6 flex items-center justify-between gap-4">
-          <h2 className="text-2xl font-black tracking-tight text-slate-900">{title}</h2>
+          <h2 className="text-2xl font-black tracking-tight text-brown-900">{title}</h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="rounded-xl border border-brown-200 px-4 py-2 text-sm font-semibold text-brown-700 transition hover:bg-brown-50"
           >
             Close
           </button>
@@ -920,9 +920,9 @@ function ModalShell({
 
 function InfoBlock({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">{label}</p>
-      <p className="mt-2 text-sm leading-6 text-slate-700">{value}</p>
+    <div className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
+      <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">{label}</p>
+      <p className="mt-2 text-sm leading-6 text-brown-700">{value}</p>
     </div>
   )
 }
@@ -943,14 +943,14 @@ function RequesterAvatar({
       <img
         src={request.requestedByProfileImageUrl}
         alt={request.requestedByName}
-        className={`${sizeClassName} flex-shrink-0 rounded-full border border-slate-200 object-cover`}
+        className={`${sizeClassName} flex-shrink-0 rounded-full border border-brown-200 object-cover`}
       />
     )
   }
 
   return (
     <div
-      className={`${sizeClassName} ${textClassName} flex flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-200 font-bold uppercase text-slate-600`}
+      className={`${sizeClassName} ${textClassName} flex flex-shrink-0 items-center justify-center rounded-full border border-brown-200 bg-brown-200 font-bold uppercase text-brown-600`}
     >
       {initial}
     </div>

@@ -180,17 +180,17 @@ export default function MyRequests() {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Faculty Request</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">My Requests</h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-brown-900">My Requests</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-brown-500">
               Track every request you submitted from the database, including requested items, quantities, dates, and review status.
             </p>
           </div>
-          <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-            <FunnelIcon className="h-5 w-5 text-slate-400" />
+          <div className="flex items-center gap-3 rounded-2xl border border-brown-200 bg-white px-4 py-3 shadow-sm">
+            <FunnelIcon className="h-5 w-5 text-brown-400" />
             <select
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value as "All" | FacultyRequest["status"])}
-              className="bg-transparent text-sm font-semibold text-slate-700 focus:outline-none"
+              className="bg-transparent text-sm font-semibold text-brown-700 focus:outline-none"
             >
               <option value="All">All Statuses</option>
               <option value="Pending">Pending</option>
@@ -210,44 +210,44 @@ export default function MyRequests() {
           <SummaryCard label="Rejected" value={summary.rejectedRequests} tone="rose" icon={<XCircleIcon className="h-5 w-5" />} />
         </div>
 
-        <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
           {loading ? (
             <div className="space-y-4">
               {Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
-                  <div className="h-4 w-24 rounded-full bg-slate-200" />
-                  <div className="mt-3 h-8 w-64 rounded-2xl bg-slate-200" />
-                  <div className="mt-4 h-4 w-full rounded-full bg-slate-100" />
+                <div key={index} className="animate-pulse rounded-[1.5rem] border border-brown-200 bg-brown-50 p-5">
+                  <div className="h-4 w-24 rounded-full bg-brown-200" />
+                  <div className="mt-3 h-8 w-64 rounded-2xl bg-brown-200" />
+                  <div className="mt-4 h-4 w-full rounded-full bg-brown-100" />
                 </div>
               ))}
             </div>
           ) : filteredRequests.length === 0 ? (
-            <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 px-6 py-14 text-center">
-              <InboxIcon className="mx-auto h-10 w-10 text-slate-300" />
-              <p className="mt-4 text-sm font-semibold text-slate-900">No requests found</p>
-              <p className="mt-2 text-sm text-slate-500">Requests you submit from the new request page will appear here.</p>
+            <div className="rounded-[1.5rem] border border-dashed border-brown-200 bg-brown-50 px-6 py-14 text-center">
+              <InboxIcon className="mx-auto h-10 w-10 text-brown-300" />
+              <p className="mt-4 text-sm font-semibold text-brown-900">No requests found</p>
+              <p className="mt-2 text-sm text-brown-500">Requests you submit from the new request page will appear here.</p>
             </div>
           ) : (
             <div className="space-y-5">
               {paginatedRequests.map((request) => (
-                <article key={request.id} className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+                <article key={request.id} className="rounded-[1.75rem] border border-brown-200 bg-brown-50 p-5">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                        <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brown-500">
                           {request.requestNumber}
                         </span>
                         <StatusBadge status={request.status} />
                       </div>
-                      <h2 className="mt-3 text-xl font-black tracking-tight text-slate-900">
+                      <h2 className="mt-3 text-xl font-black tracking-tight text-brown-900">
                         {request.totalItems} item{request.totalItems === 1 ? "" : "s"} requested
                       </h2>
-                      <p className="mt-2 text-sm text-slate-500">
+                      <p className="mt-2 text-sm text-brown-500">
                         Submitted {dayjs(request.createdAt).format("MMMM D, YYYY h:mm A")} with {request.totalQuantity} total {request.totalQuantity === 1 ? "quantity" : "quantities"}.
                       </p>
                     </div>
                     <div className="flex flex-col items-start gap-3 lg:items-end">
-                      <div className="text-sm text-slate-500">
+                      <div className="text-sm text-brown-500">
                         Last updated {dayjs(request.updatedAt).format("MMM D, YYYY h:mm A")}
                       </div>
                       {request.status === "Pending" ? (
@@ -264,17 +264,17 @@ export default function MyRequests() {
                   </div>
 
                   {request.notes ? (
-                    <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Request Notes</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-600">{request.notes}</p>
+                    <div className="mt-4 rounded-2xl border border-brown-200 bg-white px-4 py-3">
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Request Notes</p>
+                      <p className="mt-2 text-sm leading-6 text-brown-600">{request.notes}</p>
                     </div>
                   ) : null}
 
                   <div className="mt-5 grid gap-3 md:grid-cols-2">
                     {request.items.map((item) => (
-                      <div key={`${request.id}-${item.supplyId}`} className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <div key={`${request.id}-${item.supplyId}`} className="rounded-2xl border border-brown-200 bg-white p-4">
                         <div className="flex items-start gap-4">
-                          <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                          <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-brown-200 bg-brown-50">
                             <img
                               src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop"}
                               alt={item.name}
@@ -282,17 +282,17 @@ export default function MyRequests() {
                             />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate font-bold text-slate-900">{item.name}</p>
-                            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                            <p className="truncate font-bold text-brown-900">{item.name}</p>
+                            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-brown-400">
                               {item.itemCode} • {item.categoryName}
                             </p>
                           </div>
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-bold text-slate-900">
+                          <span className="rounded-full bg-brown-100 px-3 py-1 text-sm font-bold text-brown-900">
                             x{item.quantityRequested}
                           </span>
                         </div>
                         <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-                          <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
+                          <span className="rounded-full bg-primary-50 px-3 py-1 text-primary-700">
                             Requested: {item.quantityRequested}
                           </span>
                           {item.quantityApproved !== null ? (
@@ -300,7 +300,7 @@ export default function MyRequests() {
                               Approved: {item.quantityApproved}
                             </span>
                           ) : null}
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">
+                          <span className="rounded-full bg-brown-100 px-3 py-1 text-brown-600">
                             In stock now: {item.quantityOnHand}
                           </span>
                         </div>
@@ -309,9 +309,9 @@ export default function MyRequests() {
                   </div>
 
                   {request.reviewNotes ? (
-                    <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3">
-                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">Review Notes</p>
-                      <p className="mt-2 text-sm leading-6 text-blue-900">{request.reviewNotes}</p>
+                    <div className="mt-4 rounded-2xl border border-primary-100 bg-primary-50 px-4 py-3">
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary-600">Review Notes</p>
+                      <p className="mt-2 text-sm leading-6 text-primary-900">{request.reviewNotes}</p>
                     </div>
                   ) : null}
                 </article>
@@ -360,20 +360,20 @@ function SummaryCard({
   icon: React.ReactNode
 }) {
   const classes = {
-    slate: "bg-slate-100 text-slate-600 border-slate-200",
+    slate: "bg-brown-100 text-brown-600 border-brown-200",
     amber: "bg-amber-50 text-amber-600 border-amber-100",
-    blue: "bg-blue-50 text-blue-600 border-blue-100",
+    blue: "bg-primary-50 text-primary-600 border-primary-100",
     emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
     rose: "bg-rose-50 text-rose-600 border-rose-100",
   }
 
   return (
-    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-[1.5rem] border border-brown-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">{label}</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-brown-400">{label}</p>
         <div className={`flex h-10 w-10 items-center justify-center rounded-2xl border ${classes[tone]}`}>{icon}</div>
       </div>
-      <p className="mt-4 text-3xl font-black tracking-tight text-slate-900">{value.toLocaleString()}</p>
+      <p className="mt-4 text-3xl font-black tracking-tight text-brown-900">{value.toLocaleString()}</p>
     </div>
   )
 }
@@ -383,12 +383,12 @@ function StatusBadge({ status }: { status: FacultyRequest["status"] }) {
     status === "Pending"
       ? "bg-amber-100 text-amber-700"
       : status === "Approved"
-        ? "bg-blue-100 text-blue-700"
+        ? "bg-primary-100 text-primary-700"
         : status === "Fulfilled"
           ? "bg-emerald-100 text-emerald-700"
           : status === "Rejected"
             ? "bg-rose-100 text-rose-700"
-            : "bg-slate-200 text-slate-700"
+            : "bg-brown-200 text-brown-700"
 
   return <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${className}`}>{status}</span>
 }
@@ -413,7 +413,7 @@ function PaginationControls({
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-brown-500">
         Showing {startItem}-{endItem} of {totalItems} {itemLabel}
       </p>
       <div className="flex items-center gap-2">
@@ -421,18 +421,18 @@ function PaginationControls({
           type="button"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-xl border border-brown-200 bg-white px-4 py-2 text-sm font-semibold text-brown-700 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Previous
         </button>
-        <span className="min-w-20 text-center text-sm font-semibold text-slate-600">
+        <span className="min-w-20 text-center text-sm font-semibold text-brown-600">
           Page {currentPage} of {totalPages}
         </span>
         <button
           type="button"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-xl border border-brown-200 bg-white px-4 py-2 text-sm font-semibold text-brown-700 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Next
         </button>
@@ -453,9 +453,9 @@ function ConfirmCancelModal({
   onConfirm: () => void
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="w-full max-w-xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl sm:p-8"
+        className="w-full max-w-xl rounded-[2rem] border border-brown-200 bg-white p-6 shadow-2xl sm:p-8"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start gap-4">
@@ -464,15 +464,15 @@ function ConfirmCancelModal({
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-rose-600">Cancel Request</p>
-            <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900">{request.requestNumber}</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-500">
+            <h2 className="mt-2 text-2xl font-black tracking-tight text-brown-900">{request.requestNumber}</h2>
+            <p className="mt-3 text-sm leading-6 text-brown-500">
               This will cancel your pending request and notify administrator and property custodian by notification and email.
             </p>
           </div>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-          <p className="text-sm text-slate-600">
+        <div className="mt-6 rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3">
+          <p className="text-sm text-brown-600">
             {request.totalItems} item{request.totalItems === 1 ? "" : "s"} requested with {request.totalQuantity} total{" "}
             {request.totalQuantity === 1 ? "quantity" : "quantities"}.
           </p>
@@ -483,7 +483,7 @@ function ConfirmCancelModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Close
           </button>

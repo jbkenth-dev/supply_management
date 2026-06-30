@@ -24,8 +24,8 @@ const getTypeStyles = (type: Announcement["type"]) => {
   switch (type) {
     case "feature":
       return {
-        bg: "bg-blue-50",
-        text: "text-blue-700",
+        bg: "bg-primary-50",
+        text: "text-primary-700",
         icon: <Sparkles className="h-4 w-4" />,
       }
     case "maintenance":
@@ -47,7 +47,7 @@ export function SkeletonAnnouncements() {
   return (
     <div className="space-y-4">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="flex gap-4 rounded-3xl bg-white p-4 border border-slate-100">
+        <div key={i} className="flex gap-4 rounded-3xl bg-white p-4 border border-brown-100">
           <Skeleton height="h-12" width="w-12" className="shrink-0 rounded-2xl" />
           <div className="flex-grow space-y-2">
             <div className="flex justify-between">
@@ -108,10 +108,10 @@ export default function Announcements() {
 
   if (announcements.length === 0) {
     return (
-      <div className="rounded-[2rem] border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
-        <Bell className="mx-auto h-10 w-10 text-slate-300" />
-        <p className="mt-4 text-sm font-semibold text-slate-900">No announcements yet</p>
-        <p className="mt-2 text-sm text-slate-500">Announcements posted by administrators will appear here.</p>
+      <div className="rounded-[2rem] border border-dashed border-brown-200 bg-brown-50 px-6 py-12 text-center">
+        <Bell className="mx-auto h-10 w-10 text-brown-300" />
+        <p className="mt-4 text-sm font-semibold text-brown-900">No announcements yet</p>
+        <p className="mt-2 text-sm text-brown-500">Announcements posted by administrators will appear here.</p>
       </div>
     )
   }
@@ -132,7 +132,7 @@ export default function Announcements() {
               whileHover={{ x: 8 }}
               className="group cursor-pointer"
             >
-              <Card className="h-full overflow-hidden rounded-[2rem] border border-slate-100 bg-white transition-all duration-300 hover:border-primary-100 hover:shadow-xl hover:shadow-primary-500/5">
+              <Card className="h-full overflow-hidden rounded-[2rem] border border-brown-100 bg-white transition-all duration-300 hover:border-primary-100 hover:shadow-xl hover:shadow-primary-500/5">
                 <div className="flex items-start gap-4 p-5">
                   <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${styles.bg} ${styles.text} transition-transform duration-300 group-hover:scale-110`}>
                     {styles.icon}
@@ -142,15 +142,15 @@ export default function Announcements() {
                       <span className={`text-[10px] font-black uppercase tracking-widest ${styles.text}`}>
                         {announcement.type}
                       </span>
-                      <div className="flex items-center text-[10px] font-bold text-slate-400">
+                      <div className="flex items-center text-[10px] font-bold text-brown-400">
                         <Calendar className="mr-1 h-3 w-3" />
                         {dayjs(announcement.publishedAt).format("MMM D, YYYY")}
                       </div>
                     </div>
-                    <h3 className="mb-1 line-clamp-1 text-base font-bold text-slate-900 transition-colors group-hover:text-primary-600">
+                    <h3 className="mb-1 line-clamp-1 text-base font-bold text-brown-900 transition-colors group-hover:text-primary-600">
                       {announcement.title}
                     </h3>
-                    <p className="line-clamp-2 text-xs leading-relaxed text-slate-500">{announcement.description}</p>
+                    <p className="line-clamp-2 text-xs leading-relaxed text-brown-500">{announcement.description}</p>
                   </div>
                   <div className="shrink-0 self-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-50 text-primary-600">

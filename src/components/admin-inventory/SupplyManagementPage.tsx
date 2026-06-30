@@ -429,29 +429,29 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
       <div className="space-y-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">Admin Supply</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Supply Management</h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Admin Supply</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-brown-900">Supply Management</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-brown-500">
               Manage categories and supply records for each supply item.
             </p>
           </div>
           <button
             type="button"
             onClick={() => void loadSupplyData()}
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm font-semibold text-brown-700 transition hover:border-brown-300 hover:bg-brown-50"
           >
             <ArrowPathIcon className="mr-2 h-4 w-4" />
             Refresh Data
           </button>
         </div>
 
-        <section className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <section className="rounded-[2rem] border border-brown-200 bg-white p-4 shadow-sm sm:p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Workspace</p>
-              <h2 className="mt-2 text-xl font-black tracking-tight text-slate-900">Choose what to manage</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-brown-400">Workspace</p>
+              <h2 className="mt-2 text-xl font-black tracking-tight text-brown-900">Choose what to manage</h2>
             </div>
-            <div className="inline-flex rounded-2xl border border-slate-200 bg-slate-50 p-1.5">
+            <div className="inline-flex rounded-2xl border border-brown-200 bg-brown-50 p-1.5">
               <ToggleButton
                 label="Category"
                 active={viewMode === "category"}
@@ -491,22 +491,22 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
               exit={{ opacity: 0, y: -10 }}
               className="grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)]"
             >
-              <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm">
                 <div className="mb-6">
-                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Category</p>
-                  <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Category</p>
+                  <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">
                     {editingCategoryId ? "Edit Category" : "Add Category"}
                   </h2>
                 </div>
 
                 <form onSubmit={handleCategorySubmit} className="space-y-4">
                   <div>
-                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Category Name</label>
+                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Category Name</label>
                     <input
                       type="text"
                       value={categoryForm.name}
                       onChange={(event) => setCategoryForm({ name: event.target.value })}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                       placeholder="Office Supplies"
                     />
                     {categoryErrors.name ? <p className="mt-2 text-xs font-semibold text-rose-600">{categoryErrors.name}</p> : null}
@@ -516,14 +516,14 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
                     <button
                       type="submit"
                       disabled={busyAction === "category"}
-                      className="inline-flex flex-1 items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex flex-1 items-center justify-center rounded-xl bg-brown-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {busyAction === "category" ? "Saving..." : editingCategoryId ? "Save Category" : "Add Category"}
                     </button>
                     <button
                       type="button"
                       onClick={resetCategoryForm}
-                      className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                      className="inline-flex items-center justify-center rounded-xl border border-brown-200 px-4 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50"
                     >
                       Clear
                     </button>
@@ -531,20 +531,20 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
                 </form>
               </section>
 
-              <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+              <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Category</p>
-                    <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Category List</h2>
+                    <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Category</p>
+                    <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Category List</h2>
                   </div>
                   <div className="relative w-full max-w-sm">
-                    <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                    <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-brown-400" />
                     <input
                       type="search"
                       value={categoryQuery}
                       onChange={(event) => setCategoryQuery(event.target.value)}
                       placeholder="Search category"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3 pl-11 pr-4 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     />
                   </div>
                 </div>
@@ -556,11 +556,11 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
                     <EmptyCard title="No categories found" description="Create a category to start grouping your supplies." />
                   ) : (
                     filteredCategories.map((category) => (
-                      <div key={category.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <div key={category.id} className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div>
-                            <p className="font-semibold text-slate-900">{category.name}</p>
-                            <p className="mt-1 text-sm text-slate-500">{category.supplyCount} linked supplies</p>
+                            <p className="font-semibold text-brown-900">{category.name}</p>
+                            <p className="mt-1 text-sm text-brown-500">{category.supplyCount} linked supplies</p>
                           </div>
                           <div className="flex items-center gap-2">
                             <IconButton label="Edit category" onClick={() => startCategoryEdit(category)}>
@@ -587,19 +587,19 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="space-y-6 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+              className="space-y-6 rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8"
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Supply</p>
-                  <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Supply List</h2>
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Supply</p>
+                  <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Supply List</h2>
                 </div>
                 <div className="flex w-full flex-col gap-3 lg:max-w-3xl lg:flex-row lg:items-center lg:justify-end">
                   <div className="w-full lg:max-w-xs">
                     <select
                       value={selectedSupplyCategory}
                       onChange={(event) => setSelectedSupplyCategory(event.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     >
                       <option value="">All categories</option>
                       {categories.map((category) => (
@@ -610,13 +610,13 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
                     </select>
                   </div>
                   <div className="relative w-full lg:max-w-sm">
-                    <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                    <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-brown-400" />
                     <input
                       type="search"
                       value={supplyQuery}
                       onChange={(event) => setSupplyQuery(event.target.value)}
                       placeholder="Search supply"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3 pl-11 pr-4 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     />
                   </div>
                   {selectedSupplyCategory || supplyQuery.trim() ? (
@@ -626,7 +626,7 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
                         setSelectedSupplyCategory("")
                         setSupplyQuery("")
                       }}
-                      className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                      className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-4 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50"
                     >
                       Clear Filters
                     </button>
@@ -634,7 +634,7 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
                   <button
                     type="button"
                     onClick={openCreateSupplyModal}
-                    className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+                    className="inline-flex items-center justify-center rounded-xl bg-brown-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-brown-800"
                   >
                     <PlusIcon className="mr-2 h-4 w-4" />
                     Add Supply
@@ -649,13 +649,13 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
               ) : (
                 <div className="grid gap-4 xl:grid-cols-2">
                   {filteredSupplies.map((supply) => (
-                    <article key={supply.id} className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+                    <article key={supply.id} className="overflow-hidden rounded-[1.75rem] border border-brown-200 bg-white shadow-sm">
                       <div className="grid gap-0 sm:grid-cols-[180px_minmax(0,1fr)]">
-                        <div className="bg-slate-100">
+                        <div className="bg-brown-100">
                           {supply.imagePath ? (
                             <img src={supply.imagePath} alt={supply.name} className="h-full w-full object-cover" />
                           ) : (
-                            <div className="flex h-full min-h-44 items-center justify-center text-slate-300">
+                            <div className="flex h-full min-h-44 items-center justify-center text-brown-300">
                               <TagIcon className="h-14 w-14" />
                             </div>
                           )}
@@ -663,22 +663,22 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
                         <div className="space-y-4 p-5">
                           <div className="flex items-start justify-between gap-4">
                             <div>
-                              <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-600">{supply.categoryName}</p>
-                              <h3 className="mt-2 text-xl font-black tracking-tight text-slate-900">{supply.name}</h3>
-                              <p className="mt-2 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">{supply.itemCode}</p>
+                              <p className="text-xs font-bold uppercase tracking-[0.22em] text-primary-600">{supply.categoryName}</p>
+                              <h3 className="mt-2 text-xl font-black tracking-tight text-brown-900">{supply.name}</h3>
+                              <p className="mt-2 text-xs font-bold uppercase tracking-[0.2em] text-brown-400">{supply.itemCode}</p>
                             </div>
-                            <div className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                            <div className="rounded-full bg-primary-50 px-3 py-1 text-xs font-bold text-primary-700">
                               {supply.quantityOnHand.toLocaleString()} in stock
                             </div>
                           </div>
 
-                          <p className="text-sm leading-6 text-slate-500">
+                          <p className="text-sm leading-6 text-brown-500">
                             {supply.description || "No description added yet."}
                           </p>
 
-                          <div className="flex flex-wrap gap-3 text-xs font-semibold text-slate-500">
-                            <span className="rounded-full bg-slate-100 px-3 py-1">Code: {supply.itemCode}</span>
-                            <span className="rounded-full bg-slate-100 px-3 py-1">
+                          <div className="flex flex-wrap gap-3 text-xs font-semibold text-brown-500">
+                            <span className="rounded-full bg-brown-100 px-3 py-1">Code: {supply.itemCode}</span>
+                            <span className="rounded-full bg-brown-100 px-3 py-1">
                               Updated {formatDateTime(supply.updatedAt)}
                             </span>
                           </div>
@@ -687,7 +687,7 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
                             <button
                               type="button"
                               onClick={() => startSupplyEdit(supply)}
-                              className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                              className="inline-flex items-center justify-center rounded-xl border border-brown-200 px-4 py-2.5 text-sm font-semibold text-brown-700 transition hover:bg-brown-50"
                             >
                               <PencilSquareIcon className="mr-2 h-4 w-4" />
                               Edit Supply
@@ -716,7 +716,7 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
       <AnimatePresence>
         {isSupplyModalOpen ? (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -726,22 +726,22 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 12, scale: 0.96 }}
               transition={{ duration: 0.22 }}
-              className="w-full max-w-5xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl"
+              className="w-full max-w-5xl overflow-hidden rounded-[2rem] border border-brown-200 bg-white shadow-2xl"
               role="dialog"
               aria-modal="true"
               aria-labelledby="supply-modal-title"
             >
-              <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5 sm:px-8">
+              <div className="flex items-start justify-between gap-4 border-b border-brown-200 px-6 py-5 sm:px-8">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Supply</p>
-                  <h2 id="supply-modal-title" className="mt-2 text-2xl font-black tracking-tight text-slate-900">
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Supply</p>
+                  <h2 id="supply-modal-title" className="mt-2 text-2xl font-black tracking-tight text-brown-900">
                     {editingSupplyId ? "Edit Supply" : "Add Supply"}
                   </h2>
                 </div>
                 <button
                   type="button"
                   onClick={closeSupplyModal}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-brown-200 text-brown-500 transition hover:bg-brown-50 hover:text-brown-900"
                 >
                   <XMarkIcon className="h-5 w-5" />
                 </button>
@@ -750,11 +750,11 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
               <form onSubmit={handleSupplySubmit} className="grid gap-5 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_260px]">
                 <div className="grid gap-5 md:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Category</label>
+                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Category</label>
                     <select
                       value={supplyForm.categoryId}
                       onChange={(event) => setSupplyForm((current) => ({ ...current, categoryId: event.target.value }))}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full rounded-xl border border-brown-200 bg-white px-4 py-3 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     >
                       <option value="">Select category</option>
                       {categories.map((category) => (
@@ -767,54 +767,54 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Item Code</label>
+                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Item Code</label>
                     <input
                       type="text"
                       value={supplyForm.itemCode}
                       onChange={(event) => setSupplyForm((current) => ({ ...current, itemCode: event.target.value }))}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm uppercase text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full rounded-xl border border-brown-200 bg-white px-4 py-3 text-sm uppercase text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                       placeholder="PAPER_A4_001"
                     />
                     {supplyErrors.itemCode ? <p className="mt-2 text-xs font-semibold text-rose-600">{supplyErrors.itemCode}</p> : null}
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Supply Name</label>
+                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Supply Name</label>
                     <input
                       type="text"
                       value={supplyForm.name}
                       onChange={(event) => setSupplyForm((current) => ({ ...current, name: event.target.value }))}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full rounded-xl border border-brown-200 bg-white px-4 py-3 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                       placeholder="A4 Bond Paper"
                     />
                     {supplyErrors.name ? <p className="mt-2 text-xs font-semibold text-rose-600">{supplyErrors.name}</p> : null}
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Description</label>
+                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Description</label>
                     <textarea
                       value={supplyForm.description}
                       onChange={(event) => setSupplyForm((current) => ({ ...current, description: event.target.value }))}
                       rows={4}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full rounded-xl border border-brown-200 bg-white px-4 py-3 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                       placeholder="Short description of the supply item"
                     />
                     {supplyErrors.description ? <p className="mt-2 text-xs font-semibold text-rose-600">{supplyErrors.description}</p> : null}
                   </div>
                 </div>
 
-                <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-4">
-                  <label className="mb-3 block text-xs font-bold uppercase tracking-wider text-slate-500">
+                <div className="rounded-[1.5rem] border border-dashed border-brown-300 bg-brown-50 p-4">
+                  <label className="mb-3 block text-xs font-bold uppercase tracking-wider text-brown-500">
                     Supply Image <span className="text-rose-500">*</span>
                   </label>
-                  <label className="flex min-h-48 cursor-pointer flex-col items-center justify-center rounded-[1.25rem] border border-slate-200 bg-white p-4 text-center transition hover:border-blue-300 hover:bg-blue-50/50">
+                  <label className="flex min-h-48 cursor-pointer flex-col items-center justify-center rounded-[1.25rem] border border-brown-200 bg-white p-4 text-center transition hover:border-primary-300 hover:bg-primary-50/50">
                     {previewUrl ? (
                       <img src={previewUrl} alt="Supply preview" className="h-36 w-full rounded-xl object-cover" />
                     ) : (
                       <>
-                        <PhotoIcon className="h-10 w-10 text-slate-300" />
-                        <p className="mt-3 text-sm font-semibold text-slate-600">Add Supply with image</p>
-                        <p className="mt-1 text-xs text-slate-400">JPG, PNG, or WEBP up to 2MB</p>
+                        <PhotoIcon className="h-10 w-10 text-brown-300" />
+                        <p className="mt-3 text-sm font-semibold text-brown-600">Add Supply with image</p>
+                        <p className="mt-1 text-xs text-brown-400">JPG, PNG, or WEBP up to 2MB</p>
                       </>
                     )}
                     <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleSupplyImageChange} />
@@ -826,14 +826,14 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
                   <button
                     type="button"
                     onClick={closeSupplyModal}
-                    className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={busyAction === "supply"}
-                    className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center justify-center rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {busyAction === "supply" ? "Saving..." : editingSupplyId ? "Save Supply" : "Add Supply"}
                   </button>
@@ -881,8 +881,8 @@ function ToggleButton({
       onClick={onClick}
       className={`inline-flex min-w-28 items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold transition ${
         active
-          ? "bg-slate-900 text-white shadow-sm"
-          : "text-slate-600 hover:bg-white hover:text-slate-900"
+          ? "bg-brown-900 text-white shadow-sm"
+          : "text-brown-600 hover:bg-white hover:text-brown-900"
       }`}
     >
       {label}
@@ -894,7 +894,7 @@ function LoadingBlock({ lines }: { lines: number }) {
   return (
     <div className="space-y-3 animate-pulse">
       {Array.from({ length: lines }).map((_, index) => (
-        <div key={index} className="h-16 rounded-2xl bg-slate-100" />
+        <div key={index} className="h-16 rounded-2xl bg-brown-100" />
       ))}
     </div>
   )
@@ -902,9 +902,9 @@ function LoadingBlock({ lines }: { lines: number }) {
 
 function EmptyCard({ title, description }: { title: string; description: string }) {
   return (
-    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-8 text-center">
-      <p className="text-sm font-semibold text-slate-900">{title}</p>
-      <p className="mt-2 text-sm text-slate-500">{description}</p>
+    <div className="rounded-2xl border border-dashed border-brown-200 bg-brown-50 px-5 py-8 text-center">
+      <p className="text-sm font-semibold text-brown-900">{title}</p>
+      <p className="mt-2 text-sm text-brown-500">{description}</p>
     </div>
   )
 }
@@ -926,7 +926,7 @@ function IconButton({
       aria-label={label}
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-white hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-brown-200 text-brown-500 transition hover:bg-white hover:text-brown-900 disabled:cursor-not-allowed disabled:opacity-60"
     >
       {children}
     </button>
@@ -964,7 +964,7 @@ function DeleteConfirmModal({
 }) {
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -974,18 +974,18 @@ function DeleteConfirmModal({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 12, scale: 0.96 }}
         transition={{ duration: 0.22 }}
-        className="w-full max-w-md overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl"
+        className="w-full max-w-md overflow-hidden rounded-[2rem] border border-brown-200 bg-white shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-confirm-title"
       >
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-900 p-6 text-white">
+        <div className="bg-gradient-to-r from-brown-900 via-brown-800 to-primary-900 p-6 text-white">
           <div className="flex items-start gap-4">
             <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15">
               <ExclamationTriangleIcon className="h-7 w-7" />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-100">Confirm Action</p>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-100">Confirm Action</p>
               <h3 id="delete-confirm-title" className="mt-2 text-2xl font-black tracking-tight">
                 {title}
               </h3>
@@ -994,9 +994,9 @@ function DeleteConfirmModal({
         </div>
 
         <div className="space-y-5 p-6">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm leading-6 text-slate-600">{description}</p>
-            <p className="mt-3 text-base font-bold text-slate-900">{itemName}</p>
+          <div className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
+            <p className="text-sm leading-6 text-brown-600">{description}</p>
+            <p className="mt-3 text-base font-bold text-brown-900">{itemName}</p>
           </div>
 
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -1008,7 +1008,7 @@ function DeleteConfirmModal({
               type="button"
               onClick={onCancel}
               disabled={isDeleting}
-              className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Cancel
             </button>
@@ -1016,7 +1016,7 @@ function DeleteConfirmModal({
               type="button"
               onClick={onConfirm}
               disabled={isDeleting}
-              className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isDeleting ? "Deleting..." : "Delete Now"}
             </button>

@@ -117,8 +117,8 @@ const SignUp = () => {
           transition={{ duration: 0.5 }}
         >
           <div className="mb-10 text-center">
-            <h2 className="text-3xl font-black text-slate-900 mb-2">Create Account</h2>
-            <p className="text-slate-500 font-medium">Register as faculty staff/property custodian to start managing supplies.</p>
+            <h2 className="text-3xl font-black text-brown-900 mb-2">Create Account</h2>
+            <p className="text-brown-500 font-medium">Register as faculty staff/property custodian to start managing supplies.</p>
           </div>
 
           {serverMessage && (
@@ -135,16 +135,16 @@ const SignUp = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Role</label>
+              <label className="block text-xs font-bold text-brown-500 uppercase tracking-wider mb-2">Role</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brown-400 group-focus-within:text-primary-500 transition-colors">
                   <UserIcon className="h-5 w-5" />
                 </div>
                 <select
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all appearance-none"
+                  className="w-full pl-11 pr-4 py-3.5 bg-brown-50 border border-brown-200 rounded-xl text-brown-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all appearance-none"
                 >
                   <option value="Faculty Staff">Faculty Staff</option>
                   <option value="Property Custodian">Property Custodian</option>
@@ -155,9 +155,9 @@ const SignUp = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-1">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">ID Number</label>
+                <label className="block text-xs font-bold text-brown-500 uppercase tracking-wider mb-2">ID Number</label>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brown-400 group-focus-within:text-primary-500 transition-colors">
                     <IdentificationIcon className="h-5 w-5" />
                   </div>
                   <input
@@ -166,45 +166,45 @@ const SignUp = () => {
                     placeholder="2024-0001"
                     value={formData.idNumber}
                     onChange={handleChange}
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                    className="w-full pl-11 pr-4 py-3 bg-brown-50 border border-brown-200 rounded-xl text-brown-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                     required
                   />
                 </div>
                 {errors.idNumber && <p className="mt-2 text-xs font-semibold text-rose-600">{errors.idNumber}</p>}
               </div>
               <div className="md:col-span-1">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">First Name</label>
+                <label className="block text-xs font-bold text-brown-500 uppercase tracking-wider mb-2">First Name</label>
                 <input
                   type="text"
                   name="firstname"
                   placeholder="Elysia"
                   value={formData.firstname}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                  className="w-full px-4 py-3 bg-brown-50 border border-brown-200 rounded-xl text-brown-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                   required
                 />
                 {errors.firstname && <p className="mt-2 text-xs font-semibold text-rose-600">{errors.firstname}</p>}
               </div>
               <div className="md:col-span-1">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Middle Name</label>
+                <label className="block text-xs font-bold text-brown-500 uppercase tracking-wider mb-2">Middle Name</label>
                 <input
                   type="text"
                   name="middlename"
                   placeholder="V."
                   value={formData.middlename}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                  className="w-full px-4 py-3 bg-brown-50 border border-brown-200 rounded-xl text-brown-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                 />
               </div>
               <div className="md:col-span-1">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Last Name</label>
+                <label className="block text-xs font-bold text-brown-500 uppercase tracking-wider mb-2">Last Name</label>
                 <input
                   type="text"
                   name="lastname"
                   placeholder="Lysander"
                   value={formData.lastname}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                  className="w-full px-4 py-3 bg-brown-50 border border-brown-200 rounded-xl text-brown-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                   required
                 />
                 {errors.lastname && <p className="mt-2 text-xs font-semibold text-rose-600">{errors.lastname}</p>}
@@ -213,9 +213,9 @@ const SignUp = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Username</label>
+                <label className="block text-xs font-bold text-brown-500 uppercase tracking-wider mb-2">Username</label>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brown-400 group-focus-within:text-primary-500 transition-colors">
                     <UserIcon className="h-5 w-5" />
                   </div>
                   <input
@@ -224,7 +224,7 @@ const SignUp = () => {
                     placeholder="elysia_l"
                     value={formData.username}
                     onChange={handleChange}
-                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                    className="w-full pl-11 pr-4 py-3.5 bg-brown-50 border border-brown-200 rounded-xl text-brown-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                     required
                   />
                 </div>
@@ -232,9 +232,9 @@ const SignUp = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
+                <label className="block text-xs font-bold text-brown-500 uppercase tracking-wider mb-2">Email Address</label>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brown-400 group-focus-within:text-primary-500 transition-colors">
                     <EnvelopeIcon className="h-5 w-5" />
                   </div>
                   <input
@@ -243,7 +243,7 @@ const SignUp = () => {
                     placeholder="elysia.lysander@university.edu"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                    className="w-full pl-11 pr-4 py-3.5 bg-brown-50 border border-brown-200 rounded-xl text-brown-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                     required
                   />
                 </div>
@@ -252,9 +252,9 @@ const SignUp = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Create Password</label>
+                  <label className="block text-xs font-bold text-brown-500 uppercase tracking-wider mb-2">Create Password</label>
                   <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brown-400 group-focus-within:text-primary-500 transition-colors">
                       <LockClosedIcon className="h-5 w-5" />
                     </div>
                     <input
@@ -263,13 +263,13 @@ const SignUp = () => {
                       placeholder="Min. 8 characters"
                       value={formData.password}
                       onChange={handleChange}
-                      className="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                      className="w-full pl-11 pr-12 py-3.5 bg-brown-50 border border-brown-200 rounded-xl text-brown-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-brown-400 hover:text-brown-600 transition-colors"
                     >
                       {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
                     </button>
@@ -278,9 +278,9 @@ const SignUp = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Confirm Password</label>
+                  <label className="block text-xs font-bold text-brown-500 uppercase tracking-wider mb-2">Confirm Password</label>
                   <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brown-400 group-focus-within:text-primary-500 transition-colors">
                       <LockClosedIcon className="h-5 w-5" />
                     </div>
                     <input
@@ -289,13 +289,13 @@ const SignUp = () => {
                       placeholder="Repeat password"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                      className="w-full pl-11 pr-12 py-3.5 bg-brown-50 border border-brown-200 rounded-xl text-brown-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-brown-400 hover:text-brown-600 transition-colors"
                     >
                       {showConfirmPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
                     </button>
@@ -328,7 +328,7 @@ const SignUp = () => {
           </form>
 
           <div className="mt-10 text-center">
-            <p className="text-sm text-slate-500 font-medium">
+            <p className="text-sm text-brown-500 font-medium">
               Already have an account?{" "}
               <Link to="/auth/login" className="text-primary-600 font-bold hover:underline">
                 Sign In instead

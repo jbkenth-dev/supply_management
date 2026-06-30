@@ -32,7 +32,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 overflow-x-hidden">
+    <div className="min-h-screen bg-brown-50 overflow-x-hidden">
       {/* Hero Section */}
       <section className="relative h-screen w-full flex items-center justify-center overflow-hidden isolate m-0 p-0 border-none">
         <AnimatedBackground imageUrl={sfcgBg} />
@@ -59,7 +59,7 @@ export default function Home() {
 
             <motion.p
               variants={itemVariants}
-              className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed font-light"
+              className="text-xl text-brown-300 mb-10 max-w-2xl mx-auto leading-relaxed font-light"
             >
               a vital function in educational institutions, as it ensures that office supplies and consumable materials are properly monitored, recorded, distributed, and utilized to support both administrative and academic operations.
             </motion.p>
@@ -102,13 +102,13 @@ export default function Home() {
       <div className="container mx-auto px-4 py-24 space-y-32">
         <section>
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">System Overview</h2>
-            <p className="text-slate-600 max-w-3xl mx-auto">A project-based overview of the actual modules, roles, and live inventory information available in this supply management system.</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-brown-900 mb-4">System Overview</h2>
+            <p className="text-brown-600 max-w-3xl mx-auto">A project-based overview of the actual modules, roles, and live inventory information available in this supply management system.</p>
           </div>
           <SystemOverview />
         </section>
 
-        <section className="bg-white rounded-[3.5rem] p-8 md:p-16 shadow-2xl shadow-slate-200/40 border border-slate-100 relative overflow-hidden">
+        <section className="bg-white rounded-[3.5rem] p-8 md:p-16 shadow-2xl shadow-brown-200/40 border border-brown-100 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary-500/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl" />
 
@@ -124,17 +124,17 @@ export default function Home() {
                   <Sparkles className="w-4 h-4" />
                   What's New
                 </motion.div>
-                <h2 className="text-4xl md:text-5xl font-black text-slate-900 leading-[1.1]">
+                <h2 className="text-4xl md:text-5xl font-black text-brown-900 leading-[1.1]">
                   Latest <br />
                   <span className="text-primary-600">Announcements</span>
                 </h2>
-                <p className="text-slate-500 text-lg leading-relaxed max-w-md">
+                <p className="text-brown-500 text-lg leading-relaxed max-w-md">
                   Stay updated with the latest changes, features, and important notifications from the management team.
                 </p>
               </div>
 
               <div className="pt-4">
-                <Button variant="outline" size="lg" className="rounded-2xl border-slate-200 hover:border-primary-500 hover:bg-primary-50 hover:text-primary-600 group transition-all duration-300">
+                <Button variant="outline" size="lg" className="rounded-2xl border-brown-200 hover:border-primary-500 hover:bg-primary-50 hover:text-primary-600 group transition-all duration-300">
                   View all notifications
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>

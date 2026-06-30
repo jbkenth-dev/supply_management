@@ -13,7 +13,7 @@ import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
 import type { AppNotification, NotificationsResponse } from "../../types/notifications"
 
 const typeClassMap: Record<string, string> = {
-  request_submitted: "bg-blue-50 text-blue-600",
+  request_submitted: "bg-primary-50 text-primary-600",
   request_approved: "bg-emerald-50 text-emerald-600",
   request_rejected: "bg-rose-50 text-rose-600",
   request_fulfilled: "bg-emerald-50 text-emerald-600",
@@ -141,21 +141,21 @@ export default function NotificationPage({ role }: { role: AuthRole }) {
       <div className="space-y-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">Notifications</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Notification Center</h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Notifications</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-brown-900">Notification Center</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-brown-500">
               Review the latest request alerts and workflow updates.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <div className="inline-flex items-center rounded-xl bg-blue-50 px-4 py-2.5 text-sm font-bold text-blue-700">
+            <div className="inline-flex items-center rounded-xl bg-primary-50 px-4 py-2.5 text-sm font-bold text-primary-700">
               {unreadCount} unread
             </div>
             <button
               type="button"
               onClick={() => void markAllAsRead()}
               disabled={busy || unreadCount === 0}
-              className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm font-semibold text-brown-700 transition hover:border-brown-300 hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Mark All as Read
             </button>
@@ -168,18 +168,18 @@ export default function NotificationPage({ role }: { role: AuthRole }) {
           </div>
         ) : null}
 
-        <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
           {loading ? (
             <div className="space-y-3 animate-pulse">
               {Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="h-24 rounded-2xl bg-slate-100" />
+                <div key={index} className="h-24 rounded-2xl bg-brown-100" />
               ))}
             </div>
           ) : groupedNotifications.length === 0 ? (
-            <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
-              <BellIcon className="mx-auto h-10 w-10 text-slate-300" />
-              <p className="mt-4 text-sm font-semibold text-slate-900">No notifications yet</p>
-              <p className="mt-2 text-sm text-slate-500">New request and workflow updates will appear here.</p>
+            <div className="rounded-[1.5rem] border border-dashed border-brown-200 bg-brown-50 px-6 py-12 text-center">
+              <BellIcon className="mx-auto h-10 w-10 text-brown-300" />
+              <p className="mt-4 text-sm font-semibold text-brown-900">No notifications yet</p>
+              <p className="mt-2 text-sm text-brown-500">New request and workflow updates will appear here.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -190,31 +190,31 @@ export default function NotificationPage({ role }: { role: AuthRole }) {
                   onClick={() => void openNotification(notification)}
                   className={`block rounded-[1.5rem] border p-5 transition ${
                     notification.isRead
-                      ? "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white"
-                      : "border-blue-200 bg-blue-50/40 hover:border-blue-300 hover:bg-blue-50/70"
+                      ? "border-brown-200 bg-brown-50 hover:border-brown-300 hover:bg-white"
+                      : "border-primary-200 bg-primary-50/40 hover:border-primary-300 hover:bg-primary-50/70"
                   } w-full text-left`}
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex items-start gap-4">
-                      <div className={`mt-1 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl ${typeClassMap[notification.type] ?? "bg-slate-100 text-slate-600"}`}>
+                      <div className={`mt-1 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl ${typeClassMap[notification.type] ?? "bg-brown-100 text-brown-600"}`}>
                         <NotificationIcon type={notification.type} />
                       </div>
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-base font-black tracking-tight text-slate-900">{notification.title}</span>
+                          <span className="text-base font-black tracking-tight text-brown-900">{notification.title}</span>
                           {!notification.isRead ? (
-                            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-blue-600">
+                            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-primary-600">
                               New
                             </span>
                           ) : null}
                         </div>
-                        <p className="mt-2 text-sm leading-6 text-slate-600">{notification.message}</p>
-                        <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
+                        <p className="mt-2 text-sm leading-6 text-brown-600">{notification.message}</p>
+                        <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary-600">
                           {formatDateTime(notification.createdAt)}
                         </p>
                       </div>
                     </div>
-                    <span className="text-sm font-semibold text-slate-500">{notification.actorName || "System"}</span>
+                    <span className="text-sm font-semibold text-brown-500">{notification.actorName || "System"}</span>
                   </div>
                 </button>
               ))}

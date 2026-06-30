@@ -321,21 +321,21 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
 
   return (
     <AppShell role={role}>
-      <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 bg-slate-50/70 px-6 py-5">
-          <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">Message Center</p>
+      <div className="overflow-hidden rounded-[2rem] border border-brown-200 bg-white shadow-sm">
+        <div className="border-b border-brown-200 bg-brown-50/70 px-6 py-5">
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Message Center</p>
         </div>
 
         <div className="grid min-h-[72vh] lg:grid-cols-[22rem_minmax(0,1fr)]">
-          <aside className="border-b border-slate-200 bg-white lg:border-b-0 lg:border-r">
-            <div className="border-b border-slate-100 p-4">
+          <aside className="border-b border-brown-200 bg-white lg:border-b-0 lg:border-r">
+            <div className="border-b border-brown-100 p-4">
               <div className="relative">
-                <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-brown-400" />
                 <input
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder="Search users"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-2xl border border-brown-200 bg-brown-50 py-3 pl-10 pr-4 text-sm text-brown-900 outline-none transition focus:border-primary-500 focus:bg-white focus:ring-2 focus:ring-primary-500/20"
                 />
               </div>
             </div>
@@ -344,12 +344,12 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
               {loading ? (
                 <div className="space-y-3 p-4">
                   {Array.from({ length: 6 }).map((_, index) => (
-                    <div key={index} className="animate-pulse rounded-2xl border border-slate-100 p-4">
+                    <div key={index} className="animate-pulse rounded-2xl border border-brown-100 p-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-11 w-11 rounded-full bg-slate-200" />
+                        <div className="h-11 w-11 rounded-full bg-brown-200" />
                         <div className="flex-1 space-y-2">
-                          <div className="h-4 w-32 rounded-full bg-slate-200" />
-                          <div className="h-3 w-40 rounded-full bg-slate-100" />
+                          <div className="h-4 w-32 rounded-full bg-brown-200" />
+                          <div className="h-3 w-40 rounded-full bg-brown-100" />
                         </div>
                       </div>
                     </div>
@@ -357,9 +357,9 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                 </div>
               ) : filteredContacts.length === 0 ? (
                 <div className="px-6 py-12 text-center">
-                  <ChatBubbleLeftRightIcon className="mx-auto h-12 w-12 text-slate-300" />
-                  <p className="mt-4 text-sm font-semibold text-slate-900">No users found</p>
-                  <p className="mt-2 text-sm text-slate-500">Create more accounts to start messaging across roles.</p>
+                  <ChatBubbleLeftRightIcon className="mx-auto h-12 w-12 text-brown-300" />
+                  <p className="mt-4 text-sm font-semibold text-brown-900">No users found</p>
+                  <p className="mt-2 text-sm text-brown-500">Create more accounts to start messaging across roles.</p>
                 </div>
               ) : (
                 filteredContacts.map((contact) => {
@@ -370,8 +370,8 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                       key={contact.id}
                       type="button"
                       onClick={() => handleSelectConversation(contact.id)}
-                      className={`block w-full border-b border-slate-100 px-4 py-4 text-left transition hover:bg-slate-50 ${
-                        isActive ? "bg-blue-50/70" : "bg-white"
+                      className={`block w-full border-b border-brown-100 px-4 py-4 text-left transition hover:bg-brown-50 ${
+                        isActive ? "bg-primary-50/70" : "bg-white"
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -379,13 +379,13 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                              <p className={`truncate text-sm font-bold ${isActive ? "text-blue-700" : "text-slate-900"}`}>
+                              <p className={`truncate text-sm font-bold ${isActive ? "text-primary-700" : "text-brown-900"}`}>
                                 {contact.name}
                               </p>
-                              <p className="mt-0.5 text-xs font-medium text-slate-500">{contact.role}</p>
+                              <p className="mt-0.5 text-xs font-medium text-brown-500">{contact.role}</p>
                             </div>
                             <div className="text-right">
-                              <p className="text-[11px] font-medium text-slate-400">
+                              <p className="text-[11px] font-medium text-brown-400">
                                 {formatContactTime(contact.lastMessageAt)}
                               </p>
                               {contact.unreadCount > 0 ? (
@@ -395,8 +395,8 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                               ) : null}
                             </div>
                           </div>
-                          <p className="mt-2 truncate text-xs text-slate-500">
-                            <span className={contact.unreadCount > 0 ? "font-bold text-slate-900" : ""}>
+                          <p className="mt-2 truncate text-xs text-brown-500">
+                            <span className={contact.unreadCount > 0 ? "font-bold text-brown-900" : ""}>
                               {contact.lastMessage ?? `Start a conversation with ${contact.name}.`}
                             </span>
                           </p>
@@ -409,24 +409,24 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
             </div>
           </aside>
 
-          <section className="flex h-[78vh] min-h-[55vh] flex-col bg-slate-50/60">
+          <section className="flex h-[78vh] min-h-[55vh] flex-col bg-brown-50/60">
             {selectedContact ? (
               <>
-                <div className="flex items-center gap-4 border-b border-slate-200 bg-white px-6 py-4">
+                <div className="flex items-center gap-4 border-b border-brown-200 bg-white px-6 py-4">
                   <Avatar contact={selectedContact} />
                   <div className="min-w-0">
-                    <p className="truncate text-base font-bold text-slate-900">{selectedContact.name}</p>
-                    <p className="text-sm text-slate-500">{selectedContact.role}</p>
+                    <p className="truncate text-base font-bold text-brown-900">{selectedContact.name}</p>
+                    <p className="text-sm text-brown-500">{selectedContact.role}</p>
                   </div>
                 </div>
 
                 <div ref={messagesViewportRef} className="h-full flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6">
                   {messages.length === 0 ? (
                     <div className="flex h-full min-h-64 items-center justify-center">
-                      <div className="max-w-sm rounded-[2rem] border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
-                        <ChatBubbleLeftRightIcon className="mx-auto h-12 w-12 text-slate-300" />
-                        <p className="mt-4 text-sm font-semibold text-slate-900">No messages yet</p>
-                        <p className="mt-2 text-sm text-slate-500">
+                      <div className="max-w-sm rounded-[2rem] border border-dashed border-brown-300 bg-white px-6 py-10 text-center">
+                        <ChatBubbleLeftRightIcon className="mx-auto h-12 w-12 text-brown-300" />
+                        <p className="mt-4 text-sm font-semibold text-brown-900">No messages yet</p>
+                        <p className="mt-2 text-sm text-brown-500">
                           Send the first message to begin this conversation.
                         </p>
                       </div>
@@ -447,8 +447,8 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                             <div
                               className={`rounded-[1.5rem] px-4 py-3 text-sm leading-6 shadow-sm ${
                                 isCurrentUser
-                                  ? "rounded-br-md bg-blue-600 text-white"
-                                  : "rounded-bl-md border border-slate-200 bg-white text-slate-700"
+                                  ? "rounded-br-md bg-primary-600 text-white"
+                                  : "rounded-bl-md border border-brown-200 bg-white text-brown-700"
                               }`}
                             >
                               {message.body}
@@ -458,13 +458,13 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                                 isCurrentUser ? "self-end justify-end" : "self-start justify-start"
                               }`}
                             >
-                              <p className="text-[11px] font-medium text-slate-400">
+                              <p className="text-[11px] font-medium text-brown-400">
                                 {formatMessageDate(message.createdAt)}
                                 {isCurrentUser && !message.isRead ? " - Sent" : ""}
                               </p>
                               {showReadAvatar && selectedContact ? (
                                 <div
-                                  className="flex h-4 w-4 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white"
+                                  className="flex h-4 w-4 items-center justify-center overflow-hidden rounded-full border border-brown-200 bg-white"
                                   title={`${selectedContact.name} has read this message`}
                                 >
                                   {selectedContact.profileImageUrl ? (
@@ -474,7 +474,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                                       className="h-full w-full object-cover"
                                     />
                                   ) : (
-                                    <UserCircleIcon className="h-2.5 w-2.5 text-slate-400" />
+                                    <UserCircleIcon className="h-2.5 w-2.5 text-brown-400" />
                                   )}
                                 </div>
                               ) : null}
@@ -492,11 +492,11 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                     >
                       <div className="flex max-w-[78%] items-end gap-3">
                         <Avatar contact={selectedContact} />
-                        <div className="rounded-[1.5rem] rounded-bl-md border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                        <div className="rounded-[1.5rem] rounded-bl-md border border-brown-200 bg-white px-4 py-3 shadow-sm">
                           <div className="flex items-center gap-1">
-                            <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.2s]" />
-                            <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.1s]" />
-                            <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" />
+                            <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400 [animation-delay:-0.2s]" />
+                            <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400 [animation-delay:-0.1s]" />
+                            <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400" />
                           </div>
                         </div>
                       </div>
@@ -504,7 +504,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                   ) : null}
                 </div>
 
-                <div className="border-t border-slate-200 bg-white p-4 sm:p-5">
+                <div className="border-t border-brown-200 bg-white p-4 sm:p-5">
                   <form onSubmit={handleSendMessage} className="space-y-3">
                     <div className="flex items-end gap-3">
                       <textarea
@@ -512,12 +512,12 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                         onChange={(event) => setDraft(event.target.value)}
                         placeholder={`Message ${selectedContact.name}`}
                         rows={3}
-                        className="min-h-[56px] flex-1 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                        className="min-h-[56px] flex-1 rounded-[1.5rem] border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 outline-none transition focus:border-primary-500 focus:bg-white focus:ring-2 focus:ring-primary-500/20"
                       />
                       <button
                         type="submit"
                         disabled={sending || !draft.trim()}
-                        className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+                        className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-lg shadow-primary-500/20 transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-brown-300 disabled:shadow-none"
                       >
                         <PaperAirplaneIcon className="h-5 w-5" />
                       </button>
@@ -529,9 +529,9 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
             ) : (
               <div className="flex flex-1 items-center justify-center px-6">
                 <div className="max-w-md text-center">
-                  <ChatBubbleLeftRightIcon className="mx-auto h-14 w-14 text-slate-300" />
-                  <p className="mt-4 text-lg font-bold text-slate-900">Choose a conversation</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                  <ChatBubbleLeftRightIcon className="mx-auto h-14 w-14 text-brown-300" />
+                  <p className="mt-4 text-lg font-bold text-brown-900">Choose a conversation</p>
+                  <p className="mt-2 text-sm leading-6 text-brown-500">
                     Select a faculty, custodian, or admin account from the left panel to view and send live messages.
                   </p>
                   {error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}
@@ -551,13 +551,13 @@ function Avatar({ contact }: { contact: Pick<MessageContact, "name" | "profileIm
       <img
         src={contact.profileImageUrl}
         alt={contact.name}
-        className="h-11 w-11 rounded-full border border-slate-200 object-cover shadow-sm"
+        className="h-11 w-11 rounded-full border border-brown-200 object-cover shadow-sm"
       />
     )
   }
 
   return (
-    <div className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-slate-500 shadow-sm">
+    <div className="flex h-11 w-11 items-center justify-center rounded-full border border-brown-200 bg-brown-100 text-brown-500 shadow-sm">
       <UserCircleIcon className="h-7 w-7" />
     </div>
   )

@@ -6,8 +6,8 @@ export default function Users() {
     <AppShell>
       <div className="rounded-lg border bg-white p-4">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-brown-200">
+            <thead className="bg-brown-50">
               <tr>
                 <Th>Name</Th>
                 <Th>Email</Th>
@@ -15,19 +15,19 @@ export default function Users() {
                 <Th>Status</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
+            <tbody className="divide-y divide-brown-100 bg-white">
               {users.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-50">
+                <tr key={u.id} className="hover:bg-brown-50">
                   <Td>{u.name}</Td>
                   <Td>{u.email}</Td>
                   <Td>
                     <span
                       className={`inline-flex rounded-md px-2 py-1 text-xs ring-1 ring-inset ${
                         u.role === "Administrator"
-                          ? "bg-purple-50 text-purple-700 ring-purple-600/20"
+                          ? "bg-primary-50 text-primary-700 ring-primary-600/20"
                           : u.role === "Property Custodian"
-                          ? "bg-blue-50 text-blue-700 ring-blue-600/20"
-                          : "bg-slate-50 text-slate-700 ring-slate-600/20"
+                          ? "bg-primary-50 text-primary-700 ring-primary-600/20"
+                          : "bg-brown-50 text-brown-700 ring-brown-600/20"
                       }`}
                     >
                       {u.role}
@@ -55,8 +55,8 @@ export default function Users() {
 }
 
 function Th({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <th className={`px-4 py-2 text-left text-xs font-medium text-gray-700 ${className}`}>{children}</th>
+  return <th className={`px-4 py-2 text-left text-xs font-medium text-brown-700 ${className}`}>{children}</th>
 }
 function Td({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-2 text-sm text-gray-700 ${className}`}>{children}</td>
+  return <td className={`px-4 py-2 text-sm text-brown-700 ${className}`}>{children}</td>
 }

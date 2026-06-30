@@ -217,10 +217,10 @@ export default function Dashboard() {
       <AppShell role="Faculty Staff">
         <div className="space-y-8">
           <div>
-            <div className="h-3 w-32 rounded-full bg-slate-200" />
-            <div className="mt-4 h-10 w-80 max-w-full rounded-2xl bg-slate-200" />
-            <div className="mt-3 h-4 w-[32rem] max-w-full rounded-full bg-slate-100" />
-            <div className="mt-2 h-4 w-[28rem] max-w-full rounded-full bg-slate-100" />
+            <div className="h-3 w-32 rounded-full bg-brown-200" />
+            <div className="mt-4 h-10 w-80 max-w-full rounded-2xl bg-brown-200" />
+            <div className="mt-3 h-4 w-[32rem] max-w-full rounded-full bg-brown-100" />
+            <div className="mt-2 h-4 w-[28rem] max-w-full rounded-full bg-brown-100" />
           </div>
           <LoadingState type="dashboard" />
         </div>
@@ -237,9 +237,9 @@ export default function Dashboard() {
         <StaggerItem>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">Faculty Dashboard</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Dashboard and Analytics</h1>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Faculty Dashboard</p>
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-brown-900">Dashboard and Analytics</h1>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-brown-500">
                 All values below come directly from your submitted request records and current messaging activity.
               </p>
             </div>
@@ -247,7 +247,7 @@ export default function Dashboard() {
               <button
                 type="button"
                 onClick={() => window.location.reload()}
-                className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm font-semibold text-brown-700 transition hover:border-brown-300 hover:bg-brown-50"
               >
                 <ArrowPathIcon className="mr-2 h-4 w-4" />
                 Refresh Data
@@ -302,13 +302,13 @@ export default function Dashboard() {
 
         <StaggerItem>
           <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-            <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Requests</p>
-                  <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Request Distribution</h2>
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Requests</p>
+                  <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Request Distribution</h2>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary-600">
                   <ClipboardDocumentCheckIcon className="h-6 w-6" />
                 </div>
               </div>
@@ -321,11 +321,11 @@ export default function Dashboard() {
               </div>
             </section>
 
-            <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Communication</p>
-                  <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Updates and Messages</h2>
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Communication</p>
+                  <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Updates and Messages</h2>
                 </div>
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
                   <BellIcon className="h-6 w-6" />
@@ -357,22 +357,22 @@ export default function Dashboard() {
         </StaggerItem>
 
         <StaggerItem>
-          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">
                   {activeTab === "notifications" ? "Updates" : "Messages"}
                 </p>
-                <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">
+                <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">
                   {activeTab === "notifications" ? "Recent Request Updates" : "Recent Messages"}
                 </h2>
               </div>
-              <div className="flex gap-2 rounded-xl bg-slate-100 p-1">
+              <div className="flex gap-2 rounded-xl bg-brown-100 p-1">
                 <button
                   type="button"
                   onClick={() => setActiveTab("notifications")}
                   className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold transition-all ${
-                    activeTab === "notifications" ? "bg-white text-primary-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                    activeTab === "notifications" ? "bg-white text-primary-600 shadow-sm" : "text-brown-500 hover:text-brown-700"
                   }`}
                 >
                   <BellIcon className="h-4 w-4" />
@@ -382,7 +382,7 @@ export default function Dashboard() {
                   type="button"
                   onClick={() => setActiveTab("messages")}
                   className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold transition-all ${
-                    activeTab === "messages" ? "bg-white text-primary-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                    activeTab === "messages" ? "bg-white text-primary-600 shadow-sm" : "text-brown-500 hover:text-brown-700"
                   }`}
                 >
                   <ChatBubbleLeftRightIcon className="h-4 w-4" />
@@ -402,9 +402,9 @@ export default function Dashboard() {
                     className="space-y-3"
                   >
                     {notifications.length === 0 ? (
-                      <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center">
-                        <p className="text-sm font-semibold text-slate-900">No updates yet</p>
-                        <p className="mt-2 text-sm text-slate-500">Request status updates and unread message alerts will appear here.</p>
+                      <div className="rounded-2xl border border-dashed border-brown-200 bg-brown-50 px-5 py-10 text-center">
+                        <p className="text-sm font-semibold text-brown-900">No updates yet</p>
+                        <p className="mt-2 text-sm text-brown-500">Request status updates and unread message alerts will appear here.</p>
                       </div>
                     ) : (
                       notifications.map((notification, index) => (
@@ -413,7 +413,7 @@ export default function Dashboard() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.04 }}
-                          className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                          className="rounded-2xl border border-brown-200 bg-brown-50 p-4"
                         >
                           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                             <div className="flex gap-3">
@@ -425,7 +425,7 @@ export default function Dashboard() {
                                       ? "bg-amber-50 text-amber-600"
                                       : notification.type === "error"
                                         ? "bg-rose-50 text-rose-600"
-                                        : "bg-blue-50 text-blue-600"
+                                        : "bg-primary-50 text-primary-600"
                                 }`}
                               >
                                 {notification.type === "success" ? <CheckCircleIcon className="h-5 w-5" /> : null}
@@ -435,15 +435,15 @@ export default function Dashboard() {
                               </div>
                               <div>
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <span className="text-sm font-bold text-slate-900">{notification.title}</span>
+                                  <span className="text-sm font-bold text-brown-900">{notification.title}</span>
                                   {!notification.read ? (
-                                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-blue-600">
+                                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-primary-600">
                                       New
                                     </span>
                                   ) : null}
                                 </div>
-                                <p className="mt-2 text-sm text-slate-500">{notification.message}</p>
-                                <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">{notification.time}</p>
+                                <p className="mt-2 text-sm text-brown-500">{notification.message}</p>
+                                <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary-600">{notification.time}</p>
                               </div>
                             </div>
                           </div>
@@ -460,9 +460,9 @@ export default function Dashboard() {
                     className="space-y-3"
                   >
                     {messages.length === 0 ? (
-                      <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center">
-                        <p className="text-sm font-semibold text-slate-900">No conversations yet</p>
-                        <p className="mt-2 text-sm text-slate-500">Start a conversation from the message center to see it here.</p>
+                      <div className="rounded-2xl border border-dashed border-brown-200 bg-brown-50 px-5 py-10 text-center">
+                        <p className="text-sm font-semibold text-brown-900">No conversations yet</p>
+                        <p className="mt-2 text-sm text-brown-500">Start a conversation from the message center to see it here.</p>
                       </div>
                     ) : (
                       messages.map((message, index) => (
@@ -471,18 +471,18 @@ export default function Dashboard() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.04 }}
-                          className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                          className="rounded-2xl border border-brown-200 bg-brown-50 p-4"
                         >
                           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                             <div>
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-sm font-bold text-slate-900">{message.name}</span>
-                                <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                                <span className="text-sm font-bold text-brown-900">{message.name}</span>
+                                <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brown-500">
                                   {message.role}
                                 </span>
                               </div>
-                              <p className="mt-2 text-sm text-slate-500">{message.lastMessage ?? "No messages yet."}</p>
-                              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
+                              <p className="mt-2 text-sm text-brown-500">{message.lastMessage ?? "No messages yet."}</p>
+                              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary-600">
                                 {formatRelativeDate(message.lastMessageAt)}
                               </p>
                             </div>
@@ -492,7 +492,7 @@ export default function Dashboard() {
                                   {message.unreadCount} unread
                                 </span>
                               ) : (
-                                <span className="rounded-full bg-white px-3 py-1 text-sm font-bold text-slate-600">Read</span>
+                                <span className="rounded-full bg-white px-3 py-1 text-sm font-bold text-brown-600">Read</span>
                               )}
                             </div>
                           </div>
@@ -502,7 +502,7 @@ export default function Dashboard() {
                     <Link to={getMessagesPath("Faculty Staff")}>
                       <button
                         type="button"
-                        className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                        className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm font-semibold text-brown-700 transition hover:border-brown-300 hover:bg-brown-50"
                       >
                         <EnvelopeIcon className="mr-2 h-4 w-4" />
                         Open Message Center
@@ -516,22 +516,22 @@ export default function Dashboard() {
         </StaggerItem>
 
         <StaggerItem>
-          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">History</p>
-                <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Recent Requests</h2>
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">History</p>
+                <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Recent Requests</h2>
               </div>
-              <Link to="/my-requests" className="text-sm text-slate-500 transition hover:text-primary-600">
+              <Link to="/my-requests" className="text-sm text-brown-500 transition hover:text-primary-600">
                 View all request records
               </Link>
             </div>
 
             <div className="mt-6 space-y-3">
               {recentRequests.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center">
-                  <p className="text-sm font-semibold text-slate-900">No request records yet</p>
-                  <p className="mt-2 text-sm text-slate-500">Once you submit a request, the latest entries will appear here.</p>
+                <div className="rounded-2xl border border-dashed border-brown-200 bg-brown-50 px-5 py-10 text-center">
+                  <p className="text-sm font-semibold text-brown-900">No request records yet</p>
+                  <p className="mt-2 text-sm text-brown-500">Once you submit a request, the latest entries will appear here.</p>
                 </div>
               ) : (
                 recentRequests.map((request, index) => (
@@ -540,21 +540,21 @@ export default function Dashboard() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.04 }}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                    className="rounded-2xl border border-brown-200 bg-brown-50 p-4"
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-bold text-slate-900">{request.requestNumber}</span>
-                          <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                          <span className="text-sm font-bold text-brown-900">{request.requestNumber}</span>
+                          <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brown-500">
                             {request.totalItems} item{request.totalItems === 1 ? "" : "s"}
                           </span>
                         </div>
-                        <p className="mt-2 text-sm text-slate-500">
+                        <p className="mt-2 text-sm text-brown-500">
                           {request.totalQuantity} total quantity{request.totalQuantity === 1 ? "" : "s"}
                           {request.notes ? ` • ${request.notes}` : ""}
                         </p>
-                        <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
+                        <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary-600">
                           {dayjs(request.createdAt).format("MMM D, YYYY h:mm A")}
                         </p>
                       </div>
@@ -566,14 +566,14 @@ export default function Dashboard() {
                               ? "bg-emerald-50 text-emerald-700"
                               : request.status === "Rejected"
                                 ? "bg-rose-50 text-rose-700"
-                                : "bg-slate-200 text-slate-700"
+                                : "bg-brown-200 text-brown-700"
                         }`}
                       >
                         {request.status}
                       </div>
                     </div>
 
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-brown-500">
                       {request.items.slice(0, 3).map((item) => (
                         <span key={`${request.id}-${item.supplyId}`} className="rounded-full bg-white px-3 py-1">
                           {item.name} x{item.quantityRequested}
@@ -606,20 +606,20 @@ function MetricCard({
   tone: "blue" | "amber" | "emerald" | "rose" | "indigo"
 }) {
   const toneMap = {
-    blue: "bg-blue-50 text-blue-600 border-blue-100",
+    blue: "bg-primary-50 text-primary-600 border-primary-100",
     amber: "bg-amber-50 text-amber-600 border-amber-100",
     emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
     rose: "bg-rose-50 text-rose-600 border-rose-100",
-    indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
+    indigo: "bg-primary-50 text-primary-600 border-primary-100",
   }
 
   return (
-    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-[1.5rem] border border-brown-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">{title}</p>
+        <p className="text-xs font-bold uppercase tracking-[0.22em] text-brown-400">{title}</p>
         <div className={`flex h-10 w-10 items-center justify-center rounded-2xl border ${toneMap[tone]}`}>{icon}</div>
       </div>
-      <p className="mt-4 text-3xl font-black tracking-tight text-slate-900">{value.toLocaleString()}</p>
+      <p className="mt-4 text-3xl font-black tracking-tight text-brown-900">{value.toLocaleString()}</p>
     </div>
   )
 }
@@ -634,10 +634,10 @@ function SoftStat({
   helper: string
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
-      <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-black tracking-tight text-slate-900">{value.toLocaleString()}</p>
-      <p className="mt-2 text-sm leading-6 text-slate-500">{helper}</p>
+    <div className="rounded-[1.5rem] border border-brown-200 bg-brown-50 p-5">
+      <p className="text-xs font-bold uppercase tracking-[0.2em] text-brown-400">{label}</p>
+      <p className="mt-3 text-3xl font-black tracking-tight text-brown-900">{value.toLocaleString()}</p>
+      <p className="mt-2 text-sm leading-6 text-brown-500">{helper}</p>
     </div>
   )
 }
@@ -657,18 +657,18 @@ function ProgressRow({
   const barClass = {
     emerald: "bg-emerald-500",
     amber: "bg-amber-500",
-    indigo: "bg-indigo-500",
+    indigo: "bg-primary-500",
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+    <div className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
       <div className="flex items-center justify-between gap-4">
-        <p className="text-sm font-semibold text-slate-700">{label}</p>
-        <p className="text-sm font-bold text-slate-900">
+        <p className="text-sm font-semibold text-brown-700">{label}</p>
+        <p className="text-sm font-bold text-brown-900">
           {value.toLocaleString()} / {total.toLocaleString()}
         </p>
       </div>
-      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-brown-200">
         <div className={`h-full rounded-full ${barClass[tone]}`} style={{ width: `${percentage}%` }} />
       </div>
     </div>

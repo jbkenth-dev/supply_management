@@ -180,16 +180,16 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
       <div className="space-y-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">Admin Stock</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Stock Management</h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Admin Stock</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-brown-900">Stock Management</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-brown-500">
               Search current quantities and add stock-in records.
             </p>
           </div>
           <button
             type="button"
             onClick={() => void loadStockData()}
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm font-semibold text-brown-700 transition hover:border-brown-300 hover:bg-brown-50"
           >
             <ArrowPathIcon className="mr-2 h-4 w-4" />
             Refresh Data
@@ -213,19 +213,19 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
         </AnimatePresence>
 
         <div className="grid gap-8 xl:grid-cols-[380px_minmax(0,1fr)]">
-          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm">
             <div className="mb-6">
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Add Stock</p>
-              <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Stock In</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Add Stock</p>
+              <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Stock In</h2>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Supply</label>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Supply</label>
                 <select
                   value={form.supplyId}
                   onChange={(event) => setForm((current) => ({ ...current, supplyId: event.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                 >
                   <option value="">Select supply</option>
                   {supplies.map((supply) => (
@@ -238,14 +238,14 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Quantity</label>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Quantity</label>
                 <input
                   type="number"
                   min="1"
                   step="1"
                   value={form.quantity}
                   onChange={(event) => setForm((current) => ({ ...current, quantity: event.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                   placeholder="100"
                 />
                 {errors.quantity ? <p className="mt-2 text-xs font-semibold text-rose-600">{errors.quantity}</p> : null}
@@ -254,7 +254,7 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
               <button
                 type="submit"
                 disabled={submitting}
-                className="inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <ArrowDownTrayIcon className="mr-2 h-4 w-4" />
                 {submitting ? "Saving Stock..." : "Add Stock"}
@@ -263,27 +263,27 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
           </section>
 
           <section className="space-y-6">
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Search</p>
-                  <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Current Stock</h2>
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Search</p>
+                  <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Current Stock</h2>
                 </div>
                 <div className="relative w-full max-w-sm">
-                  <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                  <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-brown-400" />
                   <input
                     type="search"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder="Search stock"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3 pl-11 pr-4 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                   />
                 </div>
               </div>
 
               <div className="mt-6 overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-slate-50">
+                <table className="min-w-full divide-y divide-brown-200">
+                  <thead className="bg-brown-50">
                     <tr>
                       <HeaderCell>Supply</HeaderCell>
                       <HeaderCell>Category</HeaderCell>
@@ -291,33 +291,33 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
                       <HeaderCell className="text-right">Quantity</HeaderCell>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 bg-white">
+                  <tbody className="divide-y divide-brown-100 bg-white">
                     {loading ? (
                       <tr>
                         <td colSpan={4} className="px-6 py-10">
                           <div className="space-y-3 animate-pulse">
-                            <div className="h-5 rounded bg-slate-100" />
-                            <div className="h-5 rounded bg-slate-100" />
-                            <div className="h-5 rounded bg-slate-100" />
+                            <div className="h-5 rounded bg-brown-100" />
+                            <div className="h-5 rounded bg-brown-100" />
+                            <div className="h-5 rounded bg-brown-100" />
                           </div>
                         </td>
                       </tr>
                     ) : filteredSupplies.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="px-6 py-10 text-center text-sm text-slate-500">
+                        <td colSpan={4} className="px-6 py-10 text-center text-sm text-brown-500">
                           No stock records matched your search.
                         </td>
                       </tr>
                     ) : (
                       paginatedSupplies.map((supply) => (
-                        <tr key={supply.id} className="transition hover:bg-slate-50">
+                        <tr key={supply.id} className="transition hover:bg-brown-50">
                           <BodyCell>
-                            <div className="font-semibold text-slate-900">{supply.name}</div>
-                            <div className="text-xs text-slate-500">{supply.description || "No description"}</div>
+                            <div className="font-semibold text-brown-900">{supply.name}</div>
+                            <div className="text-xs text-brown-500">{supply.description || "No description"}</div>
                           </BodyCell>
                           <BodyCell>{supply.categoryName}</BodyCell>
-                          <BodyCell className="font-semibold text-slate-800">{supply.itemCode}</BodyCell>
-                          <BodyCell className="text-right font-semibold text-slate-900">
+                          <BodyCell className="font-semibold text-brown-800">{supply.itemCode}</BodyCell>
+                          <BodyCell className="text-right font-semibold text-brown-900">
                             {supply.quantityOnHand.toLocaleString()}
                           </BodyCell>
                         </tr>
@@ -339,33 +339,33 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
               ) : null}
             </div>
 
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">History</p>
-                <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Recent Stock Entries</h2>
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">History</p>
+                <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Recent Stock Entries</h2>
               </div>
 
               <div className="mt-6 space-y-3">
                 {loading ? (
                   <div className="space-y-3 animate-pulse">
-                    <div className="h-20 rounded-2xl bg-slate-100" />
-                    <div className="h-20 rounded-2xl bg-slate-100" />
-                    <div className="h-20 rounded-2xl bg-slate-100" />
+                    <div className="h-20 rounded-2xl bg-brown-100" />
+                    <div className="h-20 rounded-2xl bg-brown-100" />
+                    <div className="h-20 rounded-2xl bg-brown-100" />
                   </div>
                 ) : filteredEntries.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-8 text-center text-sm text-slate-500">
+                  <div className="rounded-2xl border border-dashed border-brown-200 bg-brown-50 px-5 py-8 text-center text-sm text-brown-500">
                     No stock entries yet.
                   </div>
                 ) : (
                   paginatedEntries.map((entry) => (
-                    <div key={entry.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div key={entry.id} className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div>
-                          <p className="font-semibold text-slate-900">{entry.supplyName}</p>
-                          <p className="mt-1 text-sm text-slate-500">
+                          <p className="font-semibold text-brown-900">{entry.supplyName}</p>
+                          <p className="mt-1 text-sm text-brown-500">
                             {entry.supplyItemCode} • {entry.categoryName} • Added by {entry.createdByName}
                           </p>
-                          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
+                          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary-600">
                             {formatDateTime(entry.createdAt)}
                           </p>
                         </div>
@@ -404,7 +404,7 @@ function HeaderCell({
   className?: string
 }) {
   return (
-    <th className={`px-6 py-3 text-left text-xs font-bold uppercase tracking-[0.18em] text-slate-500 ${className}`}>
+    <th className={`px-6 py-3 text-left text-xs font-bold uppercase tracking-[0.18em] text-brown-500 ${className}`}>
       {children}
     </th>
   )
@@ -417,7 +417,7 @@ function BodyCell({
   children: ReactNode
   className?: string
 }) {
-  return <td className={`px-6 py-4 text-sm text-slate-600 ${className}`}>{children}</td>
+  return <td className={`px-6 py-4 text-sm text-brown-600 ${className}`}>{children}</td>
 }
 
 function formatDateTime(value: string) {
@@ -449,8 +449,8 @@ function PaginationBar({
   const endItem = Math.min(currentPage * itemsPerPage, totalItems)
 
   return (
-    <div className="mt-5 flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-slate-500">
+    <div className="mt-5 flex flex-col gap-3 border-t border-brown-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm text-brown-500">
         Showing {startItem} to {endItem} of {totalItems} results
       </p>
       <div className="flex flex-wrap items-center gap-2">
@@ -458,18 +458,18 @@ function PaginationBar({
           type="button"
           onClick={onPrevious}
           disabled={currentPage === 1}
-          className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center justify-center rounded-xl border border-brown-200 px-4 py-2 text-sm font-semibold text-brown-600 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Previous
         </button>
-        <span className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">
+        <span className="rounded-xl bg-brown-100 px-4 py-2 text-sm font-semibold text-brown-700">
           Page {currentPage} of {totalPages}
         </span>
         <button
           type="button"
           onClick={onNext}
           disabled={currentPage === totalPages}
-          className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center justify-center rounded-xl border border-brown-200 px-4 py-2 text-sm font-semibold text-brown-600 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Next
         </button>

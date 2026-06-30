@@ -15,7 +15,7 @@ export function Skeleton({
   rounded = true,
   circle = false
 }: SkeletonProps) {
-  const baseClasses = "bg-gray-200 animate-pulse"
+  const baseClasses = "bg-brown-200 animate-pulse"
   const roundedClasses = rounded ? "rounded-md" : ""
   const circleClasses = circle ? "rounded-full" : ""
 
@@ -45,7 +45,7 @@ export function SkeletonStat() {
 
 export function SkeletonCard() {
   return (
-    <div className="bg-white rounded-3xl border border-slate-200 p-0 overflow-hidden h-full flex flex-col">
+    <div className="bg-white rounded-3xl border border-brown-200 p-0 overflow-hidden h-full flex flex-col">
       <Skeleton height="aspect-[4/3]" className="rounded-none" />
       <div className="p-6 space-y-4 flex-grow">
         <div className="flex justify-between items-center">
@@ -95,7 +95,7 @@ export function SkeletonChart() {
 
 export function SkeletonItemDetails() {
   return (
-    <div className="min-h-screen bg-slate-50/50 pt-24 pb-12">
+    <div className="min-h-screen bg-brown-50/50 pt-24 pb-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column - Image & Quick Stats */}

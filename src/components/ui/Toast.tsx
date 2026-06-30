@@ -23,7 +23,7 @@ const icons = {
 const colors = {
   success: "text-green-500 bg-green-50 border-green-200",
   error: "text-red-500 bg-red-50 border-red-200",
-  info: "text-blue-500 bg-blue-50 border-blue-200",
+  info: "text-primary-500 bg-primary-50 border-primary-200",
   warning: "text-amber-500 bg-amber-50 border-amber-200",
 }
 
@@ -53,13 +53,13 @@ export function Toast({ id, title, message, type = "info", duration = 5000, onDi
             <Icon className={`h-10 w-10 ${colors[type].split(' ')[0]}`} aria-hidden="true" />
           </div>
           <div className="ml-3 w-0 flex-1 pt-0.5">
-            <p className="text-sm font-medium text-gray-900">{title}</p>
-            {message && <p className="mt-1 text-sm text-gray-500">{message}</p>}
+            <p className="text-sm font-medium text-brown-900">{title}</p>
+            {message && <p className="mt-1 text-sm text-brown-500">{message}</p>}
           </div>
           <div className="ml-4 flex flex-shrink-0">
             <button
               type="button"
-              className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="inline-flex rounded-md bg-white text-brown-400 hover:text-brown-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               onClick={() => onDismiss(id)}
             >
               <span className="sr-only">Close</span>

@@ -42,11 +42,11 @@ export default function SupplyItem({ supply }: { supply: PublicSupplyItem }) {
 
   return (
     <Link to={`/supplies/${supply.itemCode}`} className="group h-full block">
-      <Card className="h-full flex flex-col overflow-hidden border-slate-100 group-hover:border-primary-200 group-hover:shadow-2xl group-hover:shadow-slate-200/60 transition-all duration-500 rounded-[2.5rem] bg-white">
+      <Card className="h-full flex flex-col overflow-hidden border-brown-100 group-hover:border-primary-200 group-hover:shadow-2xl group-hover:shadow-brown-200/60 transition-all duration-500 rounded-[2.5rem] bg-white">
         <CardHeader className="p-0 relative">
           <div className="relative aspect-[4/3] overflow-hidden m-3 rounded-[2rem]">
             {!loaded && (
-              <div className="absolute inset-0 bg-slate-100 animate-pulse" />
+              <div className="absolute inset-0 bg-brown-100 animate-pulse" />
             )}
             <img
               src={imageError ? "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop" : (supply.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop")}
@@ -58,19 +58,19 @@ export default function SupplyItem({ supply }: { supply: PublicSupplyItem }) {
                 loaded ? "opacity-100" : "opacity-0"
             }`}
           />
-          <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-brown-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
           {/* View Details Indicator */}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
             <div className="bg-white/95 backdrop-blur-md px-6 py-2.5 rounded-full shadow-2xl flex items-center gap-2">
-              <span className="text-sm font-bold text-slate-900">View Details</span>
+              <span className="text-sm font-bold text-brown-900">View Details</span>
               <ArrowRightIcon className="h-4 w-4 text-primary-600" />
             </div>
           </div>
 
           {/* Category Badge on Image */}
           <div className="absolute top-4 left-4">
-            <span className="px-4 py-1.5 bg-white/95 backdrop-blur-md text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-full shadow-sm border border-slate-100">
+            <span className="px-4 py-1.5 bg-white/95 backdrop-blur-md text-brown-900 text-[10px] font-black uppercase tracking-widest rounded-full shadow-sm border border-brown-100">
               {supply.categoryName}
             </span>
           </div>
@@ -79,7 +79,7 @@ export default function SupplyItem({ supply }: { supply: PublicSupplyItem }) {
 
         <CardContent className="flex-grow px-6 pb-6 pt-2">
           <div className="flex justify-between items-center mb-4">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <span className="text-[10px] font-bold text-brown-400 uppercase tracking-widest">
               {supply.itemCode}
             </span>
             <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border ${status.bg} ${status.text} ${status.border}`}>
@@ -90,29 +90,29 @@ export default function SupplyItem({ supply }: { supply: PublicSupplyItem }) {
             </div>
           </div>
 
-          <CardTitle className="text-xl font-black text-slate-900 mb-3 group-hover:text-primary-600 transition-colors line-clamp-1 tracking-tight">
+          <CardTitle className="text-xl font-black text-brown-900 mb-3 group-hover:text-primary-600 transition-colors line-clamp-1 tracking-tight">
             {supply.name}
           </CardTitle>
 
           <div className="flex items-center justify-between mb-6">
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Available Stock</p>
+              <p className="text-[10px] font-bold text-brown-400 uppercase tracking-widest">Available Stock</p>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-3xl font-black text-slate-900 tracking-tighter">{supply.quantityOnHand}</span>
+                <span className="text-3xl font-black text-brown-900 tracking-tighter">{supply.quantityOnHand}</span>
               </div>
             </div>
             
-            <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-primary-50 transition-colors border border-slate-100 group-hover:border-primary-100">
-              <CubeIcon className="h-6 w-6 text-slate-400 group-hover:text-primary-500 transition-colors" />
+            <div className="w-12 h-12 rounded-2xl bg-brown-50 flex items-center justify-center group-hover:bg-primary-50 transition-colors border border-brown-100 group-hover:border-primary-100">
+              <CubeIcon className="h-6 w-6 text-brown-400 group-hover:text-primary-500 transition-colors" />
             </div>
           </div>
 
           <div className="space-y-2">
-            <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-brown-400">
               <span>Stock Level</span>
               <span>{Math.round(Math.min((supply.quantityOnHand / 100) * 100, 100))}%</span>
             </div>
-            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden p-0.5">
+            <div className="w-full h-2 bg-brown-100 rounded-full overflow-hidden p-0.5">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min((supply.quantityOnHand / 100) * 100, 100)}%` }}

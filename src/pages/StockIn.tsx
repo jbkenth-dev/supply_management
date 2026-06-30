@@ -8,10 +8,10 @@ export default function StockIn() {
   return (
     <AppShell>
       <div className="rounded-lg border bg-white p-4">
-        <h3 className="mb-3 text-sm font-medium text-gray-700">Record Stock In</h3>
+        <h3 className="mb-3 text-sm font-medium text-brown-700">Record Stock In</h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-gray-700">Item</label>
+            <label className="block text-xs font-medium text-brown-700">Item</label>
             <select
               value={form.itemCode}
               onChange={(e) => {
@@ -19,7 +19,7 @@ export default function StockIn() {
                 const item = items.find((i) => i.itemCode === code)!
                 setForm({ ...form, itemCode: code, unit: item.unit })
               }}
-              className="mt-1 w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 w-full rounded-md border-brown-300 text-sm focus:border-primary-500 focus:ring-primary-500"
             >
               {items.map((i) => (
                 <option key={i.itemCode} value={i.itemCode}>
@@ -29,32 +29,32 @@ export default function StockIn() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700">Quantity</label>
+            <label className="block text-xs font-medium text-brown-700">Quantity</label>
             <input
               type="number"
               min={0}
               value={form.quantity}
               onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
-              className="mt-1 w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 w-full rounded-md border-brown-300 text-sm focus:border-primary-500 focus:ring-primary-500"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700">Unit</label>
-            <input value={form.unit} readOnly className="mt-1 w-full rounded-md border-gray-300 bg-gray-50 text-sm" />
+            <label className="block text-xs font-medium text-brown-700">Unit</label>
+            <input value={form.unit} readOnly className="mt-1 w-full rounded-md border-brown-300 bg-brown-50 text-sm" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700">Reference</label>
+            <label className="block text-xs font-medium text-brown-700">Reference</label>
             <input
               value={form.reference}
               onChange={(e) => setForm({ ...form, reference: e.target.value })}
               placeholder="PO / GRN"
-              className="mt-1 w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 w-full rounded-md border-brown-300 text-sm focus:border-primary-500 focus:ring-primary-500"
             />
           </div>
         </div>
         <div className="mt-4">
-          <button className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Save</button>
-          <span className="ml-3 text-xs text-gray-600">UI only</span>
+          <button className="rounded-md bg-primary-600 px-4 py-2 text-white hover:bg-primary-700">Save</button>
+          <span className="ml-3 text-xs text-brown-600">UI only</span>
         </div>
       </div>
     </AppShell>

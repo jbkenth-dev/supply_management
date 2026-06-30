@@ -29,7 +29,7 @@ export default function Layout() {
     `relative flex items-center gap-2 px-5 py-2.5 text-sm font-bold transition-all duration-300 rounded-full group ${
       isActive
         ? "text-primary-600 bg-primary-50/50 shadow-sm"
-        : "text-slate-600 hover:text-primary-600 hover:bg-slate-50"
+        : "text-brown-600 hover:text-primary-600 hover:bg-brown-50"
     }`;
 
   const activeIndicator = (isActive: boolean) =>
@@ -42,8 +42,8 @@ export default function Layout() {
     ) : null;
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-900 selection:bg-primary-100 selection:text-primary-900">
-      <header className="sticky top-0 z-[100] bg-white/70 backdrop-blur-md border-b border-slate-200/60 transition-all duration-300">
+    <div className="min-h-screen bg-brown-50/50 text-brown-900 selection:bg-primary-100 selection:text-primary-900">
+      <header className="sticky top-0 z-[100] bg-white/70 backdrop-blur-md border-b border-brown-200/60 transition-all duration-300">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
             <div className="flex items-center gap-8">
@@ -55,7 +55,7 @@ export default function Layout() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <span className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-950 to-slate-700 leading-none">
+                <span className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-brown-950 to-brown-700 leading-none">
                   SFC-G
                 </span>
               </NavLink>
@@ -91,7 +91,7 @@ export default function Layout() {
             <div className="hidden md:flex items-center gap-3">
               {!authUser ? (
                 <>
-                  <NavLink to="/auth/login" className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-slate-600 hover:text-primary-600 hover:bg-primary-50/50 rounded-full transition-all duration-300">
+                  <NavLink to="/auth/login" className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-brown-600 hover:text-primary-600 hover:bg-primary-50/50 rounded-full transition-all duration-300">
                     <ArrowRightOnRectangleIcon className="w-5 h-5" />
                     Login
                   </NavLink>
@@ -115,7 +115,7 @@ export default function Layout() {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-xl bg-brown-100 text-brown-600 hover:bg-brown-200 transition-colors"
               >
                 {isMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
               </button>
@@ -136,7 +136,7 @@ export default function Layout() {
                 <NavLink
                   to="/"
                   onClick={() => setIsMenuOpen(false)}
-                  className={({ isActive }) => `flex items-center gap-3 p-4 rounded-2xl text-lg font-bold transition-all ${isActive ? 'bg-primary-50 text-primary-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                  className={({ isActive }) => `flex items-center gap-3 p-4 rounded-2xl text-lg font-bold transition-all ${isActive ? 'bg-primary-50 text-primary-600' : 'text-brown-600 hover:bg-brown-50'}`}
                 >
                   <HomeIcon className="w-6 h-6" />
                   Home
@@ -144,7 +144,7 @@ export default function Layout() {
                 <NavLink
                   to="/supplies"
                   onClick={() => setIsMenuOpen(false)}
-                  className={({ isActive }) => `flex items-center gap-3 p-4 rounded-2xl text-lg font-bold transition-all ${isActive ? 'bg-primary-50 text-primary-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                  className={({ isActive }) => `flex items-center gap-3 p-4 rounded-2xl text-lg font-bold transition-all ${isActive ? 'bg-primary-50 text-primary-600' : 'text-brown-600 hover:bg-brown-50'}`}
                 >
                   <CubeIcon className="w-6 h-6" />
                   Supplies
@@ -152,18 +152,18 @@ export default function Layout() {
                 <NavLink
                   to="/about"
                   onClick={() => setIsMenuOpen(false)}
-                  className={({ isActive }) => `flex items-center gap-3 p-4 rounded-2xl text-lg font-bold transition-all ${isActive ? 'bg-primary-50 text-primary-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                  className={({ isActive }) => `flex items-center gap-3 p-4 rounded-2xl text-lg font-bold transition-all ${isActive ? 'bg-primary-50 text-primary-600' : 'text-brown-600 hover:bg-brown-50'}`}
                 >
                   <InformationCircleIcon className="w-6 h-6" />
                   About
                 </NavLink>
-                <div className="h-px bg-slate-100 my-2" />
+                <div className="h-px bg-brown-100 my-2" />
                 {!authUser ? (
                   <>
                     <NavLink
                       to="/auth/login"
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center gap-3 p-4 rounded-2xl text-lg font-bold text-slate-600 hover:bg-slate-50 transition-all"
+                      className="flex items-center gap-3 p-4 rounded-2xl text-lg font-bold text-brown-600 hover:bg-brown-50 transition-all"
                     >
                       <ArrowRightOnRectangleIcon className="w-6 h-6" />
                       Login

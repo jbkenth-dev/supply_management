@@ -143,13 +143,13 @@ export default function AdminCreate() {
               Administrator Setup
             </span>
 
-            <h1 className="max-w-xl text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
+            <h1 className="max-w-xl text-4xl font-black tracking-tight text-brown-900 sm:text-5xl">
               Create an administrator account with complete and accurate profile details.
             </h1>
 
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+            <p className="mt-5 max-w-2xl text-base leading-7 text-brown-600 sm:text-lg">
               Use this page to register the main system administrator in the database. The account is saved with the
-              official <span className="font-semibold text-slate-900">Administrator</span> role and is immediately
+              official <span className="font-semibold text-brown-900">Administrator</span> role and is immediately
               compatible with the existing login flow.
             </p>
 
@@ -160,14 +160,14 @@ export default function AdminCreate() {
                   className="rounded-3xl border border-white/70 bg-white/70 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)]"
                 >
                   <CheckCircleIcon className="h-6 w-6 text-primary-600" />
-                  <p className="mt-3 text-sm font-medium leading-6 text-slate-600">{item}</p>
+                  <p className="mt-3 text-sm font-medium leading-6 text-brown-600">{item}</p>
                 </div>
               ))}
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center gap-4 text-sm font-medium text-slate-500">
-              <span className="rounded-full border border-slate-200 bg-white/70 px-4 py-2">Role locked to Administrator</span>
-              <span className="rounded-full border border-slate-200 bg-white/70 px-4 py-2">Username and email uniqueness enforced</span>
+            <div className="mt-8 flex flex-wrap items-center gap-4 text-sm font-medium text-brown-500">
+              <span className="rounded-full border border-brown-200 bg-white/70 px-4 py-2">Role locked to Administrator</span>
+              <span className="rounded-full border border-brown-200 bg-white/70 px-4 py-2">Username and email uniqueness enforced</span>
             </div>
           </motion.section>
 
@@ -179,8 +179,8 @@ export default function AdminCreate() {
           >
             <div className="mb-8">
               <p className="text-sm font-bold uppercase tracking-[0.3em] text-primary-600">Admin Account</p>
-              <h2 className="mt-3 text-3xl font-black text-slate-900">Professional account setup</h2>
-              <p className="mt-3 text-sm leading-6 text-slate-500">
+              <h2 className="mt-3 text-3xl font-black text-brown-900">Professional account setup</h2>
+              <p className="mt-3 text-sm leading-6 text-brown-500">
                 Enter the administrator's official identity and credentials. This record will be saved to the database
                 as a production-ready login.
               </p>
@@ -201,7 +201,7 @@ export default function AdminCreate() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid gap-4 sm:grid-cols-3">
                 <div>
-                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">
                     First Name
                   </label>
                   <input
@@ -210,14 +210,14 @@ export default function AdminCreate() {
                     value={formData.firstname}
                     onChange={handleChange}
                     placeholder="Maria"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                    className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     required
                   />
                   {errors.firstname ? <p className="mt-2 text-xs font-semibold text-rose-600">{errors.firstname}</p> : null}
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">
                     Middle Name
                   </label>
                   <input
@@ -226,12 +226,12 @@ export default function AdminCreate() {
                     value={formData.middlename}
                     onChange={handleChange}
                     placeholder="S."
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                    className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">
                     Last Name
                   </label>
                   <input
@@ -240,7 +240,7 @@ export default function AdminCreate() {
                     value={formData.lastname}
                     onChange={handleChange}
                     placeholder="Dela Cruz"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                    className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     required
                   />
                   {errors.lastname ? <p className="mt-2 text-xs font-semibold text-rose-600">{errors.lastname}</p> : null}
@@ -248,9 +248,9 @@ export default function AdminCreate() {
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Username</label>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Username</label>
                 <div className="group relative">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition-colors group-focus-within:text-primary-500">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-brown-400 transition-colors group-focus-within:text-primary-500">
                     <UserIcon className="h-5 w-5" />
                   </div>
                   <input
@@ -259,7 +259,7 @@ export default function AdminCreate() {
                     value={formData.username}
                     onChange={handleChange}
                     placeholder="admin.mdelacruz"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                    className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3.5 pl-11 pr-4 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     required
                   />
                 </div>
@@ -267,9 +267,9 @@ export default function AdminCreate() {
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Email Address</label>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Email Address</label>
                 <div className="group relative">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition-colors group-focus-within:text-primary-500">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-brown-400 transition-colors group-focus-within:text-primary-500">
                     <EnvelopeIcon className="h-5 w-5" />
                   </div>
                   <input
@@ -278,7 +278,7 @@ export default function AdminCreate() {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="admin@supply-management.edu"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                    className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3.5 pl-11 pr-4 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     required
                   />
                 </div>
@@ -287,9 +287,9 @@ export default function AdminCreate() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Password</label>
+                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Password</label>
                   <div className="group relative">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition-colors group-focus-within:text-primary-500">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-brown-400 transition-colors group-focus-within:text-primary-500">
                       <LockClosedIcon className="h-5 w-5" />
                     </div>
                     <input
@@ -298,13 +298,13 @@ export default function AdminCreate() {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Minimum 8 characters"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-12 text-sm text-slate-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                      className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3.5 pl-11 pr-12 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((current) => !current)}
-                      className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-slate-600"
+                      className="absolute inset-y-0 right-0 flex items-center pr-4 text-brown-400 transition-colors hover:text-brown-600"
                     >
                       {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
                     </button>
@@ -313,11 +313,11 @@ export default function AdminCreate() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">
                     Confirm Password
                   </label>
                   <div className="group relative">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition-colors group-focus-within:text-primary-500">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-brown-400 transition-colors group-focus-within:text-primary-500">
                       <LockClosedIcon className="h-5 w-5" />
                     </div>
                     <input
@@ -326,13 +326,13 @@ export default function AdminCreate() {
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       placeholder="Repeat password"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-12 text-sm text-slate-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                      className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3.5 pl-11 pr-12 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword((current) => !current)}
-                      className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors hover:text-slate-600"
+                      className="absolute inset-y-0 right-0 flex items-center pr-4 text-brown-400 transition-colors hover:text-brown-600"
                     >
                       {showConfirmPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
                     </button>
@@ -343,7 +343,7 @@ export default function AdminCreate() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-primary-100 bg-primary-50/70 px-4 py-3 text-sm leading-6 text-slate-600">
+              <div className="rounded-2xl border border-primary-100 bg-primary-50/70 px-4 py-3 text-sm leading-6 text-brown-600">
                 The new record will be saved with the fixed role <span className="font-bold text-primary-700">Administrator</span>.
               </div>
 
@@ -357,7 +357,7 @@ export default function AdminCreate() {
               </button>
             </form>
 
-            <div className="mt-8 text-center text-sm font-medium text-slate-500">
+            <div className="mt-8 text-center text-sm font-medium text-brown-500">
               Ready to use the new account?{" "}
               <Link to="/auth/login" className="font-bold text-primary-600 hover:underline">
                 Sign in here

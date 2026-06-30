@@ -88,13 +88,13 @@ export default function SupplyList({ searchTerm, selectedCategory }: { searchTer
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl border border-dashed border-slate-300 py-20 text-center"
+          className="bg-white rounded-3xl border border-dashed border-brown-300 py-20 text-center"
         >
-          <div className="inline-flex items-center justify-center p-4 bg-slate-50 rounded-full mb-6">
-            <CubeIcon className="h-12 w-12 text-slate-300" />
+          <div className="inline-flex items-center justify-center p-4 bg-brown-50 rounded-full mb-6">
+            <CubeIcon className="h-12 w-12 text-brown-300" />
           </div>
-          <h3 className="text-xl font-bold text-slate-900 mb-2">No matching supplies</h3>
-          <p className="text-slate-500 max-w-sm mx-auto">
+          <h3 className="text-xl font-bold text-brown-900 mb-2">No matching supplies</h3>
+          <p className="text-brown-500 max-w-sm mx-auto">
             We couldn't find any supplies matching your search or filter criteria.
             Try clearing your filters or searching for something else.
           </p>

@@ -146,8 +146,8 @@ export default function Login() {
           transition={{ duration: 0.5 }}
         >
           <div className="mb-10">
-            <h2 className="text-3xl font-black text-slate-900 mb-3">Sign In</h2>
-            <p className="text-slate-500">Welcome back! Please enter your details.</p>
+            <h2 className="text-3xl font-black text-brown-900 mb-3">Sign In</h2>
+            <p className="text-brown-500">Welcome back! Please enter your details.</p>
           </div>
 
           {serverMessage ? (
@@ -169,9 +169,9 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Email or Username</label>
+                <label className="block text-sm font-bold text-brown-700 mb-2">Email or Username</label>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brown-400 group-focus-within:text-primary-500 transition-colors">
                     <EnvelopeIcon className="h-5 w-5" />
                   </div>
                   <input
@@ -183,7 +183,7 @@ export default function Login() {
                       setServerMessage("")
                       setAttemptsRemaining(null)
                     }}
-                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                    className="w-full pl-11 pr-4 py-3.5 bg-brown-50 border border-brown-200 rounded-xl text-brown-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                     placeholder="Enter your email or username"
                     required
                     disabled={isLoading || isLocked}
@@ -196,10 +196,10 @@ export default function Login() {
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-bold text-slate-700">Password</label>
+                  <label className="text-sm font-bold text-brown-700">Password</label>
                 </div>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-500 transition-colors">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brown-400 group-focus-within:text-primary-500 transition-colors">
                     <LockClosedIcon className="h-5 w-5" />
                   </div>
                   <input
@@ -210,7 +210,7 @@ export default function Login() {
                       setErrors((currentErrors) => ({ ...currentErrors, password: undefined }))
                       setServerMessage("")
                     }}
-                    className="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                    className="w-full pl-11 pr-12 py-3.5 bg-brown-50 border border-brown-200 rounded-xl text-brown-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                     placeholder="Enter your password"
                     required
                     disabled={isLoading || isLocked}
@@ -218,7 +218,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-brown-400 hover:text-brown-600 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                     disabled={isLoading || isLocked}
                   >
                     {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
@@ -259,7 +259,7 @@ export default function Login() {
           </form>
 
           <div className="mt-10 text-center">
-            <p className="text-sm text-slate-500 font-medium">
+            <p className="text-sm text-brown-500 font-medium">
               Don't have an account?{" "}
               <Link to="/auth/signup" className="text-primary-600 font-bold hover:underline">
                 Create Account

@@ -57,8 +57,8 @@ export default function Inventory() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Inventory</h1>
-              <p className="text-gray-600 mt-1">Manage your stock and track inventory levels</p>
+              <h1 className="text-3xl font-bold text-brown-900">Inventory</h1>
+              <p className="text-brown-600 mt-1">Manage your stock and track inventory levels</p>
             </div>
             <div className="flex gap-3">
               <Button variant="secondary" size="md" loading>
@@ -85,8 +85,8 @@ export default function Inventory() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Inventory</h1>
-              <p className="text-gray-600 mt-1">Manage your stock and track inventory levels</p>
+              <h1 className="text-3xl font-bold text-brown-900">Inventory</h1>
+              <p className="text-brown-600 mt-1">Manage your stock and track inventory levels</p>
             </div>
             <div className="flex gap-3">
               <Button variant="secondary" size="md">
@@ -101,25 +101,25 @@ export default function Inventory() {
           </div>
 
           {/* Search and Filters */}
-          <StaggerContainer className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <StaggerContainer className="bg-white rounded-xl border border-brown-200 p-6 shadow-sm">
             <StaggerItem className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="flex-1 relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-brown-400" />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search by item code or name..."
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-2.5 border border-brown-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                 />
               </div>
 
               <div className="flex gap-3">
                 <div className="relative">
-                  <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-brown-400" />
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="pl-9 pr-8 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    className="pl-9 pr-8 py-2.5 border border-brown-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                   >
                     {categories.map((c) => (
                       <option key={c} value={c}>{c}</option>
@@ -131,7 +131,7 @@ export default function Inventory() {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as "name" | "quantity" | "status")}
-                    className="px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    className="px-3 py-2.5 border border-brown-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                   >
                     <option value="name">Name</option>
                     <option value="quantity">Quantity</option>
@@ -140,7 +140,7 @@ export default function Inventory() {
                   <select
                     value={sortDir}
                     onChange={(e) => setSortDir(e.target.value as "asc" | "desc")}
-                    className="px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    className="px-3 py-2.5 border border-brown-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                   >
                     <option value="asc">↑ Asc</option>
                     <option value="desc">↓ Desc</option>
@@ -150,7 +150,7 @@ export default function Inventory() {
             </StaggerItem>
 
             <StaggerItem className="mt-4">
-              <div className="flex items-center justify-between text-sm text-gray-600">
+              <div className="flex items-center justify-between text-sm text-brown-600">
                 <span>Showing {filtered.length} of {items.length} items</span>
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -170,14 +170,14 @@ export default function Inventory() {
           {/* Table */}
           <StaggerItem>
             <motion.div
-              className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+              className="bg-white rounded-xl border border-brown-200 shadow-sm overflow-hidden"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-brown-200">
+                  <thead className="bg-brown-50">
                     <tr>
                       <Th>Item Code</Th>
                       <Th>Item Name</Th>
@@ -189,34 +189,34 @@ export default function Inventory() {
                       <Th className="text-right">Actions</Th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200 bg-white">
+                  <tbody className="divide-y divide-brown-200 bg-white">
                     {filtered.map((item, index) => (
                       <motion.tr
                         key={item.itemCode}
-                        className="hover:bg-gray-50 transition-colors duration-150"
+                        className="hover:bg-brown-50 transition-colors duration-150"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
                       >
-                        <Td className="font-mono text-sm font-medium text-gray-900">{item.itemCode}</Td>
+                        <Td className="font-mono text-sm font-medium text-brown-900">{item.itemCode}</Td>
                         <Td>
-                          <div className="font-medium text-gray-900">{item.name}</div>
-                          <div className="text-xs text-gray-500">{item.category}</div>
+                          <div className="font-medium text-brown-900">{item.name}</div>
+                          <div className="text-xs text-brown-500">{item.category}</div>
                         </Td>
                         <Td>
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-brown-100 text-brown-800">
                             {item.category}
                           </span>
                         </Td>
                         <Td className="text-right">
-                          <div className="font-medium text-gray-900">{item.quantity.toLocaleString()}</div>
-                          <div className="text-xs text-gray-500">Min: {item.reorderLevel}</div>
+                          <div className="font-medium text-brown-900">{item.quantity.toLocaleString()}</div>
+                          <div className="text-xs text-brown-500">Min: {item.reorderLevel}</div>
                         </Td>
                         <Td>
-                          <span className="text-sm text-gray-600">{item.unit}</span>
+                          <span className="text-sm text-brown-600">{item.unit}</span>
                         </Td>
                         <Td>
-                          <span className="text-sm text-gray-600">{item.supplierId}</span>
+                          <span className="text-sm text-brown-600">{item.supplierId}</span>
                         </Td>
                         <Td>
                           <StatusBadge status={item.status} />
@@ -226,14 +226,14 @@ export default function Inventory() {
                             <motion.button
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
-                              className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                              className="p-1.5 text-brown-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
                             >
                               <EyeIcon className="h-4 w-4" />
                             </motion.button>
                             <motion.button
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
-                              className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-50"
+                              className="p-1.5 text-brown-400 hover:text-brown-600 transition-colors rounded-lg hover:bg-brown-50"
                             >
                               <PencilIcon className="h-4 w-4" />
                             </motion.button>
@@ -247,9 +247,9 @@ export default function Inventory() {
 
               {filtered.length === 0 && (
                 <div className="text-center py-12">
-                  <CubeIcon className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No items found</h3>
-                  <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
+                  <CubeIcon className="mx-auto h-12 w-12 text-brown-400" />
+                  <h3 className="mt-2 text-sm font-medium text-brown-900">No items found</h3>
+                  <p className="mt-1 text-sm text-brown-500">Try adjusting your search or filter criteria.</p>
                 </div>
               )}
             </motion.div>
@@ -270,7 +270,7 @@ function compare(a: Item, b: Item, by: "name" | "quantity" | "status", dir: "asc
 
 function Th({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${className}`}>
+    <th className={`px-6 py-3 text-left text-xs font-medium text-brown-500 uppercase tracking-wider ${className}`}>
       {children}
     </th>
   )
@@ -278,7 +278,7 @@ function Th({ children, className = "" }: { children: React.ReactNode; className
 
 function Td({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${className}`}>
+    <td className={`px-6 py-4 whitespace-nowrap text-sm text-brown-900 ${className}`}>
       {children}
     </td>
   )

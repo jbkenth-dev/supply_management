@@ -111,7 +111,7 @@ export default function SystemOverview() {
         icon: <Warehouse className="h-6 w-6" />,
         title: "Supply Visibility",
         description: `${stats.categories} categories and ${stats.supplies} supply items are available from the live public inventory feed.`,
-        color: "bg-blue-500",
+        color: "bg-primary-500",
       },
       {
         icon: <ClipboardCheck className="h-6 w-6" />,
@@ -129,13 +129,13 @@ export default function SystemOverview() {
         icon: <ShieldCheck className="h-6 w-6" />,
         title: "Role-Based Access",
         description: "The project uses separate workflows for Administrator, Property Custodian, and Faculty Staff accounts.",
-        color: "bg-slate-700",
+        color: "bg-brown-700",
       },
       {
         icon: <Boxes className="h-6 w-6" />,
         title: "Stock Monitoring",
         description: `${stats.availableStock.toLocaleString()} total on-hand quantity is currently represented across database-backed supplies.`,
-        color: "bg-indigo-500",
+        color: "bg-primary-500",
       },
       {
         icon: <BellRing className="h-6 w-6" />,
@@ -158,17 +158,17 @@ export default function SystemOverview() {
           transition={{ delay: index * 0.08 }}
           whileHover={{ y: -5 }}
         >
-          <Card className="group h-full overflow-hidden rounded-[2rem] border-none bg-white/85 shadow-xl shadow-slate-200/50 backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:shadow-primary-500/10">
+          <Card className="group h-full overflow-hidden rounded-[2rem] border-none bg-white/85 shadow-xl shadow-brown-200/50 backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:shadow-primary-500/10">
             <CardHeader className="pb-4">
               <div className={`mb-4 flex h-14 w-14 items-center justify-center rounded-2xl ${card.color} text-white shadow-lg transition-transform duration-500 group-hover:scale-110`}>
                 {card.icon}
               </div>
-              <CardTitle className="text-xl font-bold text-slate-900 transition-colors group-hover:text-primary-600">
+              <CardTitle className="text-xl font-bold text-brown-900 transition-colors group-hover:text-primary-600">
                 {card.title}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="leading-relaxed text-slate-600">{card.description}</p>
+              <p className="leading-relaxed text-brown-600">{card.description}</p>
             </CardContent>
           </Card>
         </motion.div>

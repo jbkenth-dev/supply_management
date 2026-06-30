@@ -9,7 +9,7 @@ export function AnimatedBackground({ imageUrl }: AnimatedBackgroundProps) {
   const y = useTransform(scrollY, [0, 1000], [-50, 250]);
 
   return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden bg-slate-950 pointer-events-none z-0">
+    <div className="absolute inset-0 w-full h-full overflow-hidden bg-brown-950 pointer-events-none z-0">
       {/* Base Background Image - Forced to cover 100% of the section without any gaps */}
       {imageUrl && (
         <div className="absolute inset-0 w-full h-full">
@@ -20,8 +20,8 @@ export function AnimatedBackground({ imageUrl }: AnimatedBackgroundProps) {
             className="absolute top-0 left-0 min-w-full min-h-[120%] w-full h-[120%] object-cover opacity-90 origin-top scale-105"
           />
           {/* Professional Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/50 via-transparent to-slate-950/80"></div>
-          <div className="absolute inset-0 bg-slate-950/30"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-brown-950/50 via-transparent to-brown-950/80"></div>
+          <div className="absolute inset-0 bg-brown-950/30"></div>
         </div>
       )}
 

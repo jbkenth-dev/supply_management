@@ -122,8 +122,8 @@ function SidebarContent({
         : adminNavGroups
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-white border-r border-gray-200">
-      <div className="flex h-16 flex-shrink-0 items-center px-6 border-b border-gray-100 gap-3">
+    <div className="flex min-h-0 flex-1 flex-col bg-white border-r border-brown-200">
+      <div className="flex h-16 flex-shrink-0 items-center px-6 border-b border-brown-100 gap-3">
         <div className="w-8 h-8 rounded-lg overflow-hidden shadow-sm">
           <img
             src="/sfcg-logo.jpg"
@@ -131,7 +131,7 @@ function SidebarContent({
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <div className="text-2xl font-bold bg-gradient-to-r from-primary-700 to-primary-400 bg-clip-text text-transparent">
           SFC-G
         </div>
       </div>
@@ -139,8 +139,8 @@ function SidebarContent({
         {navGroups.map((group) => (
           <div key={group.name}>
             <div className="flex items-center gap-2 px-2 mb-2">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{group.name}</span>
-              <div className="h-px bg-gray-100 flex-1" />
+              <span className="text-[10px] font-bold text-brown-400 uppercase tracking-widest">{group.name}</span>
+              <div className="h-px bg-brown-100 flex-1" />
             </div>
             <div className="space-y-1">
               {group.items.map((item) => (
@@ -151,8 +151,8 @@ function SidebarContent({
                   className={({ isActive }) =>
                     `group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                       isActive
-                        ? "bg-blue-50 text-blue-700 shadow-sm"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        ? "bg-primary-50 text-primary-700 shadow-sm"
+                        : "text-brown-600 hover:bg-brown-50 hover:text-brown-900"
                     }`
                   }
                 >
@@ -160,14 +160,14 @@ function SidebarContent({
                     <>
                       <item.icon
                         className={`h-5 w-5 flex-shrink-0 transition-colors ${
-                          isActive ? "text-blue-600" : "text-gray-400 group-hover:text-gray-600"
+                          isActive ? "text-primary-600" : "text-brown-400 group-hover:text-brown-600"
                         }`}
                       />
                       <span className="flex-1">{item.name}</span>
                       {isActive && (
                         <motion.div
                           layoutId="activeSidebar"
-                          className="absolute left-0 h-full w-1 bg-blue-600 rounded-r-full"
+                          className="absolute left-0 h-full w-1 bg-primary-600 rounded-r-full"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
@@ -183,38 +183,38 @@ function SidebarContent({
       </nav>
 
       {/* User Profile Section */}
-      <div className="border-t border-gray-200 p-4 space-y-3">
+      <div className="border-t border-brown-200 p-4 space-y-3">
         <button
           type="button"
           onClick={onOpenAccount}
-          className="flex w-full items-center gap-3 rounded-xl border border-transparent p-2.5 text-left transition-all duration-200 hover:border-gray-100 hover:bg-gray-50 hover:shadow-sm group"
+          className="flex w-full items-center gap-3 rounded-xl border border-transparent p-2.5 text-left transition-all duration-200 hover:border-brown-100 hover:bg-brown-50 hover:shadow-sm group"
         >
           <div className="relative">
             {user?.profileImageUrl ? (
               <img
                 src={user.profileImageUrl}
                 alt={getUserDisplayName(user, role)}
-                className="h-10 w-10 rounded-full object-cover ring-2 ring-gray-100 transition-all group-hover:ring-blue-100"
+                className="h-10 w-10 rounded-full object-cover ring-2 ring-brown-100 transition-all group-hover:ring-primary-100"
               />
             ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 font-bold uppercase text-blue-700 ring-2 ring-gray-100 transition-all group-hover:ring-blue-100">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-50 font-bold uppercase text-primary-700 ring-2 ring-brown-100 transition-all group-hover:ring-primary-100">
                 {user?.firstname?.[0] ?? role[0]}
               </div>
             )}
             <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-blue-700 transition-colors">
+            <p className="text-sm font-semibold text-brown-900 truncate group-hover:text-primary-700 transition-colors">
               {getUserDisplayName(user, role)}
             </p>
-            <p className="text-xs text-gray-500 truncate font-medium">{role}</p>
+            <p className="text-xs text-brown-500 truncate font-medium">{role}</p>
           </div>
-          <ArrowTopRightOnSquareIcon className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+          <ArrowTopRightOnSquareIcon className="h-5 w-5 text-brown-400 group-hover:text-primary-600 transition-colors" />
         </button>
         <button
           type="button"
           onClick={onLogout}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm font-semibold text-brown-600 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
         >
           <ArrowRightOnRectangleIcon className="h-4 w-4" />
           Logout
@@ -397,7 +397,7 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-brown-50">
       {/* Mobile Sidebar */}
       <Transition.Root show={sidebarOpen} as={Fragment}>
         <Dialog as="div" className="relative z-50 lg:hidden" onClose={setSidebarOpen}>
@@ -410,7 +410,7 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm" />
+            <div className="fixed inset-0 bg-brown-900/80 backdrop-blur-sm" />
           </Transition.Child>
 
           <div className="fixed inset-0 flex">
@@ -454,10 +454,10 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col lg:pl-72 transition-all duration-300">
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white/80 backdrop-blur-lg px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-brown-200 bg-white/80 backdrop-blur-lg px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
-            className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+            className="-m-2.5 p-2.5 text-brown-700 lg:hidden"
             onClick={() => setSidebarOpen(true)}
           >
             <span className="sr-only">Open sidebar</span>
@@ -471,7 +471,7 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
               <div className="relative" ref={notificationMenuRef}>
                 <button
                   type="button"
-                  className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 relative"
+                  className="-m-2.5 p-2.5 text-brown-400 hover:text-brown-500 relative"
                   onClick={() => setNotificationMenuOpen((current) => !current)}
                 >
                   <span className="sr-only">View notifications</span>
@@ -484,17 +484,17 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
                 </button>
 
                 {notificationMenuOpen ? (
-                  <div className="absolute right-0 top-12 z-50 w-[24rem] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
-                    <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                  <div className="absolute right-0 top-12 z-50 w-[24rem] overflow-hidden rounded-3xl border border-brown-200 bg-white shadow-2xl">
+                    <div className="flex items-center justify-between border-b border-brown-200 px-5 py-4">
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Notifications</p>
-                        <p className="mt-1 text-sm font-black text-slate-900">{unreadNotificationCount} unread</p>
+                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Notifications</p>
+                        <p className="mt-1 text-sm font-black text-brown-900">{unreadNotificationCount} unread</p>
                       </div>
                       <button
                         type="button"
                         onClick={() => void handleMarkAllNotificationsRead()}
                         disabled={unreadNotificationCount === 0}
-                        className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600 disabled:cursor-not-allowed disabled:text-slate-300"
+                        className="text-xs font-bold uppercase tracking-[0.18em] text-primary-600 disabled:cursor-not-allowed disabled:text-brown-300"
                       >
                         Mark all
                       </button>
@@ -502,9 +502,9 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
 
                     <div className="max-h-[26rem] overflow-y-auto p-3">
                       {notifications.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center">
-                          <BellIcon className="mx-auto h-8 w-8 text-slate-300" />
-                          <p className="mt-3 text-sm font-semibold text-slate-900">No notifications yet</p>
+                        <div className="rounded-2xl border border-dashed border-brown-200 bg-brown-50 px-4 py-8 text-center">
+                          <BellIcon className="mx-auto h-8 w-8 text-brown-300" />
+                          <p className="mt-3 text-sm font-semibold text-brown-900">No notifications yet</p>
                         </div>
                       ) : (
                         <div className="space-y-2">
@@ -515,8 +515,8 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
                               onClick={() => void handleNotificationClick(notification)}
                               className={`w-full rounded-2xl border p-4 text-left transition ${
                                 notification.isRead
-                                  ? "border-slate-200 bg-white hover:bg-slate-50"
-                                  : "border-blue-200 bg-blue-50/50 hover:bg-blue-50"
+                                  ? "border-brown-200 bg-white hover:bg-brown-50"
+                                  : "border-primary-200 bg-primary-50/50 hover:bg-primary-50"
                               }`}
                             >
                               <div className="flex items-start gap-3">
@@ -525,19 +525,19 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
                                 </div>
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-2">
-                                    <p className={`truncate text-sm text-slate-900 ${notification.isRead ? "font-normal" : "font-black"}`}>{notification.title}</p>
+                                    <p className={`truncate text-sm text-brown-900 ${notification.isRead ? "font-normal" : "font-black"}`}>{notification.title}</p>
                                     {!notification.isRead ? (
-                                      <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-600">
+                                      <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-primary-600">
                                         New
                                       </span>
                                     ) : null}
                                   </div>
-                                  <p className={`mt-1 line-clamp-2 text-sm ${notification.isRead ? "font-normal text-slate-500" : "font-black text-slate-700"}`}>
+                                  <p className={`mt-1 line-clamp-2 text-sm ${notification.isRead ? "font-normal text-brown-500" : "font-black text-brown-700"}`}>
                                     {notification.message}
                                   </p>
                                   <p
                                     className={`mt-2 text-[11px] uppercase tracking-[0.18em] ${
-                                      notification.isRead ? "font-normal text-slate-400" : "font-black text-blue-600"
+                                      notification.isRead ? "font-normal text-brown-400" : "font-black text-primary-600"
                                     }`}
                                   >
                                     {formatNotificationTime(notification.createdAt)}
@@ -550,11 +550,11 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
                       )}
                     </div>
 
-                    <div className="border-t border-slate-200 p-3">
+                    <div className="border-t border-brown-200 p-3">
                       <button
                         type="button"
                         onClick={handleOpenNotificationsPage}
-                        className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+                        className="w-full rounded-2xl bg-brown-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-brown-800"
                       >
                         Open Notification Center
                       </button>
@@ -564,11 +564,11 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
               </div>
 
               {/* Separator */}
-              <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" aria-hidden="true" />
+              <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-brown-200" aria-hidden="true" />
 
               {/* Profile dropdown (Simplified for now since it's in sidebar too, but good for mobile/desktop parity or quick actions) */}
               <div className="flex items-center gap-x-4 lg:hidden">
-                <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-600">
+                <div className="h-8 w-8 rounded-full bg-brown-100 flex items-center justify-center font-bold text-brown-600">
                   JD
                 </div>
               </div>
@@ -612,14 +612,14 @@ function getNotificationToneClass(type: string) {
   }
 
   if (type === "request_submitted") {
-    return "bg-blue-50 text-blue-600"
+    return "bg-primary-50 text-primary-600"
   }
 
   if (type === "request_rejected") {
     return "bg-rose-50 text-rose-600"
   }
 
-  return "bg-slate-100 text-slate-600"
+  return "bg-brown-100 text-brown-600"
 }
 
 function formatNotificationTime(value: string) {

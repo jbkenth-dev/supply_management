@@ -24,29 +24,29 @@ export default function Transactions() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700">From</label>
+              <label className="block text-xs font-medium text-brown-700">From</label>
               <input
                 type="date"
                 value={from}
                 onChange={(e) => setFrom(e.target.value)}
-                className="mt-1 rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 rounded-md border-brown-300 text-sm focus:border-primary-500 focus:ring-primary-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700">To</label>
+              <label className="block text-xs font-medium text-brown-700">To</label>
               <input
                 type="date"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
-                className="mt-1 rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 rounded-md border-brown-300 text-sm focus:border-primary-500 focus:ring-primary-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700">Type</label>
+              <label className="block text-xs font-medium text-brown-700">Type</label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as "All" | "IN" | "OUT")}
-                className="mt-1 rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 rounded-md border-brown-300 text-sm focus:border-primary-500 focus:ring-primary-500"
               >
                 <option>All</option>
                 <option>IN</option>
@@ -54,12 +54,12 @@ export default function Transactions() {
               </select>
             </div>
           </div>
-          <div className="text-xs text-gray-600">Showing {filtered.length} transactions</div>
+          <div className="text-xs text-brown-600">Showing {filtered.length} transactions</div>
         </div>
 
         <div className="mt-4 overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-brown-200">
+            <thead className="bg-brown-50">
               <tr>
                 <Th>ID</Th>
                 <Th>Date</Th>
@@ -71,9 +71,9 @@ export default function Transactions() {
                 <Th>Requested By</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
+            <tbody className="divide-y divide-brown-100 bg-white">
               {filtered.map((t) => (
-                <tr key={t.id} className="hover:bg-gray-50">
+                <tr key={t.id} className="hover:bg-brown-50">
                   <Td>{t.id}</Td>
                   <Td>{t.date}</Td>
                   <Td>
@@ -96,7 +96,7 @@ export default function Transactions() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <Td colSpan={8} className="text-center text-sm text-gray-600">
+                  <Td colSpan={8} className="text-center text-sm text-brown-600">
                     No transactions in selected range
                   </Td>
                 </tr>
@@ -110,7 +110,7 @@ export default function Transactions() {
 }
 
 function Th({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <th className={`px-4 py-2 text-left text-xs font-medium text-gray-700 ${className}`}>{children}</th>
+  return <th className={`px-4 py-2 text-left text-xs font-medium text-brown-700 ${className}`}>{children}</th>
 }
 function Td({
   children,
@@ -121,5 +121,5 @@ function Td({
   className?: string
   colSpan?: number
 }) {
-  return <td className={`px-4 py-2 text-sm text-gray-700 ${className}`} colSpan={colSpan}>{children}</td>
+  return <td className={`px-4 py-2 text-sm text-brown-700 ${className}`} colSpan={colSpan}>{children}</td>
 }

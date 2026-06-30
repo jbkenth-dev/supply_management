@@ -109,16 +109,16 @@ export default function AdminDashboard() {
         <StaggerItem>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">Admin Dashboard</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Dashboard and Analytics</h1>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Admin Dashboard</p>
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-brown-900">Dashboard and Analytics</h1>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-brown-500">
                 All values below come directly records for users, categories, supplies, and stock entries.
               </p>
             </div>
             <button
               type="button"
               onClick={() => void loadDashboard()}
-              className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm font-semibold text-brown-700 transition hover:border-brown-300 hover:bg-brown-50"
             >
               <ArrowPathIcon className="mr-2 h-4 w-4" />
               Refresh Data
@@ -163,13 +163,13 @@ export default function AdminDashboard() {
 
         <StaggerItem>
           <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-            <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Users</p>
-                  <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Account Distribution</h2>
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Users</p>
+                  <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Account Distribution</h2>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary-600">
                   <UsersIcon className="h-6 w-6" />
                 </div>
               </div>
@@ -182,11 +182,11 @@ export default function AdminDashboard() {
               </div>
             </section>
 
-            <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Stock Health</p>
-                  <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Inventory Status</h2>
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Stock Health</p>
+                  <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Inventory Status</h2>
                 </div>
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
                   <ClipboardDocumentListIcon className="h-6 w-6" />
@@ -218,19 +218,19 @@ export default function AdminDashboard() {
         </StaggerItem>
 
         <StaggerItem>
-          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">History</p>
-                <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Recent Stock Entries</h2>
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">History</p>
+                <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Recent Stock Entries</h2>
               </div>
             </div>
 
             <div className="mt-6 space-y-3">
               {recentEntries.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center">
-                  <p className="text-sm font-semibold text-slate-900">No stock entries yet</p>
-                  <p className="mt-2 text-sm text-slate-500">Once stock is added from the admin stock page, the latest entries will appear here.</p>
+                <div className="rounded-2xl border border-dashed border-brown-200 bg-brown-50 px-5 py-10 text-center">
+                  <p className="text-sm font-semibold text-brown-900">No stock entries yet</p>
+                  <p className="mt-2 text-sm text-brown-500">Once stock is added from the admin stock page, the latest entries will appear here.</p>
                 </div>
               ) : (
                 recentEntries.map((entry, index) => (
@@ -239,20 +239,20 @@ export default function AdminDashboard() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.04 }}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                    className="rounded-2xl border border-brown-200 bg-brown-50 p-4"
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-bold text-slate-900">{entry.supplyName}</span>
-                          <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                          <span className="text-sm font-bold text-brown-900">{entry.supplyName}</span>
+                          <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brown-500">
                             {entry.supplyItemCode}
                           </span>
                         </div>
-                        <p className="mt-2 text-sm text-slate-500">
+                        <p className="mt-2 text-sm text-brown-500">
                           {entry.categoryName} • Added by {entry.createdByName}
                         </p>
-                        <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">
+                        <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary-600">
                           {formatDateTime(entry.createdAt)}
                         </p>
                       </div>
@@ -261,7 +261,7 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-brown-500">
                       {entry.referenceNo ? <span className="rounded-full bg-white px-3 py-1">Ref: {entry.referenceNo}</span> : null}
                       {entry.remarks ? <span className="rounded-full bg-white px-3 py-1">{entry.remarks}</span> : null}
                     </div>
@@ -288,22 +288,22 @@ function MetricCard({
   tone: "blue" | "slate" | "emerald" | "amber" | "indigo"
 }) {
   const toneMap = {
-    blue: "bg-blue-50 text-blue-600 border-blue-100",
-    slate: "bg-slate-100 text-slate-600 border-slate-200",
+    blue: "bg-primary-50 text-primary-600 border-primary-100",
+    slate: "bg-brown-100 text-brown-600 border-brown-200",
     emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
     amber: "bg-amber-50 text-amber-600 border-amber-100",
-    indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
+    indigo: "bg-primary-50 text-primary-600 border-primary-100",
   }
 
   return (
-    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-[1.5rem] border border-brown-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">{title}</p>
+        <p className="text-xs font-bold uppercase tracking-[0.22em] text-brown-400">{title}</p>
         <div className={`flex h-10 w-10 items-center justify-center rounded-2xl border ${toneMap[tone]}`}>
           {icon}
         </div>
       </div>
-      <p className="mt-4 text-3xl font-black tracking-tight text-slate-900">{value.toLocaleString()}</p>
+      <p className="mt-4 text-3xl font-black tracking-tight text-brown-900">{value.toLocaleString()}</p>
     </div>
   )
 }
@@ -318,10 +318,10 @@ function SoftStat({
   helper: string
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
-      <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">{label}</p>
-      <p className="mt-3 text-3xl font-black tracking-tight text-slate-900">{value.toLocaleString()}</p>
-      <p className="mt-2 text-sm leading-6 text-slate-500">{helper}</p>
+    <div className="rounded-[1.5rem] border border-brown-200 bg-brown-50 p-5">
+      <p className="text-xs font-bold uppercase tracking-[0.2em] text-brown-400">{label}</p>
+      <p className="mt-3 text-3xl font-black tracking-tight text-brown-900">{value.toLocaleString()}</p>
+      <p className="mt-2 text-sm leading-6 text-brown-500">{helper}</p>
     </div>
   )
 }
@@ -345,14 +345,14 @@ function ProgressRow({
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+    <div className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
       <div className="flex items-center justify-between gap-4">
-        <p className="text-sm font-semibold text-slate-700">{label}</p>
-        <p className="text-sm font-bold text-slate-900">
+        <p className="text-sm font-semibold text-brown-700">{label}</p>
+        <p className="text-sm font-bold text-brown-900">
           {value.toLocaleString()} / {total.toLocaleString()}
         </p>
       </div>
-      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-brown-200">
         <div className={`h-full rounded-full ${barClass[tone]}`} style={{ width: `${percentage}%` }} />
       </div>
     </div>
@@ -374,86 +374,86 @@ function DashboardSkeleton() {
     <div className="space-y-8 animate-pulse">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="h-3 w-32 rounded-full bg-slate-200" />
-          <div className="mt-4 h-10 w-80 max-w-full rounded-2xl bg-slate-200" />
-          <div className="mt-3 h-4 w-[32rem] max-w-full rounded-full bg-slate-100" />
-          <div className="mt-2 h-4 w-[28rem] max-w-full rounded-full bg-slate-100" />
+          <div className="h-3 w-32 rounded-full bg-brown-200" />
+          <div className="mt-4 h-10 w-80 max-w-full rounded-2xl bg-brown-200" />
+          <div className="mt-3 h-4 w-[32rem] max-w-full rounded-full bg-brown-100" />
+          <div className="mt-2 h-4 w-[28rem] max-w-full rounded-full bg-brown-100" />
         </div>
-        <div className="h-11 w-36 rounded-xl bg-slate-200" />
+        <div className="h-11 w-36 rounded-xl bg-brown-200" />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {Array.from({ length: 5 }).map((_, index) => (
-          <div key={index} className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+          <div key={index} className="rounded-[1.5rem] border border-brown-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
-              <div className="h-3 w-24 rounded-full bg-slate-200" />
-              <div className="h-10 w-10 rounded-2xl bg-slate-100" />
+              <div className="h-3 w-24 rounded-full bg-brown-200" />
+              <div className="h-10 w-10 rounded-2xl bg-brown-100" />
             </div>
-            <div className="mt-4 h-10 w-20 rounded-2xl bg-slate-200" />
+            <div className="mt-4 h-10 w-20 rounded-2xl bg-brown-200" />
           </div>
         ))}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex items-center justify-between">
             <div>
-              <div className="h-3 w-20 rounded-full bg-slate-200" />
-              <div className="mt-4 h-8 w-56 rounded-2xl bg-slate-200" />
+              <div className="h-3 w-20 rounded-full bg-brown-200" />
+              <div className="mt-4 h-8 w-56 rounded-2xl bg-brown-200" />
             </div>
-            <div className="h-12 w-12 rounded-2xl bg-slate-100" />
+            <div className="h-12 w-12 rounded-2xl bg-brown-100" />
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
-                <div className="h-3 w-24 rounded-full bg-slate-200" />
-                <div className="mt-4 h-10 w-16 rounded-2xl bg-slate-200" />
-                <div className="mt-3 h-4 w-full rounded-full bg-slate-100" />
+              <div key={index} className="rounded-[1.5rem] border border-brown-200 bg-brown-50 p-5">
+                <div className="h-3 w-24 rounded-full bg-brown-200" />
+                <div className="mt-4 h-10 w-16 rounded-2xl bg-brown-200" />
+                <div className="mt-3 h-4 w-full rounded-full bg-brown-100" />
               </div>
             ))}
           </div>
         </div>
 
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex items-center justify-between">
             <div>
-              <div className="h-3 w-24 rounded-full bg-slate-200" />
-              <div className="mt-4 h-8 w-48 rounded-2xl bg-slate-200" />
+              <div className="h-3 w-24 rounded-full bg-brown-200" />
+              <div className="mt-4 h-8 w-48 rounded-2xl bg-brown-200" />
             </div>
-            <div className="h-12 w-12 rounded-2xl bg-slate-100" />
+            <div className="h-12 w-12 rounded-2xl bg-brown-100" />
           </div>
           <div className="mt-6 space-y-4">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div key={index} className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
                 <div className="flex items-center justify-between">
-                  <div className="h-4 w-32 rounded-full bg-slate-200" />
-                  <div className="h-4 w-20 rounded-full bg-slate-200" />
+                  <div className="h-4 w-32 rounded-full bg-brown-200" />
+                  <div className="h-4 w-20 rounded-full bg-brown-200" />
                 </div>
-                <div className="mt-3 h-2 w-full rounded-full bg-slate-200" />
+                <div className="mt-3 h-2 w-full rounded-full bg-brown-200" />
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <div className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="h-3 w-20 rounded-full bg-slate-200" />
-            <div className="mt-4 h-8 w-60 rounded-2xl bg-slate-200" />
+            <div className="h-3 w-20 rounded-full bg-brown-200" />
+            <div className="mt-4 h-8 w-60 rounded-2xl bg-brown-200" />
           </div>
-          <div className="h-4 w-52 rounded-full bg-slate-100" />
+          <div className="h-4 w-52 rounded-full bg-brown-100" />
         </div>
         <div className="mt-6 space-y-3">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div key={index} className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <div className="h-4 w-40 rounded-full bg-slate-200" />
-                  <div className="mt-3 h-4 w-56 rounded-full bg-slate-100" />
-                  <div className="mt-3 h-3 w-32 rounded-full bg-slate-100" />
+                  <div className="h-4 w-40 rounded-full bg-brown-200" />
+                  <div className="mt-3 h-4 w-56 rounded-full bg-brown-100" />
+                  <div className="mt-3 h-3 w-32 rounded-full bg-brown-100" />
                 </div>
-                <div className="h-8 w-16 rounded-full bg-slate-200" />
+                <div className="h-8 w-16 rounded-full bg-brown-200" />
               </div>
             </div>
           ))}

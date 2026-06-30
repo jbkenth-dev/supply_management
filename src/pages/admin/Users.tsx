@@ -341,14 +341,14 @@ export default function AdminUsers() {
       <div className="space-y-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex flex-col gap-2">
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">Admin Users</p>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900">Manage faculty and custodian accounts</h1>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Admin Users</p>
+            <h1 className="text-3xl font-black tracking-tight text-brown-900">Manage faculty and custodian accounts</h1>
           </div>
 
           <button
             type="button"
             onClick={openCreateModal}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800"
           >
             <PlusIcon className="h-5 w-5" />
             Create User
@@ -365,20 +365,20 @@ export default function AdminUsers() {
           </div>
         ) : null}
 
-        <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">User Directory</p>
-              <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Registered users</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">User Directory</p>
+              <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Registered users</h2>
             </div>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-brown-500">
               {filteredUsers.length} of {users.length} managed accounts
             </p>
           </div>
 
           <div className="mt-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative w-full max-w-xl">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-brown-400">
                 <MagnifyingGlassIcon className="h-5 w-5" />
               </div>
               <input
@@ -386,14 +386,14 @@ export default function AdminUsers() {
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Search by name, ID number, username, email, or role"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3.5 pl-11 pr-4 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
               />
             </div>
             {searchTerm.trim() ? (
               <button
                 type="button"
                 onClick={() => setSearchTerm("")}
-                className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                className="inline-flex items-center justify-center rounded-xl border border-brown-200 px-4 py-3 text-sm font-semibold text-brown-600 transition hover:bg-brown-50"
               >
                 Clear Search
               </button>
@@ -403,26 +403,26 @@ export default function AdminUsers() {
           {isLoading ? (
             <div className="mt-6 space-y-3">
               {Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="h-20 animate-pulse rounded-2xl bg-slate-100" />
+                <div key={index} className="h-20 animate-pulse rounded-2xl bg-brown-100" />
               ))}
             </div>
           ) : users.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center">
-              <p className="text-sm font-semibold text-slate-900">No faculty or custodian accounts yet</p>
-              <p className="mt-2 text-sm text-slate-500">Use the Create User button to add the first managed account.</p>
+            <div className="mt-6 rounded-2xl border border-dashed border-brown-200 bg-brown-50 px-5 py-10 text-center">
+              <p className="text-sm font-semibold text-brown-900">No faculty or custodian accounts yet</p>
+              <p className="mt-2 text-sm text-brown-500">Use the Create User button to add the first managed account.</p>
             </div>
           ) : filteredUsers.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center">
-              <p className="text-sm font-semibold text-slate-900">No users match your search</p>
-              <p className="mt-2 text-sm text-slate-500">
+            <div className="mt-6 rounded-2xl border border-dashed border-brown-200 bg-brown-50 px-5 py-10 text-center">
+              <p className="text-sm font-semibold text-brown-900">No users match your search</p>
+              <p className="mt-2 text-sm text-brown-500">
                 Try a different name, ID number, username, email, or role keyword.
               </p>
             </div>
           ) : (
             <div className="mt-6 space-y-5">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-slate-50">
+                <table className="min-w-full divide-y divide-brown-200">
+                  <thead className="bg-brown-50">
                     <tr>
                       <TableHead>Name</TableHead>
                       <TableHead>ID Number</TableHead>
@@ -432,15 +432,15 @@ export default function AdminUsers() {
                       <TableHead className="text-right">Actions</TableHead>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 bg-white">
+                  <tbody className="divide-y divide-brown-100 bg-white">
                     {paginatedUsers.map((user) => (
-                      <tr key={user.id} className="align-top hover:bg-slate-50/80">
+                      <tr key={user.id} className="align-top hover:bg-brown-50/80">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar user={user} />
                             <div>
-                              <p className="font-semibold text-slate-900">{getFullName(user)}</p>
-                              <p className="mt-1 text-xs text-slate-500">Updated {formatDate(user.updatedAt)}</p>
+                              <p className="font-semibold text-brown-900">{getFullName(user)}</p>
+                              <p className="mt-1 text-xs text-brown-500">Updated {formatDate(user.updatedAt)}</p>
                             </div>
                           </div>
                         </TableCell>
@@ -450,7 +450,7 @@ export default function AdminUsers() {
                             className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
                               user.role === "Property Custodian"
                                 ? "bg-amber-50 text-amber-700"
-                                : "bg-blue-50 text-blue-700"
+                                : "bg-primary-50 text-primary-700"
                             }`}
                           >
                             {user.role}
@@ -463,7 +463,7 @@ export default function AdminUsers() {
                             <button
                               type="button"
                               onClick={() => handleEdit(user)}
-                              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100"
+                              className="inline-flex items-center gap-2 rounded-xl border border-brown-200 px-3 py-2 text-sm font-semibold text-brown-600 transition hover:bg-brown-100"
                             >
                               <PencilSquareIcon className="h-4 w-4" />
                               Edit
@@ -484,8 +484,8 @@ export default function AdminUsers() {
                 </table>
               </div>
 
-              <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-slate-500">
+              <div className="flex flex-col gap-3 border-t border-brown-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-brown-500">
                   Showing {paginationStart} to {paginationEnd} of {filteredUsers.length} results
                 </p>
                 <div className="flex flex-wrap items-center gap-2">
@@ -493,18 +493,18 @@ export default function AdminUsers() {
                     type="button"
                     onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
                     disabled={currentPage === 1}
-                    className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center justify-center rounded-xl border border-brown-200 px-4 py-2 text-sm font-semibold text-brown-600 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Previous
                   </button>
-                  <span className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">
+                  <span className="rounded-xl bg-brown-100 px-4 py-2 text-sm font-semibold text-brown-700">
                     Page {currentPage} of {totalPages}
                   </span>
                   <button
                     type="button"
                     onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
                     disabled={currentPage === totalPages}
-                    className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center justify-center rounded-xl border border-brown-200 px-4 py-2 text-sm font-semibold text-brown-600 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Next
                   </button>
@@ -519,16 +519,16 @@ export default function AdminUsers() {
         <ModalShell onClose={closeFormModal}>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Account Form</p>
-              <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">{formTitle}</h2>
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Account Form</p>
+              <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">{formTitle}</h2>
+              <p className="mt-2 text-sm text-brown-500">
                 {isEditing ? "Update the selected account details. Username and email stay locked for accuracy." : "Enter accurate account information for the new user."}
               </p>
             </div>
             <button
               type="button"
               onClick={closeFormModal}
-              className="rounded-xl border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50"
+              className="rounded-xl border border-brown-200 p-2 text-brown-500 transition hover:bg-brown-50"
               aria-label="Close account form"
             >
               <XMarkIcon className="h-5 w-5" />
@@ -537,13 +537,13 @@ export default function AdminUsers() {
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Profile Picture</label>
-              <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-slate-200">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Profile Picture</label>
+              <div className="flex items-center gap-4 rounded-2xl border border-brown-200 bg-brown-50 p-4">
+                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-brown-200">
                   {imagePreviewUrl ? (
                     <img src={imagePreviewUrl} alt="Profile preview" className="h-full w-full object-cover" />
                   ) : (
-                    <span className="text-xl font-bold uppercase text-slate-500">
+                    <span className="text-xl font-bold uppercase text-brown-500">
                       {(formData.firstname[0] ?? formData.role[0] ?? "U").toUpperCase()}
                     </span>
                   )}
@@ -553,20 +553,20 @@ export default function AdminUsers() {
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
                     onChange={handleImageChange}
-                    className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-800"
+                    className="block w-full text-sm text-brown-600 file:mr-4 file:rounded-xl file:border-0 file:bg-brown-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-brown-800"
                   />
-                  <p className="mt-2 text-xs text-slate-500">JPG, PNG, or WEBP only. Maximum size: 2MB.</p>
+                  <p className="mt-2 text-xs text-brown-500">JPG, PNG, or WEBP only. Maximum size: 2MB.</p>
                   {errors.profileImage ? <p className="mt-2 text-xs font-semibold text-rose-600">{errors.profileImage}</p> : null}
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Role</label>
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Role</label>
               <select
                 value={formData.role}
                 onChange={(event) => handleChange("role", event.target.value as ManagedRole)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3.5 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
               >
                 <option value="Faculty Staff">Faculty Staff</option>
                 <option value="Property Custodian">Property Custodian</option>
@@ -575,13 +575,13 @@ export default function AdminUsers() {
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">ID Number</label>
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">ID Number</label>
               <input
                 type="text"
                 value={formData.idNumber}
                 onChange={(event) => handleChange("idNumber", event.target.value)}
                 placeholder="2024-0001"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3.5 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
               />
               {errors.idNumber ? <p className="mt-2 text-xs font-semibold text-rose-600">{errors.idNumber}</p> : null}
             </div>
@@ -592,7 +592,7 @@ export default function AdminUsers() {
                   type="text"
                   value={formData.firstname}
                   onChange={(event) => handleChange("firstname", event.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3.5 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                 />
               </FormField>
 
@@ -601,7 +601,7 @@ export default function AdminUsers() {
                   type="text"
                   value={formData.middlename}
                   onChange={(event) => handleChange("middlename", event.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3.5 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                 />
               </FormField>
 
@@ -610,7 +610,7 @@ export default function AdminUsers() {
                   type="text"
                   value={formData.lastname}
                   onChange={(event) => handleChange("lastname", event.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3.5 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                 />
               </FormField>
             </div>
@@ -624,8 +624,8 @@ export default function AdminUsers() {
                   readOnly={isEditing}
                   className={`w-full rounded-xl border px-4 py-3.5 text-sm transition-all ${
                     isEditing
-                      ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-500"
-                      : "border-slate-200 bg-slate-50 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      ? "cursor-not-allowed border-brown-200 bg-brown-100 text-brown-500"
+                      : "border-brown-200 bg-brown-50 text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                   }`}
                 />
               </FormField>
@@ -638,8 +638,8 @@ export default function AdminUsers() {
                   readOnly={isEditing}
                   className={`w-full rounded-xl border px-4 py-3.5 text-sm transition-all ${
                     isEditing
-                      ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-500"
-                      : "border-slate-200 bg-slate-50 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      ? "cursor-not-allowed border-brown-200 bg-brown-100 text-brown-500"
+                      : "border-brown-200 bg-brown-50 text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                   }`}
                 />
               </FormField>
@@ -653,7 +653,7 @@ export default function AdminUsers() {
                     value={formData.password}
                     onChange={(event) => handleChange("password", event.target.value)}
                     placeholder="Minimum 8 characters"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3.5 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                   />
                 </FormField>
 
@@ -663,7 +663,7 @@ export default function AdminUsers() {
                     value={formData.confirmPassword}
                     onChange={(event) => handleChange("confirmPassword", event.target.value)}
                     placeholder="Repeat password"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3.5 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                   />
                 </FormField>
               </div>
@@ -673,14 +673,14 @@ export default function AdminUsers() {
               <button
                 type="button"
                 onClick={closeFormModal}
-                className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                className="inline-flex items-center justify-center rounded-xl border border-brown-200 px-5 py-3 text-sm font-semibold text-brown-600 transition hover:bg-brown-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <UserPlusIcon className="h-5 w-5" />
                 {isSubmitting ? (isEditing ? "Saving Changes..." : "Creating User...") : isEditing ? "Save User Changes" : "Create User"}
@@ -698,9 +698,9 @@ export default function AdminUsers() {
             </div>
             <div className="flex-1">
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-rose-500">Delete User</p>
-              <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900">Delete this account?</h2>
-              <p className="mt-3 text-sm leading-6 text-slate-500">
-                You are deleting <span className="font-semibold text-slate-900">{getFullName(deleteTarget)}</span>. This action
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-brown-900">Delete this account?</h2>
+              <p className="mt-3 text-sm leading-6 text-brown-500">
+                You are deleting <span className="font-semibold text-brown-900">{getFullName(deleteTarget)}</span>. This action
                 cannot be undone.
               </p>
               <div className="mt-4 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -716,7 +716,7 @@ export default function AdminUsers() {
               type="button"
               onClick={closeDeleteModal}
               disabled={isDeleteSubmitting}
-              className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center rounded-xl border border-brown-200 px-5 py-3 text-sm font-semibold text-brown-600 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Cancel
             </button>
@@ -746,9 +746,9 @@ function ModalShell({
   maxWidthClassName?: string
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
-        className={`max-h-[90vh] w-full overflow-y-auto rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl sm:p-8 ${maxWidthClassName}`}
+        className={`max-h-[90vh] w-full overflow-y-auto rounded-[2rem] border border-brown-200 bg-white p-6 shadow-2xl sm:p-8 ${maxWidthClassName}`}
         onClick={(event) => event.stopPropagation()}
       >
         {children}
@@ -768,7 +768,7 @@ function FormField({
 }) {
   return (
     <div>
-      <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">{label}</label>
+      <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">{label}</label>
       {children}
       {error ? <p className="mt-2 text-xs font-semibold text-rose-600">{error}</p> : null}
     </div>
@@ -785,7 +785,7 @@ function Avatar({ user }: { user: ManagedUser }) {
   }
 
   return (
-    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-200 text-sm font-bold uppercase text-slate-600">
+    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brown-200 text-sm font-bold uppercase text-brown-600">
       {(user.firstname[0] ?? user.role[0] ?? "U").toUpperCase()}
     </div>
   )
@@ -808,7 +808,7 @@ function TableHead({
   children: ReactNode
   className?: string
 }) {
-  return <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.18em] text-slate-500 ${className}`}>{children}</th>
+  return <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.18em] text-brown-500 ${className}`}>{children}</th>
 }
 
 function TableCell({
@@ -818,5 +818,5 @@ function TableCell({
   children: ReactNode
   className?: string
 }) {
-  return <td className={`px-4 py-4 text-sm text-slate-600 ${className}`}>{children}</td>
+  return <td className={`px-4 py-4 text-sm text-brown-600 ${className}`}>{children}</td>
 }

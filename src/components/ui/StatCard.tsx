@@ -20,8 +20,8 @@ export function StatCard({ title, value, icon, trend, loading }: StatCardProps) 
         className="rounded-xl border bg-white p-6 shadow-sm"
       >
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
-          <div className="h-8 bg-gray-200 rounded w-32"></div>
+          <div className="h-4 bg-brown-200 rounded w-24 mb-2"></div>
+          <div className="h-8 bg-brown-200 rounded w-32"></div>
         </div>
       </motion.div>
     )
@@ -37,8 +37,8 @@ export function StatCard({ title, value, icon, trend, loading }: StatCardProps) 
     >
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
+          <p className="text-sm font-medium text-brown-600">{title}</p>
+          <p className="mt-2 text-3xl font-bold text-brown-900">{value}</p>
           {trend && (
             <p className={`mt-1 text-sm ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
               {trend.isPositive ? '↗' : '↘'} {trend.value}
@@ -46,7 +46,7 @@ export function StatCard({ title, value, icon, trend, loading }: StatCardProps) 
           )}
         </div>
         {icon && (
-          <div className="ml-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50">
+          <div className="ml-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary-50">
             {icon}
           </div>
         )}

@@ -36,7 +36,7 @@ export default function Reports() {
     <AppShell>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="rounded-lg border bg-white p-4 lg:col-span-2">
-          <h3 className="mb-3 text-sm font-medium text-gray-700">Inventory Valuation</h3>
+          <h3 className="mb-3 text-sm font-medium text-brown-700">Inventory Valuation</h3>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={valuation} margin={{ left: 8, right: 8 }}>
@@ -49,28 +49,28 @@ export default function Reports() {
             </ResponsiveContainer>
           </div>
           <div className="mt-4 flex gap-2">
-            <button className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50">Export PDF</button>
-            <button className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50">Export Excel</button>
-            <span className="text-xs text-gray-600">UI only</span>
+            <button className="rounded-md border px-3 py-1 text-sm hover:bg-brown-50">Export PDF</button>
+            <button className="rounded-md border px-3 py-1 text-sm hover:bg-brown-50">Export Excel</button>
+            <span className="text-xs text-brown-600">UI only</span>
           </div>
         </div>
         <div className="rounded-lg border bg-white p-4">
-          <h3 className="mb-3 text-sm font-medium text-gray-700">Fast-Moving Items</h3>
+          <h3 className="mb-3 text-sm font-medium text-brown-700">Fast-Moving Items</h3>
           <ul className="divide-y">
             {fastMoving.slice(0, 8).map((f) => (
               <li key={f.itemCode} className="flex items-center justify-between py-2">
-                <p className="text-sm text-gray-800">{f.itemCode}</p>
-                <p className="text-xs text-gray-600">{f.qty.toLocaleString()}</p>
+                <p className="text-sm text-brown-800">{f.itemCode}</p>
+                <p className="text-xs text-brown-600">{f.qty.toLocaleString()}</p>
               </li>
             ))}
-            {fastMoving.length === 0 && <li className="py-2 text-sm text-gray-600">No data</li>}
+            {fastMoving.length === 0 && <li className="py-2 text-sm text-brown-600">No data</li>}
           </ul>
-          <h3 className="mt-6 mb-3 text-sm font-medium text-gray-700">Slow-Moving Items</h3>
+          <h3 className="mt-6 mb-3 text-sm font-medium text-brown-700">Slow-Moving Items</h3>
           <ul className="divide-y">
             {slowMoving.slice(0, 8).map((s) => (
               <li key={s.itemCode} className="flex items-center justify-between py-2">
-                <p className="text-sm text-gray-800">{s.itemCode}</p>
-                <p className="text-xs text-gray-600">{s.qty.toLocaleString()}</p>
+                <p className="text-sm text-brown-800">{s.itemCode}</p>
+                <p className="text-xs text-brown-600">{s.qty.toLocaleString()}</p>
               </li>
             ))}
           </ul>

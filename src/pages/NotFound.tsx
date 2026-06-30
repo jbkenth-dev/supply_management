@@ -23,10 +23,10 @@ export default function NotFound() {
           </div>
 
           <p className="mt-6 text-sm font-bold uppercase tracking-[0.35em] text-primary-600">404 Error</p>
-          <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
+          <h1 className="mt-4 text-4xl font-black tracking-tight text-brown-900 sm:text-5xl">
             This page does not exist
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-brown-600 sm:text-lg">
             The link you opened does not match any page currently available in this system. Please check the URL or
             return to a valid page.
           </p>
@@ -42,7 +42,7 @@ export default function NotFound() {
             <button
               type="button"
               onClick={() => window.history.back()}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-6 py-3.5 text-sm font-bold text-slate-700 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-brown-200 bg-white/80 px-6 py-3.5 text-sm font-bold text-brown-700 transition-all hover:-translate-y-0.5 hover:border-brown-300 hover:bg-white"
             >
               <ArrowLeftIcon className="h-4 w-4" />
               Go Back

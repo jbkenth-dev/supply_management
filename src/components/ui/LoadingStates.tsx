@@ -43,7 +43,7 @@ export function LoadingState({ type = "table", count = 5 }: LoadingStateProps) {
       {type === "inventory" && (
         <>
           <StaggerItem>
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="bg-white rounded-xl border border-brown-200 p-6">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <Skeleton height="h-10" width="w-64" />
                 <div className="flex gap-3">
@@ -97,13 +97,13 @@ export function ErrorState({ title = "Something went wrong", message = "Please t
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
         </svg>
       </div>
-      <h3 className="mt-2 text-sm font-medium text-gray-900">{title}</h3>
-      <p className="mt-1 text-sm text-gray-500">{message}</p>
+      <h3 className="mt-2 text-sm font-medium text-brown-900">{title}</h3>
+      <p className="mt-1 text-sm text-brown-500">{message}</p>
       {onRetry && (
         <div className="mt-6">
           <button
             onClick={onRetry}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             Try again
           </button>
@@ -131,19 +131,19 @@ export function EmptyState({ title = "No items found", message = "Get started by
       className="text-center py-12"
     >
       {icon || (
-        <div className="mx-auto h-12 w-12 text-gray-400">
+        <div className="mx-auto h-12 w-12 text-brown-400">
           <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
         </div>
       )}
-      <h3 className="mt-2 text-sm font-medium text-gray-900">{title}</h3>
-      <p className="mt-1 text-sm text-gray-500">{message}</p>
+      <h3 className="mt-2 text-sm font-medium text-brown-900">{title}</h3>
+      <p className="mt-1 text-sm text-brown-500">{message}</p>
       {action && (
         <div className="mt-6">
           <button
             onClick={action.onClick}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             {action.text}
           </button>

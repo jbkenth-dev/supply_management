@@ -12,8 +12,8 @@ export default function SupplierDetails() {
     return (
       <AppShell>
         <div className="rounded-lg border bg-white p-6 text-center">
-          <p className="text-sm text-gray-700">Supplier not found</p>
-          <Link to="/suppliers" className="mt-3 inline-block text-blue-600 hover:underline text-sm">
+          <p className="text-sm text-brown-700">Supplier not found</p>
+          <Link to="/suppliers" className="mt-3 inline-block text-primary-600 hover:underline text-sm">
             Back to suppliers
           </Link>
         </div>
@@ -25,7 +25,7 @@ export default function SupplierDetails() {
     <AppShell>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="rounded-lg border bg-white p-4">
-          <h3 className="text-sm font-medium text-gray-700">Supplier</h3>
+          <h3 className="text-sm font-medium text-brown-700">Supplier</h3>
           <div className="mt-3 space-y-2">
             <Info label="Name" value={supplier.name} />
             <Info label="Contact" value={supplier.contactName} />
@@ -36,10 +36,10 @@ export default function SupplierDetails() {
           </div>
         </div>
         <div className="rounded-lg border bg-white p-4 lg:col-span-2">
-          <h3 className="text-sm font-medium text-gray-700">Supplied Items</h3>
+          <h3 className="text-sm font-medium text-brown-700">Supplied Items</h3>
           <div className="mt-3 overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-brown-200">
+              <thead className="bg-brown-50">
                 <tr>
                   <Th>Item Code</Th>
                   <Th>Name</Th>
@@ -48,9 +48,9 @@ export default function SupplierDetails() {
                   <Th>Unit</Th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
+              <tbody className="divide-y divide-brown-100 bg-white">
                 {suppliedItems.map((i) => (
-                  <tr key={i.itemCode} className="hover:bg-gray-50">
+                  <tr key={i.itemCode} className="hover:bg-brown-50">
                     <Td>{i.itemCode}</Td>
                     <Td>{i.name}</Td>
                     <Td>{i.category}</Td>
@@ -60,7 +60,7 @@ export default function SupplierDetails() {
                 ))}
                 {suppliedItems.length === 0 && (
                   <tr>
-                    <Td colSpan={5} className="text-center text-sm text-gray-600">
+                    <Td colSpan={5} className="text-center text-sm text-brown-600">
                       No items
                     </Td>
                   </tr>
@@ -77,13 +77,13 @@ export default function SupplierDetails() {
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border bg-white p-3">
-      <p className="text-xs text-gray-600">{label}</p>
-      <p className="text-sm font-medium text-gray-900">{value}</p>
+      <p className="text-xs text-brown-600">{label}</p>
+      <p className="text-sm font-medium text-brown-900">{value}</p>
     </div>
   )
 }
 function Th({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <th className={`px-4 py-2 text-left text-xs font-medium text-gray-700 ${className}`}>{children}</th>
+  return <th className={`px-4 py-2 text-left text-xs font-medium text-brown-700 ${className}`}>{children}</th>
 }
 function Td({
   children,
@@ -94,5 +94,5 @@ function Td({
   className?: string
   colSpan?: number
 }) {
-  return <td className={`px-4 py-2 text-sm text-gray-700 ${className}`} colSpan={colSpan}>{children}</td>
+  return <td className={`px-4 py-2 text-sm text-brown-700 ${className}`} colSpan={colSpan}>{children}</td>
 }

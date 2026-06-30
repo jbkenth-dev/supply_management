@@ -7,8 +7,8 @@ export default function Suppliers() {
     <AppShell>
       <div className="rounded-lg border bg-white p-4">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-brown-200">
+            <thead className="bg-brown-50">
               <tr>
                 <Th>Name</Th>
                 <Th>Contact</Th>
@@ -18,9 +18,9 @@ export default function Suppliers() {
                 <Th></Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
+            <tbody className="divide-y divide-brown-100 bg-white">
               {suppliers.map((s) => (
-                <tr key={s.id} className="hover:bg-gray-50">
+                <tr key={s.id} className="hover:bg-brown-50">
                   <Td>{s.name}</Td>
                   <Td>{s.contactName}</Td>
                   <Td>{s.email}</Td>
@@ -37,7 +37,7 @@ export default function Suppliers() {
                     </span>
                   </Td>
                   <Td className="text-right">
-                    <Link to={`/suppliers/${s.id}`} className="text-blue-600 hover:underline text-sm">
+                    <Link to={`/suppliers/${s.id}`} className="text-primary-600 hover:underline text-sm">
                       View
                     </Link>
                   </Td>
@@ -52,8 +52,8 @@ export default function Suppliers() {
 }
 
 function Th({ children, className = "" }: { children?: React.ReactNode; className?: string }) {
-  return <th className={`px-4 py-2 text-left text-xs font-medium text-gray-700 ${className}`}>{children}</th>
+  return <th className={`px-4 py-2 text-left text-xs font-medium text-brown-700 ${className}`}>{children}</th>
 }
 function Td({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-2 text-sm text-gray-700 ${className}`}>{children}</td>
+  return <td className={`px-4 py-2 text-sm text-brown-700 ${className}`}>{children}</td>
 }
