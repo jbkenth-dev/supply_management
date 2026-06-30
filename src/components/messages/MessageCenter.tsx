@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import {
   ChatBubbleLeftRightIcon,
+  ChevronLeftIcon,
   MagnifyingGlassIcon,
   PaperAirplaneIcon,
   UserCircleIcon,
@@ -55,6 +56,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
   const [selectedConversationUserId, setSelectedConversationUserId] = useState<number | null>(null)
   const [draft, setDraft] = useState("")
   const [isContactTyping, setIsContactTyping] = useState(false)
+  const [showMobileChat, setShowMobileChat] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const messagesViewportRef = useRef<HTMLDivElement | null>(null)
   const lastTypingStateRef = useRef(false)
@@ -261,8 +263,13 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
 
   const handleSelectConversation = (contactId: number) => {
     setSelectedConversationUserId(contactId)
+    setShowMobileChat(true)
     setIsContactTyping(false)
     setError(null)
+  }
+
+  const handleBack = () => {
+    setShowMobileChat(false)
   }
 
   const handleSendMessage = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -323,11 +330,23 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
     <AppShell role={role}>
       <div className="overflow-hidden rounded-[2rem] border border-brown-200 bg-white shadow-sm">
         <div className="border-b border-brown-200 bg-brown-50/70 px-6 py-5">
-          <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Message Center</p>
+          <div className="lg:hidden flex items-center gap-3">
+            {showMobileChat ? (
+              <button type="button" onClick={handleBack} className="flex items-center gap-2">
+                <ChevronLeftIcon className="h-5 w-5 text-brown-700" />
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">
+                  {selectedContact?.name ?? "Messages"}
+                </p>
+              </button>
+            ) : (
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Message Center</p>
+            )}
+          </div>
+          <p className="hidden lg:block text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Message Center</p>
         </div>
 
         <div className="grid min-h-[72vh] lg:grid-cols-[22rem_minmax(0,1fr)]">
-          <aside className="border-b border-brown-200 bg-white lg:border-b-0 lg:border-r">
+          <aside className={`border-b border-brown-200 bg-white lg:border-b-0 lg:border-r ${showMobileChat ? 'hidden' : 'block'} lg:block`}>
             <div className="border-b border-brown-100 p-4">
               <div className="relative">
                 <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-brown-400" />
@@ -409,10 +428,13 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
             </div>
           </aside>
 
-          <section className="flex h-[78vh] min-h-[55vh] flex-col bg-brown-50/60">
+          <section className={`flex h-[78vh] min-h-[55vh] flex-col bg-brown-50/60 ${!showMobileChat ? 'hidden' : 'flex'} lg:flex`}>
             {selectedContact ? (
               <>
-                <div className="flex items-center gap-4 border-b border-brown-200 bg-white px-6 py-4">
+                <div className="flex items-center gap-3 border-b border-brown-200 bg-white px-4 py-4 sm:px-6">
+                  <button type="button" onClick={handleBack} className="lg:hidden flex items-center justify-center h-8 w-8 -ml-1 rounded-xl hover:bg-brown-50 transition-colors">
+                    <ChevronLeftIcon className="h-5 w-5 text-brown-700" />
+                  </button>
                   <Avatar contact={selectedContact} />
                   <div className="min-w-0">
                     <p className="truncate text-base font-bold text-brown-900">{selectedContact.name}</p>
