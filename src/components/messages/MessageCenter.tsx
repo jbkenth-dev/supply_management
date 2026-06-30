@@ -150,7 +150,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
 
     const intervalId = window.setInterval(() => {
       void loadMessages(selectedConversationUserId)
-    }, 1000)
+    }, 4000)
 
     return () => {
       cancelled = true
