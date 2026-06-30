@@ -331,11 +331,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
       <div className="overflow-hidden rounded-[2rem] border border-brown-200 bg-white shadow-sm">
         <div className="border-b border-brown-200 bg-brown-50/70 px-6 py-5">
           <div className="lg:hidden flex items-center gap-3">
-            {showMobileChat ? (
-              <button type="button" onClick={handleBack} className="flex items-center gap-2">
-                <ChevronLeftIcon className="h-5 w-5 text-brown-700" />
-              </button>
-            ) : (
+            {!showMobileChat && (
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Message Center</p>
             )}
           </div>
