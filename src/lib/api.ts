@@ -12,8 +12,9 @@
  *
  * In custom setups — set VITE_API_BASE_URL to a full URL (e.g. http://localhost/api).
  */
-const BASE_URL: string =
-  (import.meta as Record<string, any>).env?.VITE_API_BASE_URL ?? ''
+const BASE_URL: string = import.meta.env.DEV
+  ? (import.meta.env.VITE_API_BASE_URL ?? '')
+  : ''
 
 export function api(input: string, init?: RequestInit): Promise<Response> {
   return fetch(`${BASE_URL}${input}`, init)
