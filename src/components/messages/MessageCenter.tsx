@@ -334,9 +334,6 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
             {showMobileChat ? (
               <button type="button" onClick={handleBack} className="flex items-center gap-2">
                 <ChevronLeftIcon className="h-5 w-5 text-brown-700" />
-                <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">
-                  {selectedContact?.name ?? "Messages"}
-                </p>
               </button>
             ) : (
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Message Center</p>
