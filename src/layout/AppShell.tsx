@@ -122,16 +122,16 @@ function SidebarContent({
         : adminNavGroups
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-white border-r border-brown-200">
-      <div className="flex h-16 flex-shrink-0 items-center px-6 border-b border-brown-100 gap-3">
-        <div className="w-8 h-8 rounded-lg overflow-hidden shadow-sm">
+    <div className="flex min-h-0 flex-1 flex-col bg-primary-700">
+      <div className="flex h-16 flex-shrink-0 items-center px-6 border-b border-primary-600 gap-3">
+        <div className="w-8 h-8 rounded-lg overflow-hidden shadow-sm shadow-primary-900/30">
           <img
             src="/sfcg-logo.jpg"
             alt="SFC-G Logo"
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="text-2xl font-bold bg-gradient-to-r from-primary-700 to-primary-400 bg-clip-text text-transparent">
+        <div className="text-2xl font-bold bg-gradient-to-r from-primary-200 to-primary-100 bg-clip-text text-transparent">
           SFC-G
         </div>
       </div>
@@ -139,8 +139,8 @@ function SidebarContent({
         {navGroups.map((group) => (
           <div key={group.name}>
             <div className="flex items-center gap-2 px-2 mb-2">
-              <span className="text-[10px] font-bold text-brown-400 uppercase tracking-widest">{group.name}</span>
-              <div className="h-px bg-brown-100 flex-1" />
+              <span className="text-[10px] font-bold text-primary-300 uppercase tracking-widest">{group.name}</span>
+              <div className="h-px bg-primary-600 flex-1" />
             </div>
             <div className="space-y-1">
               {group.items.map((item) => (
@@ -151,8 +151,8 @@ function SidebarContent({
                   className={({ isActive }) =>
                     `group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                       isActive
-                        ? "bg-primary-50 text-primary-700 shadow-sm"
-                        : "text-brown-600 hover:bg-brown-50 hover:text-brown-900"
+                        ? "bg-primary-500 text-white shadow-md"
+                        : "text-primary-200 hover:bg-primary-600 hover:text-white"
                     }`
                   }
                 >
@@ -160,14 +160,14 @@ function SidebarContent({
                     <>
                       <item.icon
                         className={`h-5 w-5 flex-shrink-0 transition-colors ${
-                          isActive ? "text-primary-600" : "text-brown-400 group-hover:text-brown-600"
+                          isActive ? "text-white" : "text-primary-300 group-hover:text-white"
                         }`}
                       />
                       <span className="flex-1">{item.name}</span>
                       {isActive && (
                         <motion.div
                           layoutId="activeSidebar"
-                          className="absolute left-0 h-full w-1 bg-primary-600 rounded-r-full"
+                          className="absolute left-0 h-full w-1 bg-primary-300 rounded-r-full"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
@@ -183,38 +183,38 @@ function SidebarContent({
       </nav>
 
       {/* User Profile Section */}
-      <div className="border-t border-brown-200 p-4 space-y-3">
+      <div className="border-t border-primary-600 p-4 space-y-3">
         <button
           type="button"
           onClick={onOpenAccount}
-          className="flex w-full items-center gap-3 rounded-xl border border-transparent p-2.5 text-left transition-all duration-200 hover:border-brown-100 hover:bg-brown-50 hover:shadow-sm group"
+          className="flex w-full items-center gap-3 rounded-xl border border-transparent p-2.5 text-left transition-all duration-200 hover:border-primary-500 hover:bg-primary-600 hover:shadow-sm group"
         >
           <div className="relative">
             {user?.profileImageUrl ? (
               <img
                 src={user.profileImageUrl}
                 alt={getUserDisplayName(user, role)}
-                className="h-10 w-10 rounded-full object-cover ring-2 ring-brown-100 transition-all group-hover:ring-primary-100"
+                className="h-10 w-10 rounded-full object-cover ring-2 ring-primary-500 transition-all group-hover:ring-primary-400"
               />
             ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-50 font-bold uppercase text-primary-700 ring-2 ring-brown-100 transition-all group-hover:ring-primary-100">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-500 font-bold uppercase text-primary-100 ring-2 ring-primary-500 transition-all group-hover:ring-primary-400">
                 {user?.firstname?.[0] ?? role[0]}
               </div>
             )}
-            <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-white" />
+            <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-primary-700" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-brown-900 truncate group-hover:text-primary-700 transition-colors">
+            <p className="text-sm font-semibold text-white truncate group-hover:text-primary-200 transition-colors">
               {getUserDisplayName(user, role)}
             </p>
-            <p className="text-xs text-brown-500 truncate font-medium">{role}</p>
+            <p className="text-xs text-primary-300 truncate font-medium">{role}</p>
           </div>
-          <ArrowTopRightOnSquareIcon className="h-5 w-5 text-brown-400 group-hover:text-primary-600 transition-colors" />
+          <ArrowTopRightOnSquareIcon className="h-5 w-5 text-primary-300 group-hover:text-white transition-colors" />
         </button>
         <button
           type="button"
           onClick={onLogout}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm font-semibold text-brown-600 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary-500 bg-primary-600 px-4 py-2.5 text-sm font-semibold text-primary-200 transition-all hover:border-rose-500 hover:bg-rose-600 hover:text-white"
         >
           <ArrowRightOnRectangleIcon className="h-4 w-4" />
           Logout
