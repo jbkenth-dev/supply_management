@@ -11,6 +11,7 @@ import {
   EyeIcon,
   EyeSlashIcon
 } from '@heroicons/react/24/outline';
+import { api } from '../../lib/api';
 
 const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY?.trim() ?? '';
 const shouldUseRecaptcha = Boolean(recaptchaSiteKey);
@@ -62,7 +63,7 @@ const SignUp = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/signup.php', {
+      const response = await api('/api/signup.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -3,6 +3,7 @@ import SupplyItem from "./SupplyItem";
 import { LoadingState } from "../ui";
 import { motion, AnimatePresence } from "framer-motion";
 import { CubeIcon } from "@heroicons/react/24/outline";
+import { api } from "../../lib/api";
 import type { SupplyItem as PublicSupplyItem } from "../../types/adminInventory";
 
 export default function SupplyList({ searchTerm, selectedCategory }: { searchTerm: string; selectedCategory: string }) {
@@ -16,7 +17,7 @@ export default function SupplyList({ searchTerm, selectedCategory }: { searchTer
       setLoading(true)
 
       try {
-        const response = await fetch("/api/public-supplies.php")
+        const response = await api("/api/public-supplies.php")
         const result = await response.json()
 
         if (!response.ok) {

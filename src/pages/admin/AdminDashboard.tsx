@@ -13,6 +13,7 @@ import {
 import AppShell from "../../layout/AppShell"
 import { ToastContainer, type ToastProps } from "../../components/ui/Toast"
 import { StaggerContainer, StaggerItem } from "../../components/ui/animations"
+import { api } from "../../lib/api"
 import type { StockEntry } from "../../types/adminInventory"
 
 type DashboardStats = {
@@ -62,7 +63,7 @@ export default function AdminDashboard() {
     setLoading(true)
 
     try {
-      const response = await fetch("/api/admin-dashboard.php")
+      const response = await api("/api/admin-dashboard.php")
       const result = (await response.json()) as DashboardResponse
 
       if (!response.ok || !result.success) {

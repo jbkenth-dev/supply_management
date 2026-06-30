@@ -3,6 +3,7 @@ import dayjs from "dayjs"
 import { MegaphoneIcon, SparklesIcon, WrenchScrewdriverIcon, InformationCircleIcon } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
 import { ToastContainer, type ToastProps } from "../../components/ui/Toast"
+import { api } from "../../lib/api"
 import { getStoredAuthUser } from "../../lib/auth"
 
 type AnnouncementType = "feature" | "maintenance" | "update"
@@ -81,7 +82,7 @@ export default function AdminAnnouncements() {
     setLoading(true)
 
     try {
-      const response = await fetch("/api/announcements.php?includeAll=true&limit=20")
+      const response = await api("/api/announcements.php?includeAll=true&limit=20")
       const result = (await response.json()) as AnnouncementsResponse
 
       if (!response.ok || !result.success) {
@@ -110,7 +111,7 @@ export default function AdminAnnouncements() {
     setErrors({})
 
     try {
-      const response = await fetch("/api/announcements.php", {
+      const response = await api("/api/announcements.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

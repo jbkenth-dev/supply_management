@@ -17,6 +17,7 @@ import {
 import AppShell from "../layout/AppShell"
 import { LoadingState } from "../components/ui/LoadingStates"
 import { StaggerContainer, StaggerItem } from "../components/ui/animations"
+import { api } from "../lib/api"
 import { ToastContainer, type ToastProps } from "../components/ui/Toast"
 import { getMessagesPath, getStoredAuthUser } from "../lib/auth"
 import type { FacultyRequest, FacultyRequestSummary } from "../types/requests"
@@ -129,8 +130,8 @@ export default function Dashboard() {
         })
 
         const [requestsResponse, messagesResponse] = await Promise.all([
-          fetch(`/api/faculty-requests.php?${requestParams.toString()}`),
-          fetch(`/api/messages.php?${messageParams.toString()}`),
+          api(`/api/faculty-requests.php?${requestParams.toString()}`),
+          api(`/api/messages.php?${messageParams.toString()}`),
         ])
 
         const requestsResult = (await requestsResponse.json()) as RequestsResponse

@@ -12,6 +12,7 @@ import {
   XCircleIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
+import { api } from "../../lib/api"
 import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
 
 type RequestItem = {
@@ -212,7 +213,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
         userId: String(authUser.id),
         role: authUser.role,
       })
-      const response = await fetch(`/api/admin-request-issuance.php?${params.toString()}`)
+      const response = await api(`/api/admin-request-issuance.php?${params.toString()}`)
       const result = (await response.json()) as RequestIssuanceResponse
 
       if (!response.ok || !result.success) {
@@ -255,7 +256,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
     setBusyAction(actionType)
 
     try {
-      const response = await fetch("/api/admin-request-issuance.php", {
+      const response = await api("/api/admin-request-issuance.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

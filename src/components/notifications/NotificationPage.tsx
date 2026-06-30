@@ -8,6 +8,7 @@ import {
   XCircleIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
+import { api } from "../../lib/api"
 import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
 import type { AppNotification, NotificationsResponse } from "../../types/notifications"
 
@@ -49,7 +50,7 @@ export default function NotificationPage({ role }: { role: AuthRole }) {
         role: authUser.role,
         limit: "100",
       })
-      const response = await fetch(`/api/notifications.php?${params.toString()}`)
+      const response = await api(`/api/notifications.php?${params.toString()}`)
       const result = (await response.json()) as NotificationsResponse
 
       if (!response.ok || !result.success) {
@@ -76,7 +77,7 @@ export default function NotificationPage({ role }: { role: AuthRole }) {
     setBusy(true)
 
     try {
-      const response = await fetch("/api/notifications.php", {
+      const response = await api("/api/notifications.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -109,7 +110,7 @@ export default function NotificationPage({ role }: { role: AuthRole }) {
 
     if (!notification.isRead) {
       try {
-        const response = await fetch("/api/notifications.php", {
+        const response = await api("/api/notifications.php", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -3,6 +3,7 @@ import dayjs from "dayjs"
 import { motion, AnimatePresence } from "framer-motion"
 import { Calendar, Bell, ArrowRight, Sparkles, AlertCircle, Info } from "lucide-react"
 import { Card } from "../ui/Card"
+import { api } from "../../lib/api"
 import { Skeleton } from "../ui/Skeleton"
 
 type Announcement = {
@@ -73,7 +74,7 @@ export default function Announcements() {
       setLoading(true)
 
       try {
-        const response = await fetch("/api/announcements.php?limit=3")
+        const response = await api("/api/announcements.php?limit=3")
         const result = (await response.json()) as AnnouncementsResponse
 
         if (!response.ok || !result.success) {

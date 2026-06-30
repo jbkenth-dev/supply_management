@@ -1,19 +1,27 @@
 # Deployment Guide — SFC-G Supply Management
 
-## Architecture
+## Architecture (HTTP-only Awardspace + Vercel Proxy)
 
 ```
 Browser (User)
     │
     ├── https://your-vercel-app.vercel.app  (Frontend — React SPA)
     │     │
-    │     └── api() calls → https://your-awardspace.com/api/*.php
+    │     │  fetch("/api/public-supplies.php")
+    │     │       ↓
+    │     │  Vercel rewrites /api/* → http://your-awardspace.com/api/*
+    │     │         ↓
+    │     └─── Vercel proxies to Awardspace over HTTP (server-to-server)
     │
     └── Awardspace Shared Hosting  (Backend — PHP + MySQL)
           ├── api/*.php
           ├── api/config/*.php
           └── .env
 ```
+
+**Why this matters:** Awardspace only supports HTTP, not HTTPS. If the frontend on Vercel (HTTPS) tried to call Awardspace directly (HTTP), the browser would **block the request** due to mixed-content security rules. Instead, Vercel acts as a proxy — the browser sees same-origin HTTPS requests, and Vercel forwards them to Awardspace over HTTP internally.
+
+No CORS issues. No mixed-content warnings.
 
 ---
 
@@ -41,9 +49,9 @@ Browser (User)
 Copy this to your Awardspace server as `public_html/.env`:
 
 ```ini
-VITE_API_BASE_URL=https://your-vercel-app.vercel.app
+VITE_API_BASE_URL=
 VITE_RECAPTCHA_SITE_KEY=6LdFDqgsAAAAAINqbtrMA1A6oJhRyt6vmNg8tPjp
-ALLOWED_ORIGINS=https://your-vercel-app.vercel.app,http://127.0.0.1:5173,http://localhost:5173
+ALLOWED_ORIGINS=http://127.0.0.1:5173,http://localhost:5173
 
 DB_HOST=localhost
 DB_PORT=3306
@@ -67,98 +75,104 @@ SMTP_VERIFY_PEER_NAME=false
 > ⚠️ **File location matters!** The PHP `env.php` looks for `.env` using `dirname(__DIR__, 2)` from `api/config/env.php`. If `api/` is at `public_html/api/`, then `.env` goes in **`public_html/.env`**.
 
 ### 2b. Upload Files via FTP/cPanel
-Upload the entire `api/` folder to `public_html/api/` on Awardspace:
+Upload the entire `api/` folder to `public_html/api/` on Awardspace.
 
-| File | Status |
-|------|--------|
-| `api/config/cors.php` | **NEW** — CORS handling |
-| `api/config/admin_inventory.php` | **UPDATED** — now delegates to cors.php |
-| `api/*.php` (all root files) | **UPDATED** — CORS centralized |
-| `api/config/*.php` (rest) | Unchanged |
+**Do not upload `node_modules/`, `src/`, `dist/`, or any frontend files.**
 
 ### 2c. Verify Backend
-Visit in your browser:
+Check your Awardspace site directly:
 ```
-https://your-awardspace.com/api/public-supplies.php
+http://your-awardspace.com/api/public-supplies.php
 ```
-
-Expected: A JSON response (not a blank page or error). If you see an error, check the `.env` database credentials.
+Expected: A JSON response. If you see an error, check the `.env` database credentials.
 
 ---
 
 ## Step 3: Vercel — Frontend
 
-### 3a. Set Production API URL
-In your local `.env` file (project root), set:
-```ini
-VITE_API_BASE_URL=https://your-awardspace.com
-```
+### 3a. Create a Vercel Account and Project
+1. Go to [vercel.com](https://vercel.com) and sign up (GitHub login recommended)
+2. Install Vercel CLI: `npm i -g vercel`
+3. Or connect your GitHub repo directly in the Vercel dashboard
 
-> `VITE_API_BASE_URL` is read at **build time** by Vite. If empty, API calls go to the same domain as the frontend.
+### 3b. Update `vercel.json` with Your Awardspace URL
+Edit the [vercel.json](vercel.json) file in your project root:
 
-### 3b. Build
-```bash
-npm install
-npm run build
-```
-
-This produces the `dist/` folder.
-
-### 3c. Deploy to Vercel
-
-**Option A — Vercel CLI:**
-```bash
-npm i -g vercel
-vercel --prod
-```
-
-**Option B — GitHub Integration (recommended):**
-1. Push to GitHub
-2. Go to [vercel.com](https://vercel.com) → Import repository
-3. Framework: **Vite**
-4. Build command: `npm run build`
-5. Output directory: `dist`
-6. Environment Variables:
-   - `VITE_API_BASE_URL` = `https://your-awardspace.com`
-7. Deploy
-
----
-
-## Step 4: How CORS Works Now
-
-The `api/config/cors.php` function checks `ALLOWED_ORIGINS` from `.env`:
-
-```
-ALLOWED_ORIGINS=https://your-vercel-app.vercel.app,http://localhost:5173
-```
-
-- If the browser's `Origin` matches the list → server responds with `Access-Control-Allow-Origin: <origin>`
-- If `*` is in the list → any origin accepted (insecure, not recommended)
-- If no `ALLOWED_ORIGINS` set → falls back to localhost origins for dev
-
-You can add multiple origins separated by commas.
-
----
-
-## Step 5: How API Calls Work Now
-
-The frontend no longer calls `fetch("/api/...")` directly. Instead it uses:
-
-```ts
-// src/lib/api.ts
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
-
-export function api(input: string, init?: RequestInit) {
-  return fetch(`${BASE_URL}${input}`, {
-    ...init,
-    credentials: 'include',
-  })
+```json
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "http://your-awardspace-domain.com/api/$1"
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
 ```
 
-In **development**: `VITE_API_BASE_URL` is empty → calls go to Vite's dev server → proxied to `http://localhost/api/`
+**Replace `http://your-awardspace-domain.com`** with your actual Awardspace URL (e.g., `http://youruser.awardspace.com`).
 
-In **production**: `VITE_API_BASE_URL` is `https://your-awardspace.com` → calls go directly to Awardspace
+### 3c. Build and Deploy
+
+**Option A — Vercel CLI:**
+```bash
+npm install
+npm run build
+vercel --prod
+```
+
+**Option B — GitHub Integration:**
+1. Push to GitHub
+2. Import repo in Vercel dashboard
+3. Framework preset: **Vite**
+4. Build command: `npm run build`
+5. Output directory: `dist`
+6. No environment variables needed — `VITE_API_BASE_URL` stays empty
+7. Deploy
+
+> ⚠️ **After first deploy**, update `vercel.json` with your Awardspace URL and redeploy. The proxy won't work until the `destination` points to the correct Awardspace domain.
+
+---
+
+## Step 4: How It All Connects
+
+### Local Development
+```
+npm run dev
+```
+Vite dev server → proxies `/api/*` to `http://localhost/supply_management/api/` (via vite.config.ts)
+
+### Production (Vercel + Awardspace)
+```
+Browser → https://your-app.vercel.app/api/public-supplies.php
+              ↓
+         Vercel rewrite → http://your-awardspace.com/api/public-supplies.php
+              ↓
+         Awardspace PHP serves the response
+              ↓
+         Vercel passes response back to the browser
+```
+
+The frontend is built with `VITE_API_BASE_URL=""` (empty), so all `api("/api/...")` calls become same-origin requests. Vercel's `vercel.json` rewrites handle the rest.
+
+### CORS (for local dev only)
+The `ALLOWED_ORIGINS` in `.env` only matters when running locally (Vite dev server → XAMPP). In production, requests are same-origin via the Vercel proxy, so CORS doesn't apply.
+
+---
+
+## Step 5: Updating After Changes
+
+### Frontend changes only
+```bash
+npm run build
+vercel --prod
+```
+
+### Backend changes only
+Upload the modified PHP files to Awardspace via FTP.
+
+### Database changes
+Export updated SQL from phpMyAdmin → re-import on Awardspace.
 
 ---
 
@@ -171,9 +185,6 @@ npm run dev
 # Build for production
 npm run build
 
-# Preview production build locally
-npm run preview
-
 # Deploy frontend to Vercel
 vercel --prod
 
@@ -185,9 +196,10 @@ vercel --prod
 ## Troubleshooting
 
 | Symptom | Likely Cause | Fix |
-|---------|-------------|-----|
-| Blank page on Vercel | Missing `vercel.json` rewrite | Ensure SPA rewrite is in place |
-| API returns 404 | Wrong path on Awardspace | Check `api/` is at `public_html/api/` |
-| CORS error in browser | `ALLOWED_ORIGINS` mismatch | Add your Vercel domain to `ALLOWED_ORIGINS` |
-| DB connection error | Wrong credentials in `.env` | Check DB_HOST, DB_NAME, DB_USER, DB_PASS |
-| API won't load | `.env` in wrong directory | Move `.env` to parent of `api/` folder |
+|---------|-------------|------|
+| Blank page on Vercel | Missing `vercel.json` rewrite | Ensure `{ "source": "/(.*)", "destination": "/index.html" }` exists |
+| API returns 404 on Vercel | Wrong Awardspace domain in `vercel.json` | Update the `/api/(.*)` rewrite destination |
+| API works locally but not on Vercel | `vercel.json` proxy URL incorrect | Check `destination` points to Awardspace HTTP URL |
+| DB connection error | Wrong credentials in `.env` | Check DB_HOST, DB_NAME, DB_USER, DB_PASS on Awardspace |
+| API won't load | `.env` in wrong directory | Move `.env` to the parent of `api/` folder on Awardspace |
+| Vite proxy not working locally | XAMPP not running | Start Apache/MySQL in XAMPP first |

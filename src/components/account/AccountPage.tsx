@@ -14,6 +14,7 @@ import {
   UserIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
+import { api } from "../../lib/api"
 import { clearStoredAuthUser, getStoredAuthUser, setStoredAuthUser, type AuthRole, type AuthUser } from "../../lib/auth"
 
 type AccountForm = {
@@ -130,7 +131,7 @@ export default function AccountPage({ role }: { role: AuthRole }) {
 
       try {
         const params = new URLSearchParams({ id: String(storedUser.id), role })
-        const response = await fetch(`/api/my-account.php?${params.toString()}`)
+        const response = await api(`/api/my-account.php?${params.toString()}`)
         const result = await response.json()
 
         if (!response.ok) {
@@ -252,7 +253,7 @@ export default function AccountPage({ role }: { role: AuthRole }) {
       payload.append("lastname", formData.lastname.trim())
       if (selectedImage) payload.append("profileImage", selectedImage)
 
-      const response = await fetch("/api/my-account.php", { method: "POST", body: payload })
+      const response = await api("/api/my-account.php", { method: "POST", body: payload })
       const result = await response.json()
 
       if (!response.ok) {
@@ -314,7 +315,7 @@ export default function AccountPage({ role }: { role: AuthRole }) {
       payload.append("newPassword", passwordForm.newPassword)
       payload.append("confirmPassword", passwordForm.confirmPassword)
 
-      const response = await fetch("/api/my-account.php", { method: "POST", body: payload })
+      const response = await api("/api/my-account.php", { method: "POST", body: payload })
       const result = await response.json()
 
       if (!response.ok) {

@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/24/outline"
 import { SkeletonItemDetails } from "../components/ui/Skeleton"
 import { FadeIn, StaggerContainer, StaggerItem } from "../components/ui/animations"
+import { api } from "../lib/api"
 import type { SupplyItem } from "../types/adminInventory"
 
 export default function ItemDetails() {
@@ -25,7 +26,7 @@ export default function ItemDetails() {
       setLoading(true)
 
       try {
-        const response = await fetch(`/api/public-supplies.php?itemCode=${encodeURIComponent(code ?? "")}`)
+        const response = await api(`/api/public-supplies.php?itemCode=${encodeURIComponent(code ?? "")}`)
         const result = await response.json()
 
         if (!response.ok) {

@@ -21,6 +21,7 @@ import {
   MegaphoneIcon,
   UserCircleIcon
 } from "@heroicons/react/24/outline"
+import { api } from "../lib/api"
 import { clearStoredAuthUser, getDashboardPath, getMessagesPath, getMyAccountPath, getNotificationPath, getStoredAuthUser, getUserDisplayName, type AuthRole, type AuthUser } from "../lib/auth"
 import type { AppNotification, NotificationsResponse } from "../types/notifications"
 
@@ -270,7 +271,7 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
           role: authUser.role,
           limit: "6",
         })
-        const response = await fetch(`/api/notifications.php?${params.toString()}`)
+        const response = await api(`/api/notifications.php?${params.toString()}`)
         const result = (await response.json()) as NotificationsResponse
 
         if (!response.ok || !result.success || cancelled) {
@@ -340,7 +341,7 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
 
     if (!notification.isRead) {
       try {
-        const response = await fetch("/api/notifications.php", {
+        const response = await api("/api/notifications.php", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -373,7 +374,7 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
     }
 
     try {
-      const response = await fetch("/api/notifications.php", {
+      const response = await api("/api/notifications.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

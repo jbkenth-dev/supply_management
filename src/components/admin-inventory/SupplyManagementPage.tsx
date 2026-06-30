@@ -13,6 +13,7 @@ import {
 } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
 import type { AuthRole } from "../../lib/auth"
+import { api } from "../../lib/api"
 import type { SupplyCategory, SupplyItem } from "../../types/adminInventory"
 
 type CategoryForm = {
@@ -127,7 +128,7 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
     setLoading(true)
 
     try {
-      const response = await fetch("/api/admin-supply.php")
+      const response = await api("/api/admin-supply.php")
       const result = await response.json()
 
       if (!response.ok) {
@@ -220,7 +221,7 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
     setMessage("")
 
     try {
-      const response = await fetch("/api/admin-supply.php", {
+      const response = await api("/api/admin-supply.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -256,7 +257,7 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
     setMessage("")
 
     try {
-      const response = await fetch("/api/admin-supply.php", {
+      const response = await api("/api/admin-supply.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -319,7 +320,7 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
     }
 
     try {
-      const response = await fetch("/api/admin-supply.php", {
+      const response = await api("/api/admin-supply.php", {
         method: "POST",
         body: payload,
       })
@@ -348,7 +349,7 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
     setMessage("")
 
     try {
-      const response = await fetch("/api/admin-supply.php", {
+      const response = await api("/api/admin-supply.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

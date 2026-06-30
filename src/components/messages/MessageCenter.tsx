@@ -7,6 +7,7 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
+import { api } from "../../lib/api"
 import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
 
 type MessageContact = {
@@ -114,7 +115,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
           params.set("conversationUserId", String(conversationId))
         }
 
-        const response = await fetch(`/api/messages.php?${params.toString()}`)
+        const response = await api(`/api/messages.php?${params.toString()}`)
         const result = (await response.json()) as MessageApiResponse
 
         if (!response.ok || !result.success) {
@@ -208,7 +209,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
 
     const syncTyping = async (isTyping: boolean) => {
       try {
-        await fetch("/api/messages.php", {
+        await api("/api/messages.php", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -234,7 +235,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
   useEffect(() => {
     return () => {
       if (authUser && selectedConversationUserId && lastTypingStateRef.current) {
-        void fetch("/api/messages.php", {
+        void api("/api/messages.php", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -274,7 +275,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
     setSending(true)
 
     try {
-      const response = await fetch("/api/messages.php", {
+      const response = await api("/api/messages.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -301,7 +302,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
         userId: String(authUser.id),
         conversationUserId: String(selectedConversationUserId),
       })
-      const refreshResponse = await fetch(`/api/messages.php?${params.toString()}`)
+      const refreshResponse = await api(`/api/messages.php?${params.toString()}`)
       const refreshResult = (await refreshResponse.json()) as MessageApiResponse
 
       if (!refreshResponse.ok || !refreshResult.success) {

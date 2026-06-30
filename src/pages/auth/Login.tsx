@@ -8,6 +8,7 @@ import {
   EyeIcon,
   EyeSlashIcon
 } from "@heroicons/react/24/outline"
+import { api } from "../../lib/api"
 import { getDashboardPath, getStoredAuthUser, setStoredAuthUser, type AuthUser } from "../../lib/auth"
 
 const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY?.trim() ?? ""
@@ -87,7 +88,7 @@ export default function Login() {
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/login.php", {
+      const response = await api("/api/login.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

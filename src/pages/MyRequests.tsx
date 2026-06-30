@@ -12,6 +12,7 @@ import {
 } from "@heroicons/react/24/outline"
 import AppShell from "../layout/AppShell"
 import { ToastContainer, type ToastProps } from "../components/ui/Toast"
+import { api } from "../lib/api"
 import { getStoredAuthUser } from "../lib/auth"
 import type { FacultyRequest, FacultyRequestSummary } from "../types/requests"
 
@@ -78,7 +79,7 @@ export default function MyRequests() {
           userId: String(authUser.id),
           role: authUser.role,
         })
-        const response = await fetch(`/api/faculty-requests.php?${params.toString()}`)
+        const response = await api(`/api/faculty-requests.php?${params.toString()}`)
         const result = (await response.json()) as RequestsResponse
 
         if (!response.ok || !result.success) {
@@ -142,7 +143,7 @@ export default function MyRequests() {
     setBusyRequestId(request.id)
 
     try {
-      const response = await fetch("/api/faculty-requests.php", {
+      const response = await api("/api/faculty-requests.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "re
 import { AnimatePresence, motion } from "framer-motion"
 import { ArrowDownTrayIcon, ArrowPathIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
+import { api } from "../../lib/api"
 import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
 import type { StockEntry, SupplyItem } from "../../types/adminInventory"
 
@@ -54,7 +55,7 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
     setLoading(true)
 
     try {
-      const response = await fetch("/api/admin-stock.php")
+      const response = await api("/api/admin-stock.php")
       const result = await response.json()
 
       if (!response.ok) {
@@ -139,7 +140,7 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
 
     try {
       const authUser = getStoredAuthUser()
-      const response = await fetch("/api/admin-stock.php", {
+      const response = await api("/api/admin-stock.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

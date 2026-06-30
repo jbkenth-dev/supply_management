@@ -4,22 +4,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/user_schema.php';
+require_once __DIR__ . '/config/cors.php';
 
-header('Content-Type: application/json; charset=utf-8');
-
-$allowedOrigin = 'http://127.0.0.1:5173';
-if (isset($_SERVER['HTTP_ORIGIN']) && $_SERVER['HTTP_ORIGIN'] === $allowedOrigin) {
-    header('Access-Control-Allow-Origin: ' . $allowedOrigin);
-    header('Vary: Origin');
-}
-
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
+configureCors(['POST']);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(405, [

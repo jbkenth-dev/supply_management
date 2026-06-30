@@ -1,3 +1,4 @@
+import { api } from "../../lib/api";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -91,7 +92,7 @@ export default function AdminCreate() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/admin-create.php", {
+      const response = await api("/api/admin-create.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

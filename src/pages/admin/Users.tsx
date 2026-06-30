@@ -9,6 +9,7 @@ import {
   UserPlusIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline"
+import { api } from "../../lib/api"
 import AppShell from "../../layout/AppShell"
 
 type ManagedRole = "Faculty Staff" | "Property Custodian"
@@ -120,7 +121,7 @@ export default function AdminUsers() {
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/admin-users.php")
+      const response = await api("/api/admin-users.php")
       const result = (await response.json()) as UsersResponse
 
       if (!response.ok || !result.success) {
@@ -245,7 +246,7 @@ export default function AdminUsers() {
     setIsSuccess(false)
 
     try {
-      const response = await fetch("/api/admin-users.php", {
+      const response = await api("/api/admin-users.php", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -301,7 +302,7 @@ export default function AdminUsers() {
         payload.append("profileImage", selectedImage)
       }
 
-      const response = await fetch("/api/admin-users.php", {
+      const response = await api("/api/admin-users.php", {
         method: "POST",
         body: payload,
       })

@@ -12,6 +12,7 @@ import {
 import { motion } from "framer-motion"
 import AppShell from "../../layout/AppShell"
 import { ToastContainer, type ToastProps } from "../../components/ui/Toast"
+import { api } from "../../lib/api"
 import { StaggerContainer, StaggerItem } from "../../components/ui/animations"
 
 type DashboardStats = {
@@ -92,7 +93,7 @@ export default function CustodianDashboard() {
     setLoading(true)
 
     try {
-      const response = await fetch("/api/custodian-dashboard.php")
+      const response = await api("/api/custodian-dashboard.php")
       const result = (await response.json()) as DashboardResponse
 
       if (!response.ok || !result.success) {

@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Warehouse,
 } from "lucide-react"
+import { api } from "../../lib/api"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/Card"
 
 type PublicSupply = {
@@ -63,8 +64,8 @@ export default function SystemOverview() {
     const loadOverview = async () => {
       try {
         const [suppliesResponse, announcementsResponse] = await Promise.all([
-          fetch("/api/public-supplies.php"),
-          fetch("/api/announcements.php?limit=20"),
+          api("/api/public-supplies.php"),
+          api("/api/announcements.php?limit=20"),
         ])
 
         const suppliesResult = (await suppliesResponse.json()) as PublicSuppliesResponse

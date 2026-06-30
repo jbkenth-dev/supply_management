@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline"
 import AppShell from "../layout/AppShell"
 import { ToastContainer, type ToastProps } from "../components/ui/Toast"
+import { api } from "../lib/api"
 import { getStoredAuthUser } from "../lib/auth"
 import type { SupplyItem } from "../types/adminInventory"
 
@@ -47,7 +48,7 @@ export default function NewRequest() {
       setLoading(true)
 
       try {
-        const response = await fetch("/api/public-supplies.php")
+        const response = await api("/api/public-supplies.php")
         const result = (await response.json()) as CatalogResponse
 
         if (!response.ok || !result.success) {
@@ -169,7 +170,7 @@ export default function NewRequest() {
     setSubmitting(true)
 
     try {
-      const response = await fetch("/api/faculty-requests.php", {
+      const response = await api("/api/faculty-requests.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

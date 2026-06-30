@@ -6,6 +6,7 @@ import {
   AdjustmentsHorizontalIcon,
   XMarkIcon
 } from "@heroicons/react/24/outline";
+import { api } from "../lib/api";
 import { FadeIn, StaggerContainer, StaggerItem } from "../components/ui/animations";
 
 export default function Supplies() {
@@ -19,7 +20,7 @@ export default function Supplies() {
 
     const loadCategories = async () => {
       try {
-        const response = await fetch("/api/public-supplies.php")
+        const response = await api("/api/public-supplies.php")
         const result = await response.json()
 
         if (!response.ok) {
