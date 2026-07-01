@@ -1,20 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
   MagnifyingGlassIcon,
   PlusIcon,
-  PaperAirplaneIcon,
-  ClipboardDocumentListIcon,
-  ExclamationTriangleIcon,
-  BuildingOfficeIcon,
-  CalendarDaysIcon,
-  PencilIcon,
   XMarkIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../layout/AppShell"
 import { ToastContainer, type ToastProps } from "../components/ui/Toast"
 import { api } from "../lib/api"
-import { getStoredAuthUser } from "../lib/auth"
+import { getStoredAuthUser, getUserDisplayName } from "../lib/auth"
 import type { SupplyItem } from "../types/adminInventory"
 
 type CatalogResponse = {
@@ -63,17 +58,18 @@ export default function NewRequest() {
   const [dateNeeded, setDateNeeded] = useState("")
   const [notes, setNotes] = useState("")
   const [supplies, setSupplies] = useState<SupplyItem[]>([])
-  const [cart, setCart] = useState<CartItem[]>([])
+  const [items, setItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [toasts, setToasts] = useState<ToastProps[]>([])
-  const [customItemName, setCustomItemName] = useState("")
-  const [customItemQuantity, setCustomItemQuantity] = useState(1)
-  const [customItemCost, setCustomItemCost] = useState(0)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [catalogOpen, setCatalogOpen] = useState(false)
+  const [customRowOpen, setCustomRowOpen] = useState(false)
+  const [customName, setCustomName] = useState("")
+  const [customQty, setCustomQty] = useState(1)
+  const [customCost, setCustomCost] = useState(0)
   const authUser = getStoredAuthUser()
   const preselectedItemCode = searchParams.get("itemCode")?.trim().toUpperCase() ?? ""
-  const customNameInputRef = useRef<HTMLInputElement>(null)
 
   const removeToast = (id: string) => {
     setToasts((current) => current.filter((toast) => toast.id !== id))
@@ -88,15 +84,12 @@ export default function NewRequest() {
 
     const loadSupplies = async () => {
       setLoading(true)
-
       try {
         const response = await api("/api/public-supplies.php")
         const result = (await response.json()) as CatalogResponse
-
         if (!response.ok || !result.success) {
           throw new Error(result.message ?? "Unable to load supply catalog.")
         }
-
         if (!cancelled) {
           setSupplies(result.supplies ?? [])
         }
@@ -111,34 +104,24 @@ export default function NewRequest() {
           })
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false)
-        }
+        if (!cancelled) setLoading(false)
       }
     }
 
     void loadSupplies()
-
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {
-    if (!preselectedItemCode || supplies.length === 0) {
-      return
-    }
-
-    const preselectedSupply = supplies.find((supply) => supply.itemCode.toUpperCase() === preselectedItemCode)
-
-    if (!preselectedSupply || preselectedSupply.quantityOnHand < 1) {
-      return
-    }
-
-    const existingIndex = cart.findIndex((item) => item.supplyId === preselectedSupply.id)
+    if (!preselectedItemCode || supplies.length === 0) return
+    const preselectedSupply = supplies.find(
+      (supply) => supply.itemCode.toUpperCase() === preselectedItemCode
+    )
+    if (!preselectedSupply || preselectedSupply.quantityOnHand < 1) return
+    const existingIndex = items.findIndex((item) => item.supplyId === preselectedSupply.id)
     if (existingIndex >= 0) return
 
-    setCart((current) => [
+    setItems((current) => [
       ...current,
       {
         supplyId: preselectedSupply.id,
@@ -153,15 +136,11 @@ export default function NewRequest() {
         customItemName: "",
       },
     ])
-  }, [preselectedItemCode, supplies]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [preselectedItemCode, supplies])
 
   const filteredSupplies = useMemo(() => {
     const query = search.trim().toLowerCase()
-
-    if (!query) {
-      return supplies
-    }
-
+    if (!query) return supplies
     return supplies.filter((supply) =>
       [supply.name, supply.itemCode, supply.categoryName, supply.description].some((value) =>
         value.toLowerCase().includes(query)
@@ -169,11 +148,10 @@ export default function NewRequest() {
     )
   }, [search, supplies])
 
-  const addToCart = (supply: SupplyItem) => {
-    const existingIndex = cart.findIndex((item) => item.supplyId === supply.id)
+  const addCatalogItem = (supply: SupplyItem) => {
+    const existingIndex = items.findIndex((item) => item.supplyId === supply.id)
     if (existingIndex >= 0) return
-
-    setCart((current) => [
+    setItems((current) => [
       ...current,
       {
         supplyId: supply.id,
@@ -190,38 +168,37 @@ export default function NewRequest() {
     ])
   }
 
-  const addCustomToCart = () => {
-    const name = customItemName.trim()
-    if (!name || customItemQuantity < 1) return
-
-    setCart((current) => [
+  const addCustomItem = () => {
+    const name = customName.trim()
+    if (!name || customQty < 1) return
+    setItems((current) => [
       ...current,
       {
         supplyId: null,
-        name: name,
+        name,
         itemCode: "CUSTOM",
         imagePath: "",
         categoryName: "Other",
-        quantity: customItemQuantity,
-        unitCost: customItemCost,
-        totalAmount: customItemQuantity * customItemCost,
+        quantity: customQty,
+        unitCost: customCost,
+        totalAmount: customQty * customCost,
         isCustom: true,
         customItemName: name,
       },
     ])
-
-    setCustomItemName("")
-    setCustomItemQuantity(1)
-    setCustomItemCost(0)
+    setCustomName("")
+    setCustomQty(1)
+    setCustomCost(0)
+    setCustomRowOpen(false)
   }
 
-  const removeFromCart = (index: number) => {
-    setCart((current) => current.filter((_, i) => i !== index))
+  const removeItem = (index: number) => {
+    setItems((current) => current.filter((_, i) => i !== index))
   }
 
-  const updateCartQuantity = (index: number, quantity: number) => {
+  const updateQuantity = (index: number, quantity: number) => {
     if (quantity < 1) return
-    setCart((current) =>
+    setItems((current) =>
       current.map((item, i) =>
         i === index
           ? { ...item, quantity, totalAmount: quantity * item.unitCost }
@@ -230,9 +207,9 @@ export default function NewRequest() {
     )
   }
 
-  const updateCartUnitCost = (index: number, unitCost: number) => {
+  const updateUnitCost = (index: number, unitCost: number) => {
     if (unitCost < 0) return
-    setCart((current) =>
+    setItems((current) =>
       current.map((item, i) =>
         i === index
           ? { ...item, unitCost, totalAmount: item.quantity * unitCost }
@@ -242,35 +219,18 @@ export default function NewRequest() {
   }
 
   const grandTotal = useMemo(() => {
-    return cart.reduce((sum, item) => sum + item.quantity * item.unitCost, 0)
-  }, [cart])
-
-  const totalUnits = cart.reduce((sum, item) => sum + item.quantity, 0)
+    return items.reduce((sum, item) => sum + item.quantity * item.unitCost, 0)
+  }, [items])
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
-
-    if (!purpose.trim()) {
-      newErrors.purpose = "Purpose is required."
+    if (!purpose.trim()) newErrors.purpose = "Purpose is required."
+    if (!department) newErrors.department = "Department is required."
+    if (items.length === 0) newErrors.items = "Add at least one item."
+    for (const item of items) {
+      if (!item.isCustom && item.unitCost < 0) newErrors.unitCost = "Unit cost cannot be negative."
+      if (item.quantity < 1) newErrors.quantity = "Quantity must be at least 1."
     }
-
-    if (!department) {
-      newErrors.department = "Department is required."
-    }
-
-    if (cart.length === 0) {
-      newErrors.cart = "Add at least one item to your request."
-    }
-
-    for (const item of cart) {
-      if (!item.isCustom && item.unitCost < 0) {
-        newErrors.unitCost = "Unit cost cannot be negative."
-      }
-      if (item.quantity < 1) {
-        newErrors.quantity = "Quantity must be at least 1."
-      }
-    }
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -296,7 +256,7 @@ export default function NewRequest() {
       return
     }
 
-    if (cart.length === 0) {
+    if (items.length === 0) {
       pushToast({
         id: `empty-request-${Date.now()}`,
         title: "No Items Selected",
@@ -307,13 +267,10 @@ export default function NewRequest() {
     }
 
     setSubmitting(true)
-
     try {
       const response = await api("/api/faculty-requests.php", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: authUser.id,
           role: authUser.role,
@@ -321,7 +278,7 @@ export default function NewRequest() {
           department,
           dateNeeded: dateNeeded || null,
           notes,
-          items: cart.map((item) => ({
+          items: items.map((item) => ({
             supplyId: item.supplyId,
             quantity: item.quantity,
             unitCost: item.unitCost,
@@ -333,12 +290,9 @@ export default function NewRequest() {
       })
 
       const result = await response.json()
+      if (!response.ok) throw new Error(result.message ?? "Unable to submit your supply request.")
 
-      if (!response.ok) {
-        throw new Error(result.message ?? "Unable to submit your supply request.")
-      }
-
-      setCart([])
+      setItems([])
       setPurpose("")
       setDepartment("")
       setDateNeeded("")
@@ -363,384 +317,495 @@ export default function NewRequest() {
     }
   }
 
+  /* ─── Catalog Modal ─── */
+  const CatalogModal = () => {
+    if (!catalogOpen) return null
+    return (
+      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 pt-12 sm:pt-24">
+        <div className="relative w-full max-w-3xl mx-4 mb-12 bg-white border-2 border-black shadow-xl">
+          {/* Modal Header */}
+          <div className="flex items-center justify-between border-b-2 border-black px-4 py-3 sm:px-6">
+            <div>
+              <h2 className="text-base font-bold uppercase tracking-wider">Supply Catalog</h2>
+              <p className="text-xs text-gray-600 mt-0.5">Click an item to add it to the request form.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCatalogOpen(false)}
+              className="flex h-8 w-8 items-center justify-center border-2 border-black hover:bg-gray-100"
+            >
+              <XMarkIcon className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Search */}
+          <div className="border-b-2 border-black px-4 py-3 sm:px-6">
+            <label className="relative block">
+              <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name, code, or category..."
+                className="w-full border-2 border-black py-2 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+              />
+            </label>
+          </div>
+
+          {/* Grid */}
+          <div className="max-h-[420px] overflow-y-auto p-4 sm:p-6">
+            {loading ? (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="animate-pulse border-2 border-gray-200 p-4">
+                    <div className="aspect-[4/3] bg-gray-200" />
+                    <div className="mt-3 h-4 w-3/4 bg-gray-200" />
+                    <div className="mt-2 h-3 w-1/2 bg-gray-200" />
+                  </div>
+                ))}
+              </div>
+            ) : filteredSupplies.length === 0 ? (
+              <div className="border-2 border-dashed border-gray-300 py-12 text-center">
+                <MagnifyingGlassIcon className="mx-auto h-8 w-8 text-gray-400" />
+                <p className="mt-3 text-sm font-semibold text-gray-700">No supplies found</p>
+                <p className="mt-1 text-xs text-gray-500">Try a different search term.</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredSupplies.map((supply) => {
+                  const inCart = items.some((item) => item.supplyId === supply.id)
+                  const outOfStock = supply.quantityOnHand < 1
+                  return (
+                    <button
+                      key={supply.id}
+                      type="button"
+                      disabled={inCart || outOfStock}
+                      onClick={() => { addCatalogItem(supply); setCatalogOpen(false) }}
+                      className={`text-left border-2 p-0 transition ${
+                        inCart
+                          ? "border-gray-400 bg-gray-100 cursor-not-allowed"
+                          : outOfStock
+                            ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
+                            : "border-black hover:bg-gray-50 cursor-pointer"
+                      }`}
+                    >
+                      <div className="aspect-[4/3] overflow-hidden border-b-2 border-inherit bg-gray-100">
+                        <img
+                          src={supply.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
+                          alt={supply.name}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="p-3">
+                        <p className="text-xs font-bold uppercase leading-tight">{supply.name}</p>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          <span className="border border-gray-400 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-gray-600">
+                            {supply.categoryName}
+                          </span>
+                          <span className="border border-gray-400 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-gray-600">
+                            {supply.itemCode}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-[10px] text-gray-500">
+                          Stock: {supply.quantityOnHand}
+                        </p>
+                        {inCart && (
+                          <p className="mt-1 text-[10px] font-bold uppercase text-gray-500">Already Added</p>
+                        )}
+                        {outOfStock && (
+                          <p className="mt-1 text-[10px] font-bold uppercase text-gray-500">Out of Stock</p>
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Modal Footer */}
+          <div className="border-t-2 border-black px-4 py-3 sm:px-6 text-right">
+            <button
+              type="button"
+              onClick={() => setCatalogOpen(false)}
+              className="border-2 border-black px-6 py-1.5 text-sm font-bold hover:bg-gray-100"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  /* ─── Render ─── */
   return (
     <AppShell role="Faculty Staff">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-      <div className="space-y-8">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Faculty Request</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-brown-900">New Supply Request</h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-brown-500">
-              Fill in the details below to request supplies. Items marked with an asterisk (*) are required.
+
+      <div className="flex justify-center py-4 sm:py-6">
+        <div className="w-full max-w-[210mm] bg-white border-2 border-black shadow-md print:shadow-none">
+          {/* ── HEADER ── */}
+          <div className="border-b-2 border-black px-6 pb-4 pt-6 text-center sm:px-10">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-gray-700">
+              Republic of the Philippines
+            </p>
+            <h1 className="mt-1 text-lg font-black uppercase tracking-wide sm:text-xl">
+              St. Francis College — Guagua
+            </h1>
+            <p className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-gray-600">
+              Office of the Property and Supply
+            </p>
+            <div className="mx-auto my-3 h-0.5 w-24 bg-black" />
+            <h2 className="text-base font-black uppercase tracking-[0.15em] sm:text-lg">
+              Supply Request Form
+            </h2>
+            <p className="mt-1.5 text-xs text-gray-700">
+              Employee: <span className="font-semibold">{authUser ? getUserDisplayName(authUser, "Faculty Staff") : "—"}</span>
             </p>
           </div>
-          <div className="rounded-2xl border border-brown-200 bg-white px-5 py-4 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-brown-400">Selection</p>
-            <p className="mt-2 text-2xl font-black tracking-tight text-brown-900">{cart.length}</p>
-            <p className="text-sm text-brown-500">{totalUnits} total quantity{totalUnits === 1 ? "" : "ies"}</p>
-          </div>
-        </div>
 
-        {/* Request Details Section */}
-        <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
-          <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Request Details</p>
-          <h2 className="mt-2 text-2xl font-black tracking-tight text-brown-900">Purpose & Information</h2>
-
-          <div className="mt-6 grid gap-6 md:grid-cols-2">
-            {/* Purpose */}
-            <div className="md:col-span-2">
-              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-brown-500">
-                <PencilIcon className="h-4 w-4" />
-                Purpose <span className="text-danger-500">*</span>
-              </label>
-              <textarea
-                value={purpose}
-                onChange={(e) => { setPurpose(e.target.value); setErrors((prev) => ({ ...prev, purpose: "" })); }}
-                rows={3}
-                placeholder="Describe the purpose of this request (e.g., Classroom supplies for BSIT 2-A, Office supplies for Admin Department, etc.)"
-                className={`mt-3 w-full rounded-xl border bg-white px-4 py-3 text-sm text-brown-900 focus:outline-none focus:ring-2 ${
-                  errors.purpose
-                    ? "border-danger-400 focus:border-danger-500 focus:ring-danger-500/20"
-                    : "border-brown-200 focus:border-primary-500 focus:ring-primary-500/20"
-                }`}
-              />
-              {errors.purpose ? (
-                <p className="mt-1.5 text-xs font-semibold text-danger-600">{errors.purpose}</p>
-              ) : null}
-            </div>
-
-            {/* Department */}
-            <div>
-              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-brown-500">
-                <BuildingOfficeIcon className="h-4 w-4" />
-                Department <span className="text-danger-500">*</span>
-              </label>
-              <select
-                value={department}
-                onChange={(e) => { setDepartment(e.target.value); setErrors((prev) => ({ ...prev, department: "" })); }}
-                className={`mt-3 w-full rounded-xl border bg-white px-4 py-3 text-sm text-brown-900 focus:outline-none focus:ring-2 ${
-                  errors.department
-                    ? "border-danger-400 focus:border-danger-500 focus:ring-danger-500/20"
-                    : "border-brown-200 focus:border-primary-500 focus:ring-primary-500/20"
-                }`}
-              >
-                <option value="">Select a department...</option>
-                {DEPARTMENTS.map((dept) => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
-              </select>
-              {errors.department ? (
-                <p className="mt-1.5 text-xs font-semibold text-danger-600">{errors.department}</p>
-              ) : null}
-            </div>
-
-            {/* Date Needed */}
-            <div>
-              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-brown-500">
-                <CalendarDaysIcon className="h-4 w-4" />
-                Date Needed
-              </label>
-              <input
-                type="date"
-                value={dateNeeded}
-                onChange={(e) => setDateNeeded(e.target.value)}
-                className="mt-3 w-full rounded-xl border border-brown-200 bg-white px-4 py-3 text-sm text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-              />
-            </div>
-          </div>
-        </section>
-
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_420px]">
-          <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Catalog</p>
-                <h2 className="mt-2 text-2xl font-black tracking-tight text-brown-900">Available Supplies</h2>
-                <p className="mt-1 text-sm text-brown-500">Click an item to add it to your request.</p>
-              </div>
-              <label className="relative block w-full sm:max-w-md">
-                <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-brown-400" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search name, code, or category"
-                  className="w-full rounded-2xl border border-brown-200 bg-brown-50 py-3 pl-11 pr-4 text-sm text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+          {/* ── INFORMATION SECTION ── */}
+          <div className="border-b-2 border-black px-6 py-4 sm:px-10">
+            <div className="grid gap-x-6 gap-y-3 sm:grid-cols-12">
+              {/* Purpose */}
+              <div className="sm:col-span-5">
+                <label className="text-[11px] font-bold uppercase tracking-wider">
+                  Purpose <span className="text-red-600">*</span>
+                </label>
+                <textarea
+                  value={purpose}
+                  onChange={(e) => { setPurpose(e.target.value); setErrors((p) => ({ ...p, purpose: "" })) }}
+                  rows={2}
+                  placeholder="e.g., Classroom supplies for BSIT 2-A"
+                  className={`mt-1 w-full border-2 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-black ${
+                    errors.purpose ? "border-red-600" : "border-black"
+                  }`}
                 />
-              </label>
-            </div>
+                {errors.purpose && <p className="mt-0.5 text-[11px] font-semibold text-red-600">{errors.purpose}</p>}
+              </div>
 
-            <div className="mt-6">
-              {loading ? (
-                <div className="grid gap-5 lg:grid-cols-2">
-                  {Array.from({ length: 6 }).map((_, index) => (
-                    <div key={index} className="animate-pulse rounded-[1.5rem] border border-brown-200 bg-brown-50 p-5">
-                      <div className="aspect-[4/3] rounded-[1.25rem] bg-brown-200" />
-                      <div className="mt-4 h-4 w-24 rounded-full bg-brown-200" />
-                      <div className="mt-3 h-7 w-40 rounded-2xl bg-brown-200" />
-                      <div className="mt-4 h-4 w-full rounded-full bg-brown-100" />
-                      <div className="mt-2 h-4 w-4/5 rounded-full bg-brown-100" />
-                    </div>
+              {/* Department */}
+              <div className="sm:col-span-4">
+                <label className="text-[11px] font-bold uppercase tracking-wider">
+                  Department <span className="text-red-600">*</span>
+                </label>
+                <select
+                  value={department}
+                  onChange={(e) => { setDepartment(e.target.value); setErrors((p) => ({ ...p, department: "" })) }}
+                  className={`mt-1 w-full border-2 bg-white px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-black ${
+                    errors.department ? "border-red-600" : "border-black"
+                  }`}
+                >
+                  <option value="">Select...</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>{dept}</option>
                   ))}
-                </div>
-              ) : filteredSupplies.length === 0 && !search ? (
-                <div className="rounded-[1.5rem] border border-dashed border-brown-200 bg-brown-50 px-6 py-12 text-center">
-                  <ClipboardDocumentListIcon className="mx-auto h-10 w-10 text-brown-300" />
-                  <p className="mt-4 text-sm font-semibold text-brown-900">No supplies found</p>
-                  <p className="mt-2 text-sm text-brown-500">Try another search term or use the "Others" option below.</p>
-                </div>
-              ) : (
-                <div className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-2">
-                  {filteredSupplies.map((supply) => {
-                    const inCart = cart.some((item) => item.supplyId === supply.id)
-                    const outOfStock = supply.quantityOnHand < 1
+                </select>
+                {errors.department && <p className="mt-0.5 text-[11px] font-semibold text-red-600">{errors.department}</p>}
+              </div>
 
-                    return (
-                      <article
-                        key={supply.id}
-                        className={`group mx-auto flex h-full w-full max-w-[460px] cursor-pointer flex-col overflow-hidden rounded-[1.75rem] border bg-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl ${
-                          inCart ? "border-primary-300 shadow-lg shadow-primary-100/50 ring-2 ring-primary-200" : outOfStock ? "border-brown-200 opacity-60" : "border-brown-200 hover:border-brown-300"
-                        }`}
-                        onClick={() => !inCart && !outOfStock && addToCart(supply)}
-                      >
-                        <div className="relative aspect-[4/3] overflow-hidden border-b border-brown-200 bg-brown-100">
-                          <img
-                            src={supply.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
-                            alt={supply.name}
-                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                          />
-                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-brown-950/70 via-brown-950/10 to-transparent px-4 py-4">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="rounded-full border border-brown-700 bg-brown-950/85 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white backdrop-blur-sm">
-                                {supply.categoryName}
-                              </span>
-                              <span className="rounded-full border border-brown-900 bg-brown-950 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white backdrop-blur-sm">
-                                {supply.itemCode}
-                              </span>
-                            </div>
-                          </div>
-                          {inCart ? (
-                            <div className="absolute right-3 top-3 rounded-full bg-primary-600 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white shadow-lg">
-                              Added
-                            </div>
-                          ) : null}
-                        </div>
+              {/* Date */}
+              <div className="sm:col-span-3">
+                <label className="text-[11px] font-bold uppercase tracking-wider">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={dateNeeded}
+                  onChange={(e) => setDateNeeded(e.target.value)}
+                  className="mt-1 w-full border-2 border-black px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                />
+              </div>
+            </div>
+          </div>
 
-                        <div className="flex flex-1 flex-col p-4">
-                          <h3 className="line-clamp-2 text-[12px] font-black uppercase tracking-[0.08em] text-brown-900">{supply.name}</h3>
+          {/* ── ITEMS TABLE ── */}
+          <div className="px-6 py-4 sm:px-10">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border-2 border-black text-xs sm:text-sm">
+                {/* Table Header */}
+                <thead>
+                  <tr className="border-b-2 border-black bg-gray-100">
+                    <th className="border-r border-black px-2 py-1.5 text-left text-[11px] font-bold uppercase tracking-wider sm:w-[60px]">
+                      Qty
+                    </th>
+                    <th className="border-r border-black px-2 py-1.5 text-left text-[11px] font-bold uppercase tracking-wider">
+                      Item / Description
+                    </th>
+                    <th className="border-r border-black px-2 py-1.5 text-right text-[11px] font-bold uppercase tracking-wider sm:w-[110px]">
+                      Unit Cost
+                    </th>
+                    <th className="px-2 py-1.5 text-right text-[11px] font-bold uppercase tracking-wider sm:w-[120px]">
+                      Total Amount
+                    </th>
+                  </tr>
+                </thead>
 
-                          <div className="mt-3 grid grid-cols-2 gap-3">
-                            <div className="flex min-w-0 flex-col rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3">
-                              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">In Stock</p>
-                              <p className="mt-1 text-[12px] font-black tracking-tight text-brown-900">{supply.quantityOnHand}</p>
-                            </div>
-                            <div className="flex min-w-0 flex-col rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3">
-                              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Status</p>
-                              <p className="mt-1 text-[12px] font-black tracking-tight text-brown-900">{outOfStock ? "Out of Stock" : "Available"}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </article>
-                    )
-                  })}
+                <tbody>
+                  {/* Item Rows */}
+                  {items.length === 0 && (
+                    <tr className="border-b border-black">
+                      <td colSpan={4} className="px-4 py-6 text-center text-sm text-gray-500 italic">
+                        No items added yet. Use the buttons below to add items.
+                      </td>
+                    </tr>
+                  )}
 
-                  {/* Others - Custom Item Card */}
-                  <article className="mx-auto flex h-full w-full max-w-[460px] flex-col overflow-hidden rounded-[1.75rem] border-2 border-dashed border-accent-300 bg-accent-50/50 transition-all duration-300 hover:border-accent-400">
-                    <div className="bg-gradient-to-br from-accent-100 to-accent-50 px-5 py-6 text-center">
-                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm">
-                        <PencilIcon className="h-6 w-6 text-accent-500" />
-                      </div>
-                      <p className="mt-3 text-sm font-black uppercase tracking-[0.12em] text-accent-700">Others</p>
-                      <p className="mt-1 text-xs text-accent-600">Request an item not in the catalog</p>
-                    </div>
-                    <div className="flex flex-1 flex-col gap-3 p-4">
-                      <div>
-                        <label className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Specify Item *</label>
+                  {items.map((item, index) => (
+                    <tr key={index} className="border-b border-black">
+                      {/* Qty */}
+                      <td className="border-r border-black px-1 py-1 sm:px-2">
                         <input
-                          ref={customNameInputRef}
-                          type="text"
-                          value={customItemName}
-                          onChange={(e) => setCustomItemName(e.target.value)}
-                          placeholder="Enter item name..."
-                          className="mt-1.5 w-full rounded-xl border border-brown-200 bg-white px-3 py-2.5 text-sm text-brown-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/20"
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => updateQuantity(index, Math.max(1, parseInt(e.target.value) || 1))}
+                          className="w-full border-2 border-black px-1 py-0.5 text-center text-xs font-bold focus:outline-none focus:ring-2 focus:ring-black sm:text-sm"
                         />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Qty *</label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={customItemQuantity}
-                            onChange={(e) => setCustomItemQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                            className="mt-1.5 w-full rounded-xl border border-brown-200 bg-white px-3 py-2.5 text-sm text-brown-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/20"
-                          />
+                      </td>
+
+                      {/* Item / Description */}
+                      <td className="border-r border-black px-2 py-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-semibold sm:text-sm">{item.name}</p>
+                            {item.isCustom ? (
+                              <span className="inline-block border border-gray-400 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wider text-gray-500">
+                                Custom
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-gray-500">{item.itemCode}</span>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeItem(index)}
+                            className="flex h-6 w-6 flex-shrink-0 items-center justify-center border border-black hover:bg-red-50 hover:border-red-600 hover:text-red-600"
+                            title="Remove item"
+                          >
+                            <TrashIcon className="h-3 w-3" />
+                          </button>
                         </div>
-                        <div>
-                          <label className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Unit Cost</label>
+                      </td>
+
+                      {/* Unit Cost */}
+                      <td className="border-r border-black px-1 py-1 sm:px-2">
+                        <div className="flex items-center">
+                          <span className="text-[10px] text-gray-600 sm:text-xs">₱</span>
                           <input
                             type="number"
                             min="0"
                             step="0.01"
-                            value={customItemCost}
-                            onChange={(e) => setCustomItemCost(Math.max(0, parseFloat(e.target.value) || 0))}
-                            className="mt-1.5 w-full rounded-xl border border-brown-200 bg-white px-3 py-2.5 text-sm text-brown-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/20"
+                            value={item.unitCost}
+                            onChange={(e) => updateUnitCost(index, Math.max(0, parseFloat(e.target.value) || 0))}
+                            className="w-full border-2 border-black px-1 py-0.5 text-right text-xs font-bold focus:outline-none focus:ring-2 focus:ring-black sm:text-sm"
                           />
                         </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={addCustomToCart}
-                        disabled={!customItemName.trim() || customItemQuantity < 1}
-                        className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <PlusIcon className="h-4 w-4" />
-                        Add to Request
-                      </button>
-                    </div>
-                  </article>
-                </div>
-              )}
+                      </td>
 
-              {search && filteredSupplies.length === 0 ? (
-                <div className="mt-4 rounded-[1.5rem] border border-dashed border-brown-200 bg-brown-50 px-6 py-8 text-center">
-                  <MagnifyingGlassIcon className="mx-auto h-8 w-8 text-brown-300" />
-                  <p className="mt-3 text-sm font-semibold text-brown-900">No results for "{search}"</p>
-                  <p className="mt-1 text-sm text-brown-500">Try a different search term or add a custom item using the "Others" card.</p>
-                </div>
-              ) : null}
-            </div>
-          </section>
+                      {/* Total Amount */}
+                      <td className="px-2 py-1 text-right text-xs font-bold sm:text-sm">
+                        ₱{(item.quantity * item.unitCost).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
 
-          <aside className="space-y-6">
-            <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Request Summary</p>
-              <h2 className="mt-2 text-2xl font-black tracking-tight text-brown-900">Cart</h2>
+                  {/* Empty placeholder rows for printed look */}
+                  {items.length > 0 && items.length < 5 && (
+                    Array.from({ length: Math.min(5 - items.length, 3) }).map((_, i) => (
+                      <tr key={`empty-${i}`} className="border-b border-black h-8">
+                        <td className="border-r border-black" />
+                        <td className="border-r border-black" />
+                        <td className="border-r border-black" />
+                        <td />
+                      </tr>
+                    ))
+                  )}
 
-              {errors.cart ? (
-                <p className="mt-2 text-xs font-semibold text-danger-600">{errors.cart}</p>
-              ) : null}
-
-              <div className="mt-6 space-y-4">
-                {cart.length === 0 ? (
-                  <div className="rounded-[1.5rem] border border-dashed border-brown-200 bg-brown-50 px-5 py-8 text-center">
-                    <ExclamationTriangleIcon className="mx-auto h-8 w-8 text-brown-300" />
-                    <p className="mt-3 text-sm font-semibold text-brown-900">No items added yet</p>
-                    <p className="mt-2 text-sm text-brown-500">
-                      Click on items from the catalog or use the "Others" card to add custom items.
-                    </p>
-                  </div>
-                ) : (
-                  cart.map((item, index) => (
-                    <div key={index} className="rounded-[1.25rem] border border-brown-200 bg-brown-50 p-4">
-                      <div className="flex items-start gap-3">
-                        {!item.isCustom ? (
-                          <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl border border-brown-200 bg-white">
-                            <img
-                              src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop"}
-                              alt={item.name}
-                              className="h-full w-full object-cover"
+                  {/* Add Row / Browse Catalog Row */}
+                  <tr className="border-b-2 border-black">
+                    <td colSpan={4} className="px-2 py-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {customRowOpen ? (
+                          <div className="flex w-full flex-wrap items-center gap-2">
+                            <input
+                              type="text"
+                              value={customName}
+                              onChange={(e) => setCustomName(e.target.value)}
+                              placeholder="Enter custom item name..."
+                              className="flex-1 border-2 border-black px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-black min-w-[180px]"
                             />
-                          </div>
-                        ) : (
-                          <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl border border-accent-200 bg-accent-50">
-                            <PencilIcon className="h-6 w-6 text-accent-500" />
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <p className="truncate font-bold text-brown-900">{item.name}</p>
-                              {item.isCustom ? (
-                                <span className="mt-0.5 inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-accent-700">
-                                  Custom Item
-                                </span>
-                              ) : (
-                                <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.18em] text-brown-400">
-                                  {item.itemCode}
-                                </p>
-                              )}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeFromCart(index)}
-                              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-brown-200 bg-white text-brown-400 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
-                            >
-                              <XMarkIcon className="h-4 w-4" />
-                            </button>
-                          </div>
-
-                          <div className="mt-3 grid grid-cols-3 gap-2">
-                            <div>
-                              <label className="text-[9px] font-bold uppercase tracking-[0.18em] text-brown-400">Qty</label>
+                            <label className="flex items-center gap-1 text-xs font-semibold">
+                              Qty:
                               <input
                                 type="number"
                                 min="1"
-                                value={item.quantity}
-                                onChange={(e) => updateCartQuantity(index, Math.max(1, parseInt(e.target.value) || 1))}
-                                className="mt-1 w-full rounded-lg border border-brown-200 bg-white px-2 py-1.5 text-center text-xs font-bold text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500/20"
+                                value={customQty}
+                                onChange={(e) => setCustomQty(Math.max(1, parseInt(e.target.value) || 1))}
+                                className="w-16 border-2 border-black px-1 py-1 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black"
                               />
-                            </div>
-                            <div>
-                              <label className="text-[9px] font-bold uppercase tracking-[0.18em] text-brown-400">Unit Cost</label>
+                            </label>
+                            <label className="flex items-center gap-1 text-xs font-semibold">
+                              Cost:
                               <input
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                value={item.unitCost}
-                                onChange={(e) => updateCartUnitCost(index, Math.max(0, parseFloat(e.target.value) || 0))}
-                                className="mt-1 w-full rounded-lg border border-brown-200 bg-white px-2 py-1.5 text-center text-xs font-bold text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500/20"
+                                value={customCost}
+                                onChange={(e) => setCustomCost(Math.max(0, parseFloat(e.target.value) || 0))}
+                                className="w-20 border-2 border-black px-1 py-1 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black"
                               />
-                            </div>
-                            <div>
-                              <label className="text-[9px] font-bold uppercase tracking-[0.18em] text-brown-400">Total</label>
-                              <div className="mt-1 flex h-8 w-full items-center justify-center rounded-lg border border-brown-200 bg-primary-50 text-xs font-black text-primary-700">
-                                ₱{(item.quantity * item.unitCost).toFixed(2)}
-                              </div>
-                            </div>
+                            </label>
+                            <button
+                              type="button"
+                              onClick={addCustomItem}
+                              disabled={!customName.trim() || customQty < 1}
+                              className="border-2 border-black px-3 py-1 text-xs font-bold hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                              Add
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setCustomRowOpen(false); setCustomName(""); setCustomQty(1); setCustomCost(0) }}
+                              className="border-2 border-black px-3 py-1 text-xs font-bold hover:bg-gray-100"
+                            >
+                              Cancel
+                            </button>
                           </div>
-                        </div>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setCatalogOpen(true)}
+                              className="inline-flex items-center gap-1.5 border-2 border-black px-3 py-1 text-xs font-bold hover:bg-gray-100"
+                            >
+                              <MagnifyingGlassIcon className="h-3.5 w-3.5" />
+                              Browse Catalog
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setCustomRowOpen(true)}
+                              className="inline-flex items-center gap-1.5 border-2 border-black px-3 py-1 text-xs font-bold hover:bg-gray-100"
+                            >
+                              <PlusIcon className="h-3.5 w-3.5" />
+                              Add Custom Item
+                            </button>
+                          </>
+                        )}
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
+                    </td>
+                  </tr>
 
-              {/* Grand Total */}
-              {cart.length > 0 ? (
-                <div className="mt-4 rounded-[1.5rem] border-2 border-primary-200 bg-primary-50 p-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary-700">Grand Total</p>
-                    <p className="text-2xl font-black text-primary-900">₱{grandTotal.toFixed(2)}</p>
-                  </div>
-                </div>
-              ) : null}
+                  {/* Footer Row */}
+                  <tr className="font-bold">
+                    <td colSpan={2} className="border-r border-black px-2 py-1.5">
+                      <span className="flex items-center gap-1 text-[11px] uppercase tracking-wider">
+                        SOF:
+                        <span className="inline-block border-b-2 border-black min-w-[120px]">&nbsp;</span>
+                      </span>
+                    </td>
+                    <td className="border-r border-black px-2 py-1.5 text-right text-[11px] uppercase tracking-wider">
+                      Grand Total
+                    </td>
+                    <td className="px-2 py-1.5 text-right text-sm font-black sm:text-base">
+                      ₱{grandTotal.toFixed(2)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-              <div className="mt-6 rounded-[1.5rem] border border-brown-200 bg-brown-50 p-4">
-                <label className="block text-xs font-bold uppercase tracking-[0.2em] text-brown-500">Additional Notes</label>
-                <textarea
-                  value={notes}
-                  onChange={(event) => setNotes(event.target.value)}
-                  rows={3}
-                  placeholder="Any additional information for the approving body..."
-                  className="mt-3 w-full rounded-xl border border-brown-200 bg-white px-4 py-3 text-sm text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                />
-              </div>
+            {errors.items && (
+              <p className="mt-1.5 text-[11px] font-semibold text-red-600">{errors.items}</p>
+            )}
 
+            {/* Item count summary */}
+            <p className="mt-2 text-[10px] text-gray-500 uppercase tracking-wider">
+              Total Items: {items.length} | Total Quantity: {items.reduce((s, i) => s + i.quantity, 0)}
+            </p>
+          </div>
+
+          {/* ── APPROVAL SECTION ── */}
+          <div className="border-t-2 border-black px-6 py-4 sm:px-10">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border-2 border-black text-[10px] sm:text-xs">
+                <thead>
+                  <tr className="border-b border-black bg-gray-100">
+                    <th className="border-r border-black px-1 py-1.5 text-center font-bold uppercase tracking-wider sm:px-2">
+                      Requested By
+                    </th>
+                    <th className="border-r border-black px-1 py-1.5 text-center font-bold uppercase tracking-wider sm:px-2">
+                      Recommended By
+                    </th>
+                    <th className="border-r border-black px-1 py-1.5 text-center font-bold uppercase tracking-wider sm:px-2">
+                      Checked By
+                    </th>
+                    <th className="border-r border-black px-1 py-1.5 text-center font-bold uppercase tracking-wider sm:px-2">
+                      Noted By
+                    </th>
+                    <th className="px-1 py-1.5 text-center font-bold uppercase tracking-wider sm:px-2">
+                      Approved By
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {["Requested", "Recommended", "Checked", "Noted", "Approved"].map((label) => (
+                      <td key={label} className="border-r border-black last:border-r-0 px-1 py-3 text-center sm:px-2">
+                        {/* Signature line */}
+                        <div className="mx-auto mb-2 h-px w-3/4 border-t border-black" />
+                        <p className="text-[9px] uppercase tracking-wider text-gray-500 sm:text-[10px]">Signature</p>
+                        {/* Printed Name */}
+                        <p className="mt-3 border-b border-black pb-0.5 text-[10px] font-semibold sm:text-xs">
+                          {authUser && label === "Requested" ? getUserDisplayName(authUser, "Faculty Staff") : ""}
+                        </p>
+                        <p className="text-[9px] text-gray-400 uppercase tracking-wider sm:text-[10px]">Printed Name</p>
+                        {/* Position */}
+                        <p className="mt-2 border-b border-black pb-0.5 text-[10px] sm:text-xs"></p>
+                        <p className="text-[9px] text-gray-400 uppercase tracking-wider sm:text-[10px]">Position / Designation</p>
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* ── NOTES & SUBMIT ── */}
+          <div className="border-t-2 border-black px-6 py-4 sm:px-10">
+            {/* Notes */}
+            <div className="mb-4">
+              <label className="text-[11px] font-bold uppercase tracking-wider">Notes / Remarks</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={2}
+                placeholder="Additional information for the approving body..."
+                className="mt-1 w-full border-2 border-black px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+
+            {/* Submit */}
+            <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={submitting || cart.length === 0}
-                className="mt-6 inline-flex w-full items-center justify-center gap-3 rounded-xl bg-brown-900 px-5 py-3.5 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={submitting || items.length === 0}
+                className="w-full border-2 border-black bg-black px-8 py-2.5 text-sm font-bold text-white hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed sm:w-auto"
               >
-                <PaperAirplaneIcon className="h-5 w-5" />
-                {submitting ? "Submitting Request..." : "Submit Request"}
+                {submitting ? "Submitting..." : "Submit Request"}
               </button>
-            </section>
-          </aside>
+              <p className="text-[10px] text-gray-500 italic">
+                Ensure all fields are correctly filled before submitting.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Catalog Modal */}
+      <CatalogModal />
     </AppShell>
   )
 }
