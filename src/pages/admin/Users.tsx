@@ -12,7 +12,7 @@ import {
 import { api } from "../../lib/api"
 import AppShell from "../../layout/AppShell"
 
-type ManagedRole = "Faculty Staff" | "Property Custodian" | "Approval Personnel"
+type ManagedRole = "Faculty Staff" | "Property Custodian" | "Resource Planning Officer" | "Vice President for Finance" | "College President"
 
 type ManagedUser = {
   id: number
@@ -450,8 +450,12 @@ export default function AdminUsers() {
                             className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
                               user.role === "Property Custodian"
                                 ? "bg-amber-50 text-amber-700"
-                                : user.role === "Approval Personnel"
+                                : user.role === "Resource Planning Officer"
                                 ? "bg-purple-50 text-purple-700"
+                                : user.role === "Vice President for Finance"
+                                ? "bg-indigo-50 text-indigo-700"
+                                : user.role === "College President"
+                                ? "bg-rose-50 text-rose-700"
                                 : "bg-primary-50 text-primary-700"
                             }`}
                           >
@@ -572,7 +576,9 @@ export default function AdminUsers() {
               >
                 <option value="Faculty Staff">Faculty Staff</option>
                 <option value="Property Custodian">Property Custodian</option>
-                <option value="Approval Personnel">Approval Personnel</option>
+                <option value="Resource Planning Officer">Resource Planning Officer</option>
+                <option value="Vice President for Finance">Vice President for Finance</option>
+                <option value="College President">College President</option>
               </select>
               {errors.role ? <p className="mt-2 text-xs font-semibold text-rose-600">{errors.role}</p> : null}
             </div>
