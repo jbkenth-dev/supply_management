@@ -11,6 +11,7 @@ try {
     $pdo = getDatabaseConnection();
     ensureInventoryTables($pdo);
     ensureBudgetTables($pdo);
+    ensureDepartmentTables($pdo);
 
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         handleBudgetFetch($pdo);
@@ -76,10 +77,23 @@ function handleBudgetAction(PDO $pdo): void
     $action = trim((string) ($payload['action'] ?? 'set_budget'));
     $department = trim((string) ($payload['department'] ?? ''));
     $fiscalYear = (int) ($payload['fiscalYear'] ?? date('Y'));
-    $annualBudget = (float) ($payload['annualBudget'] ?? 0);
+    $annualBudgetRaw = $payload['annualBudget'] ?? null;
+    $annualBudget = is_numeric($annualBudgetRaw) ? (float) $annualBudgetRaw : null;
 
-    if ($department === '' || $annualBudget < 0) {
-        jsonResponse(422, ['success' => false, 'message' => 'Valid department and budget amount are required.']);
+    if ($department === '' || !departmentExists($pdo, $department)) {
+        jsonResponse(422, ['success' => false, 'message' => 'Please select a valid department.']);
+    }
+
+    if ($annualBudget === null) {
+        jsonResponse(422, ['success' => false, 'message' => 'Annual budget is required.']);
+    }
+
+    if ($annualBudget < 100) {
+        jsonResponse(422, ['success' => false, 'message' => 'Annual budget must be at least 100.']);
+    }
+
+    if ($annualBudget > 100000) {
+        jsonResponse(422, ['success' => false, 'message' => 'Annual budget cannot exceed 100000.']);
     }
 
     // Upsert
@@ -156,4 +170,60 @@ function ensureBudgetTables(PDO $pdo): void
             UNIQUE KEY unique_dept_fiscal (department, fiscal_year)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
     );
+}
+
+function departmentExists(PDO $pdo, string $department): bool
+{
+    $statement = $pdo->prepare('SELECT id FROM departments WHERE name = :name LIMIT 1');
+    $statement->execute(['name' => $department]);
+
+    return (bool) $statement->fetch();
+}
+
+function ensureDepartmentTables(PDO $pdo): void
+{
+    $tableCheck = $pdo->query("SHOW TABLES LIKE 'departments'");
+    $tableExists = (bool) $tableCheck->fetch();
+
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS departments (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_department_name (name)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+
+    try {
+        $pdo->exec('ALTER TABLE users ADD COLUMN IF NOT EXISTS department VARCHAR(100) NULL AFTER designation');
+    } catch (PDOException $e) {
+    }
+
+    if ($tableExists) {
+        return;
+    }
+
+    $defaultDepartments = [
+        'College of Arts and Sciences',
+        'College of Business and Accountancy',
+        'College of Education',
+        'College of Engineering and Technology',
+        'College of Nursing and Health Sciences',
+        'Senior High School Department',
+        'Junior High School Department',
+        'Elementary Department',
+        'Administration Office',
+        'Finance Office',
+        'Registrar\'s Office',
+        'Library',
+        'Guidance Office',
+        'MIS/IT Office',
+        'Property and Supply Office',
+    ];
+
+    $insert = $pdo->prepare('INSERT IGNORE INTO departments (name) VALUES (:name)');
+    foreach ($defaultDepartments as $department) {
+        $insert->execute(['name' => $department]);
+    }
 }

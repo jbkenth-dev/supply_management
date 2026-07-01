@@ -34,6 +34,7 @@ import AdminMessages from "./pages/admin/AdminMessages";
 import AdminNotification from "./pages/admin/Notification";
 import AdminUsers from "./pages/admin/Users";
 import AdminAnnouncements from "./pages/admin/AdminAnnouncements";
+import AdminDepartments from "./pages/admin/Departments";
 
 export default function App() {
   return (
@@ -69,6 +70,7 @@ export default function App() {
       <Route path="/admin/announcements" element={<AdminAnnouncements />} />
       <Route path="/admin/reports" element={<Reports />} />
       <Route path="/admin/budget" element={<BudgetManagement />} />
+      <Route path="/admin/department" element={<AdminDepartments />} />
       <Route path="/admin/users" element={<AdminUsers />} />
       <Route path="/admin/my-account" element={<MyAccount />} />
       <Route path="/my-account" element={<FacultyMyAccount />} />

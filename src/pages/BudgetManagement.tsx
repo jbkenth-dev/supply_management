@@ -32,27 +32,21 @@ type BudgetResponse = {
   message?: string
 }
 
-const DEPARTMENTS = [
-  "College of Arts and Sciences",
-  "College of Business and Accountancy",
-  "College of Education",
-  "College of Engineering and Technology",
-  "College of Nursing and Health Sciences",
-  "Senior High School Department",
-  "Junior High School Department",
-  "Elementary Department",
-  "Administration Office",
-  "Finance Office",
-  "Registrar's Office",
-  "Library",
-  "Guidance Office",
-  "MIS/IT Office",
-  "Property and Supply Office",
-]
+type Department = {
+  id: number
+  name: string
+}
+
+type DepartmentResponse = {
+  success: boolean
+  departments?: Department[]
+  message?: string
+}
 
 export default function BudgetManagement() {
   const authUser = getStoredAuthUser()
   const [budgets, setBudgets] = useState<BudgetRecord[]>([])
+  const [departments, setDepartments] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
   const [editingDept, setEditingDept] = useState<string | null>(null)
   const [editAmount, setEditAmount] = useState("")
@@ -65,11 +59,23 @@ export default function BudgetManagement() {
     setLoading(true)
     try {
       const params = new URLSearchParams({ userId: String(authUser.id), role: authUser.role })
-      const res = await api(`/api/budget-management.php?${params.toString()}`)
-      const result = (await res.json()) as BudgetResponse
-      if (result.success) {
-        setBudgets(result.budgets ?? [])
+      const [budgetResponse, departmentResponse] = await Promise.all([
+        api(`/api/budget-management.php?${params.toString()}`),
+        api("/api/admin-departments.php"),
+      ])
+      const budgetResult = (await budgetResponse.json()) as BudgetResponse
+      const departmentResult = (await departmentResponse.json()) as DepartmentResponse
+
+      if (!budgetResponse.ok || !budgetResult.success) {
+        throw new Error(budgetResult.message ?? "Unable to load budget data.")
       }
+
+      if (!departmentResponse.ok || !departmentResult.success) {
+        throw new Error(departmentResult.message ?? "Unable to load departments.")
+      }
+
+      setBudgets(budgetResult.budgets ?? [])
+      setDepartments(departmentResult.departments ?? [])
     } catch {
       setResultModal({ type: "error", title: "Load Failed", message: "Unable to load budget data." })
     } finally {
@@ -81,8 +87,14 @@ export default function BudgetManagement() {
 
   const handleSetBudget = async (dept: string, amount?: number) => {
     const finalAmount = amount ?? parseFloat(editAmount)
-    if (isNaN(finalAmount) || finalAmount < 0) {
-      setResultModal({ type: "error", title: "Invalid Amount", message: "Please enter a valid budget amount." })
+    const validationError = validateAnnualBudget(finalAmount)
+    if (validationError) {
+      setResultModal({ type: "error", title: "Invalid Amount", message: validationError })
+      return
+    }
+
+    if (!departments.some((department) => department.name === dept)) {
+      setResultModal({ type: "error", title: "Invalid Department", message: "Please select a valid department." })
       return
     }
 
@@ -110,6 +122,7 @@ export default function BudgetManagement() {
   const totalAnnual = budgets.reduce((s, b) => s + b.annualBudget, 0)
   const totalSpent = budgets.reduce((s, b) => s + b.totalSpent, 0)
   const totalRemaining = budgets.reduce((s, b) => s + b.remainingBudget, 0)
+  const availableDepartments = departments.filter((department) => !budgets.some((budget) => budget.department === department.name))
 
   return (
     <AppShell role={authUser?.role ?? "Faculty Staff"}>
@@ -243,7 +256,8 @@ export default function BudgetManagement() {
                           <div className="flex flex-col gap-2">
                             <input
                               type="number"
-                              min="0"
+                              min="100"
+                              max="100000"
                               step="0.01"
                               value={editAmount}
                               onChange={(e) => setEditAmount(e.target.value)}
@@ -298,13 +312,14 @@ export default function BudgetManagement() {
                   className="rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                 >
                   <option value="">Select department...</option>
-                  {DEPARTMENTS.filter((d) => !budgets.some((b) => b.department === d)).map((dept) => (
-                    <option key={dept} value={dept}>{dept}</option>
+                  {availableDepartments.map((department) => (
+                    <option key={department.id} value={department.name}>{department.name}</option>
                   ))}
                 </select>
                 <input
                   type="number"
-                  min="0"
+                  min="100"
+                  max="100000"
                   step="0.01"
                   value={newAmount}
                   onChange={(e) => setNewAmount(e.target.value)}
@@ -313,7 +328,23 @@ export default function BudgetManagement() {
                 />
                 <button
                   type="button"
-                  onClick={() => { if (newDept && newAmount) { void handleSetBudget(newDept, parseFloat(newAmount)); setNewDept(""); setNewAmount("") } }}
+                  onClick={() => {
+                    if (!newDept || !newAmount) {
+                      setResultModal({ type: "error", title: "Invalid Amount", message: "Annual budget is required." })
+                      return
+                    }
+
+                    const finalAmount = parseFloat(newAmount)
+                    const validationError = validateAnnualBudget(finalAmount)
+                    if (validationError) {
+                      setResultModal({ type: "error", title: "Invalid Amount", message: validationError })
+                      return
+                    }
+
+                    void handleSetBudget(newDept, finalAmount)
+                    setNewDept("")
+                    setNewAmount("")
+                  }}
                   disabled={!newDept || !newAmount}
                   className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -326,6 +357,22 @@ export default function BudgetManagement() {
       </div>
     </AppShell>
   )
+}
+
+function validateAnnualBudget(value: number): string {
+  if (Number.isNaN(value)) {
+    return "Annual budget is required."
+  }
+
+  if (value < 100) {
+    return "Annual budget must be at least 100."
+  }
+
+  if (value > 100000) {
+    return "Annual budget cannot exceed 100000."
+  }
+
+  return ""
 }
 
 function ResultModal({ type, title, message, onClose }: { type: "success" | "error"; title: string; message: string; onClose: () => void }) {

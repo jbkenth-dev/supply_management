@@ -15,6 +15,7 @@ import {
   XMarkIcon,
   ArrowRightOnRectangleIcon,
   ArrowTopRightOnSquareIcon,
+  BuildingOfficeIcon,
   PlusCircleIcon,
   ClipboardDocumentCheckIcon,
   ChatBubbleLeftRightIcon,
@@ -52,6 +53,7 @@ const adminNavGroups = [
     name: "System",
     items: [
       { name: "Budget", to: "/admin/budget", icon: CurrencyDollarIcon },
+      { name: "Department", to: "/admin/department", icon: BuildingOfficeIcon },
       { name: "Announcements", to: "/admin/announcements", icon: MegaphoneIcon },
       { name: "Users", to: "/admin/users", icon: UsersIcon },
       { name: "My Account", to: "/admin/my-account", icon: UserCircleIcon },
