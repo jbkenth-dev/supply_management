@@ -3,18 +3,10 @@ import { useEffect, useMemo, useState } from "react"
 import {
   CheckCircleIcon,
   XCircleIcon,
-  CurrencyDollarIcon,
-  BuildingOfficeIcon,
-  CalendarDaysIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChatBubbleLeftRightIcon,
-  DocumentTextIcon,
-  FunnelIcon,
-  InboxIcon,
-  ClockIcon,
   CheckBadgeIcon,
-  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../layout/AppShell"
 import { ToastContainer, type ToastProps } from "../components/ui/Toast"
@@ -43,6 +35,9 @@ type ApprovalLog = {
   remarks: string
   approverName: string
   createdAt: string
+  requestNumber: string
+  requesterName: string
+  requestId: number
 }
 
 type ApprovalRequest = {

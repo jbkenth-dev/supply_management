@@ -17,7 +17,6 @@ import NewRequest from "./pages/NewRequest";
 import MyRequests from "./pages/MyRequests";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import RequestIssuance from "./pages/admin/RequestIssuance";
-import CustodianRequestIssuance from "./pages/custodian/RequestIssuance";
 import MyAccount from "./pages/admin/MyAccount";
 import FacultyMyAccount from "./pages/MyAccount";
 import Messages from "./pages/Messages";
@@ -30,6 +29,7 @@ import CustodianMessages from "./pages/custodian/CustodianMessages";
 import CustodianMyAccount from "./pages/custodian/CustodianMyAccount";
 import CustodianNotification from "./pages/custodian/Notification";
 import CustodianPurchasePage from "./pages/custodian/CustodianPurchasePage"
+import Reports from "./pages/Reports"
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminNotification from "./pages/admin/Notification";
 import AdminUsers from "./pages/admin/Users";

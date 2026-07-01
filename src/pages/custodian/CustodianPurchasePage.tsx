@@ -1,19 +1,12 @@
 import dayjs from "dayjs"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import {
   ShoppingCartIcon,
   CheckCircleIcon,
-  ArrowPathIcon,
   DocumentArrowUpIcon,
-  XCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  CurrencyDollarIcon,
-  BuildingOfficeIcon,
-  CalendarDaysIcon,
   DocumentTextIcon,
-  PhotoIcon,
-  InboxIcon,
   TruckIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
@@ -78,7 +71,6 @@ export default function CustodianPurchasePage() {
   const [liquidationFile, setLiquidationFile] = useState<File | null>(null)
   const [toasts, setToasts] = useState<ToastProps[]>([])
   const [page, setPage] = useState(1)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const removeToast = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id))
 
@@ -161,10 +153,10 @@ export default function CustodianPurchasePage() {
 
         {/* Summary Cards */}
         <div className="grid gap-4 md:grid-cols-4">
-          <SummaryCard label="To Purchase" value={queued.filter((r) => r.status === "Approved" || r.status === "Waiting Purchase").length} tone="blue" />
-          <SummaryCard label="Purchased" value={queued.filter((r) => r.status === "Purchased").length} tone="indigo" />
-          <SummaryCard label="Ready to Release" value={queued.filter((r) => r.status === "Ready for Release").length} tone="teal" />
-          <SummaryCard label="Released" value={queued.filter((r) => r.status === "Released").length} tone="emerald" />
+          <SummaryCard label="To Purchase" value={queued.filter((r) => r.status === "Approved" || r.status === "Waiting Purchase").length} />
+          <SummaryCard label="Purchased" value={queued.filter((r) => r.status === "Purchased").length} />
+          <SummaryCard label="Ready to Release" value={queued.filter((r) => r.status === "Ready for Release").length} />
+          <SummaryCard label="Released" value={queued.filter((r) => r.status === "Released").length} />
         </div>
 
         {/* Active Queue */}
@@ -434,13 +426,7 @@ export default function CustodianPurchasePage() {
   )
 }
 
-function SummaryCard({ label, value, tone }: { label: string; value: number; tone: string }) {
-  const tones: Record<string, string> = {
-    blue: "bg-blue-50 text-blue-600 border-blue-100",
-    indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
-    teal: "bg-teal-50 text-teal-600 border-teal-100",
-    emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  }
+function SummaryCard({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-[1.5rem] border border-brown-200 bg-white p-5 shadow-sm">
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-brown-400">{label}</p>

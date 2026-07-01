@@ -2,14 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
   MagnifyingGlassIcon,
-  MinusIcon,
   PlusIcon,
   PaperAirplaneIcon,
   ClipboardDocumentListIcon,
   ExclamationTriangleIcon,
-  CurrencyDollarIcon,
-  CalendarDaysIcon,
-  BuildingOfficeIcon,
   PencilIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline"

@@ -4,14 +4,9 @@ import {
   ArrowPathIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  ClockIcon,
-  CubeIcon,
   FunnelIcon,
   InboxIcon,
   XCircleIcon,
-  CurrencyDollarIcon,
-  BuildingOfficeIcon,
-  CalendarDaysIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../layout/AppShell"
 import { ToastContainer, type ToastProps } from "../components/ui/Toast"
@@ -385,8 +380,8 @@ export default function MyRequests() {
                   ) : null}
 
                   <div className="mt-5 grid gap-3 md:grid-cols-2">
-                    {request.items.map((item) => (
-                      <div key={`${request.id}-${item.supplyId ?? index}`} className="rounded-2xl border border-brown-200 bg-white p-4">
+                    {request.items.map((item, idx) => (
+                      <div key={`${request.id}-${item.supplyId ?? idx}`} className="rounded-2xl border border-brown-200 bg-white p-4">
                         <div className="flex items-start gap-4">
                           <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-brown-200 bg-brown-50">
                             <img
