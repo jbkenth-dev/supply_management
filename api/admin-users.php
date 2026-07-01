@@ -310,6 +310,16 @@ function validateUserPayload(PDO $pdo, array $payload, bool $isCreate, ?int $exc
     if ($errors === []) {
         $duplicateErrors = findDuplicateUserConflicts($pdo, $idNumber, $username, $email, $excludeId);
         $errors = array_merge($errors, $duplicateErrors);
+
+        // Check for role uniqueness for restricted roles
+        $restrictedRoles = ['Resource Planning Officer', 'Vice President for Finance', 'College President'];
+        if (in_array($role, $restrictedRoles, true)) {
+            $query = $pdo->prepare('SELECT COUNT(*) FROM users WHERE role = :role AND (:exclude_id IS NULL OR id <> :exclude_id)');
+            $query->execute(['role' => $role, 'exclude_id' => $excludeId]);
+            if ((int)$query->fetchColumn() > 0) {
+                $errors['role'] = 'There is already a user assigned to this role.';
+            }
+        }
     }
 
     return [
