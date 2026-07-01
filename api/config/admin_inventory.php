@@ -91,7 +91,10 @@ function ensureInventoryTables(PDO $pdo): void
     );
 
     try {
-        $pdo->exec("ALTER TABLE stock_entries ADD COLUMN IF NOT EXISTS unit_cost DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER quantity");
+        $checkColumn = $pdo->query("SHOW COLUMNS FROM stock_entries LIKE 'unit_cost'");
+        if ($checkColumn !== false && !$checkColumn->fetch()) {
+            $pdo->exec("ALTER TABLE stock_entries ADD COLUMN unit_cost DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER quantity");
+        }
     } catch (PDOException $e) {
     }
 }

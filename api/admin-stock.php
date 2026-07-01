@@ -17,12 +17,18 @@ try {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $search = trim((string) ($_GET['search'] ?? ''));
-
-    jsonResponse(200, [
-        'success' => true,
-        ...getStockSnapshot($pdo, $search),
-    ]);
+    try {
+        $search = trim((string) ($_GET['search'] ?? ''));
+        jsonResponse(200, [
+            'success' => true,
+            ...getStockSnapshot($pdo, $search),
+        ]);
+    } catch (PDOException $exception) {
+        jsonResponse(500, [
+            'success' => false,
+            'message' => 'Unable to load stock data.',
+        ]);
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
