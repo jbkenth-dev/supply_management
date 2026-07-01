@@ -50,7 +50,7 @@ function handleList(PDO $pdo): void
     $query = $pdo->query(
         "SELECT id, role, id_number, firstname, middlename, lastname, username, email, profile_image_path, created_at, updated_at
          FROM users
-         WHERE role IN ('Faculty Staff', 'Property Custodian')
+         WHERE role IN ('Faculty Staff', 'Property Custodian', 'Approval Personnel')
          ORDER BY lastname ASC, firstname ASC, id ASC"
     );
 
@@ -187,7 +187,7 @@ function handleUpdatePayload(PDO $pdo, array $payload): void
     }
 
     $updateUser = $pdo->prepare(
-        'UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = :id AND role IN (\'Faculty Staff\', \'Property Custodian\')'
+        'UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = :id AND role IN (\'Faculty Staff\', \'Property Custodian\', \'Approval Personnel\')'
     );
     $updateUser->execute($params);
 
@@ -229,7 +229,7 @@ function handleDelete(PDO $pdo): void
 
     $deleteUser = $pdo->prepare(
         "DELETE FROM users
-         WHERE id = :id AND role IN ('Faculty Staff', 'Property Custodian')"
+         WHERE id = :id AND role IN ('Faculty Staff', 'Property Custodian', 'Approval Personnel')"
     );
     $deleteUser->execute([
         'id' => (int) $id,
@@ -254,7 +254,7 @@ function validateUserPayload(PDO $pdo, array $payload, bool $isCreate, ?int $exc
     $confirmPassword = (string) ($payload['confirmPassword'] ?? '');
 
     $errors = [];
-    $allowedRoles = ['Faculty Staff', 'Property Custodian'];
+    $allowedRoles = ['Faculty Staff', 'Property Custodian', 'Approval Personnel'];
 
     if (!in_array($role, $allowedRoles, true)) {
         $errors['role'] = 'Please select a valid role.';
@@ -364,7 +364,7 @@ function findManagedUser(PDO $pdo, int $id): ?array
     $query = $pdo->prepare(
         "SELECT id, role, id_number, firstname, middlename, lastname, username, email, profile_image_path, created_at, updated_at
          FROM users
-         WHERE id = :id AND role IN ('Faculty Staff', 'Property Custodian')
+         WHERE id = :id AND role IN ('Faculty Staff', 'Property Custodian', 'Approval Personnel')
          LIMIT 1"
     );
     $query->execute([
