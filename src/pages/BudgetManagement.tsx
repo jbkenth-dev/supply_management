@@ -89,12 +89,15 @@ export default function BudgetManagement() {
 
   const handleSetBudget = async (dept: string, amount?: number) => {
     const finalAmount = amount ?? parseFloat(editAmount)
+    console.log("[BudgetManagement] handleSetBudget called:", { dept, amount, editAmount, finalAmount })
     if (isNaN(finalAmount) || finalAmount < 0) {
+      console.log("[BudgetManagement] Invalid amount, aborting")
       pushToast("Invalid Amount", "Please enter a valid budget amount.", "warning")
       return
     }
 
     try {
+      console.log("[BudgetManagement] Sending API request...")
       const res = await api("/api/budget-management.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -104,13 +107,16 @@ export default function BudgetManagement() {
           annualBudget: finalAmount,
         }),
       })
+      console.log("[BudgetManagement] API response status:", res.status)
       const result = await res.json()
+      console.log("[BudgetManagement] API response body:", result)
       if (!res.ok || !result.success) throw new Error(result.message ?? "Failed to update budget.")
       pushToast("Budget Updated", `${dept} annual budget set to ₱${finalAmount.toFixed(2)}.`, "success")
       setEditingDept(null)
       setEditAmount("")
       void loadBudgets()
     } catch (error) {
+      console.log("[BudgetManagement] API error:", error)
       pushToast("Error", error instanceof Error ? error.message : "Failed to update budget.", "error")
     }
   }
@@ -314,7 +320,7 @@ export default function BudgetManagement() {
                 />
                 <button
                   type="button"
-                  onClick={() => { if (newDept && newAmount) { void handleSetBudget(newDept, parseFloat(newAmount)); setNewDept(""); setNewAmount("") } }}
+                  onClick={() => { console.log("[BudgetManagement] Set Budget clicked:", { newDept, newAmount }); if (newDept && newAmount) { void handleSetBudget(newDept, parseFloat(newAmount)); setNewDept(""); setNewAmount("") } }}
                   disabled={!newDept || !newAmount}
                   className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
