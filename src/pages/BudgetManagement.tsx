@@ -56,6 +56,8 @@ export default function BudgetManagement() {
   const [toasts, setToasts] = useState<ToastProps[]>([])
   const [editingDept, setEditingDept] = useState<string | null>(null)
   const [editAmount, setEditAmount] = useState("")
+  const [newDept, setNewDept] = useState("")
+  const [newAmount, setNewAmount] = useState("")
 
   const removeToast = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id))
 
@@ -221,7 +223,6 @@ export default function BudgetManagement() {
                           </div>
                         </div>
 
-                        {/* Utilization Bar */}
                         <div className="mt-3">
                           <div className="flex items-center justify-between text-xs">
                             <span className="font-bold uppercase tracking-[0.18em] text-brown-400">Utilization</span>
@@ -283,43 +284,43 @@ export default function BudgetManagement() {
                   </div>
                 ))
               )}
+            </div>
+          )}
 
-              {/* Add Budget for unconfigured departments */}
-              {authUser?.role === "Administrator" && (
-                <div className="mt-6 border-t border-brown-200 pt-6">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Add New Budget</p>
-                  <div className="mt-3 grid gap-4 sm:grid-cols-[1fr_200px_auto]">
-                    <select
-                      id="new-dept"
-                      value={editingDept ?? ""}
-                      onChange={(e) => { setEditingDept(e.target.value); setEditAmount("") }}
-                      className="rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                    >
-                      <option value="">Select department...</option>
-                      {DEPARTMENTS.filter((d) => !budgets.some((b) => b.department === d)).map((dept) => (
-                        <option key={dept} value={dept}>{dept}</option>
-                      ))}
-                    </select>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={editAmount}
-                      onChange={(e) => setEditAmount(e.target.value)}
-                      placeholder="Annual budget"
-                      className="rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => editingDept && void handleSetBudget(editingDept)}
-                      disabled={!editingDept || !editAmount}
-                      className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      Set Budget
-                    </button>
-                  </div>
-                </div>
-              )}
+          {/* Add Budget for unconfigured departments - always visible for admins */}
+          {authUser?.role === "Administrator" && (
+            <div className="mt-6 border-t border-brown-200 pt-6">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Add New Budget</p>
+              <div className="mt-3 grid gap-4 sm:grid-cols-[1fr_200px_auto]">
+                <select
+                  id="new-dept"
+                  value={newDept}
+                  onChange={(e) => { setNewDept(e.target.value); setNewAmount("") }}
+                  className="rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                >
+                  <option value="">Select department...</option>
+                  {DEPARTMENTS.filter((d) => !budgets.some((b) => b.department === d)).map((dept) => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={newAmount}
+                  onChange={(e) => setNewAmount(e.target.value)}
+                  placeholder="Annual budget"
+                  className="rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => { if (newDept && newAmount) { void handleSetBudget(newDept); setNewDept(""); setNewAmount("") } }}
+                  disabled={!newDept || !newAmount}
+                  className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Set Budget
+                </button>
+              </div>
             </div>
           )}
         </section>
