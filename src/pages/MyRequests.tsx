@@ -4,6 +4,8 @@ import {
   ArrowPathIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
+  ClockIcon,
+  CubeIcon,
   FunnelIcon,
   InboxIcon,
   XCircleIcon,

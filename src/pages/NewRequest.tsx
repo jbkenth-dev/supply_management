@@ -6,6 +6,8 @@ import {
   PaperAirplaneIcon,
   ClipboardDocumentListIcon,
   ExclamationTriangleIcon,
+  BuildingOfficeIcon,
+  CalendarDaysIcon,
   PencilIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline"
