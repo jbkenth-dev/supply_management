@@ -24,6 +24,8 @@ export type StockEntry = {
   supplyName: string
   categoryName: string
   quantity: number
+  unitCost: number
+  totalCost: number
   referenceNo: string | null
   remarks: string | null
   createdByName: string

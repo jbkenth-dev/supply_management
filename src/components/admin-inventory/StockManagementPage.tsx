@@ -9,6 +9,7 @@ import type { StockEntry, SupplyItem } from "../../types/adminInventory"
 type StockForm = {
   supplyId: string
   quantity: string
+  unitCost: string
 }
 
 type FieldErrors = Record<string, string>
@@ -16,6 +17,7 @@ type FieldErrors = Record<string, string>
 const initialStockForm: StockForm = {
   supplyId: "",
   quantity: "",
+  unitCost: "",
 }
 
 const STOCKS_PER_PAGE = 8
@@ -149,6 +151,7 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
           action: "add_stock",
           supplyId: Number(form.supplyId),
           quantity: form.quantity,
+          unitCost: form.unitCost || "0",
           createdByUserId: authUser?.id ?? null,
         }),
       })
@@ -250,6 +253,29 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
                 />
                 {errors.quantity ? <p className="mt-2 text-xs font-semibold text-rose-600">{errors.quantity}</p> : null}
               </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Unit Cost (₱)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.unitCost}
+                  onChange={(event) => setForm((current) => ({ ...current, unitCost: event.target.value }))}
+                  className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                  placeholder="0.00"
+                />
+                {errors.unitCost ? <p className="mt-2 text-xs font-semibold text-rose-600">{errors.unitCost}</p> : null}
+              </div>
+
+              {form.quantity && form.unitCost ? (
+                <div className="rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary-600">Total Cost</p>
+                  <p className="mt-1 text-lg font-black text-primary-800">
+                    ₱{(parseInt(form.quantity || "0") * parseFloat(form.unitCost || "0")).toFixed(2)}
+                  </p>
+                </div>
+              ) : null}
 
               <button
                 type="submit"
@@ -365,6 +391,18 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
                           <p className="mt-1 text-sm text-brown-500">
                             {entry.supplyItemCode} • {entry.categoryName} • Added by {entry.createdByName}
                           </p>
+                          <div className="mt-2 flex flex-wrap gap-3">
+                            {entry.unitCost > 0 ? (
+                              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
+                                ₱{entry.unitCost.toFixed(2)}/unit
+                              </span>
+                            ) : null}
+                            {entry.totalCost > 0 ? (
+                              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-600">
+                                Total: ₱{entry.totalCost.toFixed(2)}
+                              </span>
+                            ) : null}
+                          </div>
                           <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary-600">
                             {formatDateTime(entry.createdAt)}
                           </p>

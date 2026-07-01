@@ -74,6 +74,7 @@ function ensureInventoryTables(PDO $pdo): void
             id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             supply_id INT UNSIGNED NOT NULL,
             quantity INT UNSIGNED NOT NULL,
+            unit_cost DECIMAL(12,2) NOT NULL DEFAULT 0.00,
             reference_no VARCHAR(60) NULL,
             remarks VARCHAR(255) NULL,
             created_by_user_id INT UNSIGNED NULL,
@@ -88,6 +89,11 @@ function ensureInventoryTables(PDO $pdo): void
                 ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
     );
+
+    try {
+        $pdo->exec("ALTER TABLE stock_entries ADD COLUMN IF NOT EXISTS unit_cost DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER quantity");
+    } catch (PDOException $e) {
+    }
 }
 
 function findCategoryById(PDO $pdo, int $categoryId): ?array
@@ -169,7 +175,7 @@ function getStockSnapshot(PDO $pdo, string $search = ''): array
     $supplies = $suppliesStatement->fetchAll();
 
     $entriesStatement = $pdo->prepare(
-        'SELECT se.id, se.quantity, se.reference_no, se.remarks, se.created_at,
+        'SELECT se.id, se.quantity, se.unit_cost, se.reference_no, se.remarks, se.created_at,
                 s.id AS supply_id, s.item_code AS supply_item_code, s.name AS supply_name,
                 c.name AS category_name,
                 CONCAT_WS(" ", u.firstname, u.lastname) AS created_by_name
@@ -204,6 +210,8 @@ function getStockSnapshot(PDO $pdo, string $search = ''): array
                 'supplyName' => (string) $entry['supply_name'],
                 'categoryName' => (string) $entry['category_name'],
                 'quantity' => (int) $entry['quantity'],
+                'unitCost' => (float) ($entry['unit_cost'] ?? 0),
+                'totalCost' => (int) $entry['quantity'] * (float) ($entry['unit_cost'] ?? 0),
                 'referenceNo' => $entry['reference_no'] !== null ? (string) $entry['reference_no'] : null,
                 'remarks' => $entry['remarks'] !== null ? (string) $entry['remarks'] : null,
                 'createdByName' => $entry['created_by_name'] !== null && trim((string) $entry['created_by_name']) !== ''

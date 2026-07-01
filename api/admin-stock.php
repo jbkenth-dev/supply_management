@@ -44,6 +44,7 @@ if ($action !== 'add_stock') {
 
 $supplyId = (int) ($data['supplyId'] ?? 0);
 $quantityValue = trim((string) ($data['quantity'] ?? ''));
+$unitCost = (float) ($data['unitCost'] ?? 0);
 $referenceNo = normalizeName((string) ($data['referenceNo'] ?? ''));
 $remarks = trim((string) ($data['remarks'] ?? ''));
 $createdByUserId = isset($data['createdByUserId']) ? (int) $data['createdByUserId'] : 0;
@@ -59,6 +60,10 @@ if ($quantityValue === '') {
     $errors['quantity'] = 'Stock quantity must be a whole number.';
 } elseif ((int) $quantityValue < 1 || (int) $quantityValue > 1000000) {
     $errors['quantity'] = 'Stock quantity must be between 1 and 1,000,000.';
+}
+
+if ($unitCost < 0) {
+    $errors['unitCost'] = 'Unit cost cannot be negative.';
 }
 
 if ($referenceNo !== '' && mb_strlen($referenceNo) > 60) {
@@ -89,12 +94,13 @@ try {
     $pdo->beginTransaction();
 
     $insertEntry = $pdo->prepare(
-        'INSERT INTO stock_entries (supply_id, quantity, reference_no, remarks, created_by_user_id)
-         VALUES (:supply_id, :quantity, :reference_no, :remarks, :created_by_user_id)'
+        'INSERT INTO stock_entries (supply_id, quantity, unit_cost, reference_no, remarks, created_by_user_id)
+         VALUES (:supply_id, :quantity, :unit_cost, :reference_no, :remarks, :created_by_user_id)'
     );
     $insertEntry->execute([
         'supply_id' => $supplyId,
         'quantity' => $quantity,
+        'unit_cost' => $unitCost,
         'reference_no' => $referenceNo !== '' ? $referenceNo : null,
         'remarks' => $remarks !== '' ? $remarks : null,
         'created_by_user_id' => $createdByUserId > 0 ? $createdByUserId : null,
