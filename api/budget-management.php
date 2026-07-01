@@ -10,7 +10,7 @@ sendApiHeaders(['GET', 'POST']);
 try {
     $pdo = getDatabaseConnection();
     ensureInventoryTables($pdo);
-    ensureFacultyRequestTables($pdo);
+    ensureBudgetTables($pdo);
 
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         handleBudgetFetch($pdo);
@@ -135,4 +135,25 @@ function checkBudgetEnough(PDO $pdo, string $department, float $amount): bool
         return true; // No budget set = no restriction
     }
     return $budget['remainingBudget'] >= $amount;
+}
+
+function ensureBudgetTables(PDO $pdo): void
+{
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS designation VARCHAR(60) NULL AFTER role");
+    } catch (PDOException $e) {
+    }
+
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS department_budgets (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            department VARCHAR(100) NOT NULL,
+            fiscal_year YEAR NOT NULL,
+            annual_budget DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+            total_spent DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_dept_fiscal (department, fiscal_year)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
 }
