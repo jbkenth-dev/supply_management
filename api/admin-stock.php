@@ -68,8 +68,10 @@ if ($quantityValue === '') {
     $errors['quantity'] = 'Stock quantity must be between 1 and 1,000,000.';
 }
 
-if ($unitCost < 0) {
-    $errors['unitCost'] = 'Unit cost cannot be negative.';
+if ($unitCost < 1) {
+    $errors['unitCost'] = 'Unit cost is required and must be at least 1.';
+} elseif ($unitCost > 100000) {
+    $errors['unitCost'] = 'Unit cost cannot exceed 100,000.';
 }
 
 if ($referenceNo !== '' && mb_strlen($referenceNo) > 60) {

@@ -255,11 +255,13 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Unit Cost (₱)</label>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Unit Cost (₱) <span className="text-rose-500">*</span></label>
                 <input
                   type="number"
-                  min="0"
+                  min="1"
+                  max="100000"
                   step="0.01"
+                  required
                   value={form.unitCost}
                   onChange={(event) => setForm((current) => ({ ...current, unitCost: event.target.value }))}
                   className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
