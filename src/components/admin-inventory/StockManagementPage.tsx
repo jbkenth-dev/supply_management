@@ -163,18 +163,6 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
     return supplies.find((s) => s.id === Number(form.supplyId)) ?? null
   }, [supplies, form.supplyId])
 
-  // Compute latest unit cost for each supply from entries
-  const latestUnitCostBySupply = useMemo(() => {
-    const map = new Map<number, number>()
-    // Entries are already sorted by createdAt DESC from the API
-    for (const entry of entries) {
-      if (!map.has(entry.supplyId)) {
-        map.set(entry.supplyId, entry.unitCost)
-      }
-    }
-    return map
-  }, [entries])
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitting(true)
