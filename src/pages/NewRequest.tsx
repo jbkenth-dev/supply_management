@@ -491,7 +491,7 @@ export default function NewRequest() {
                               className="inline-flex items-center gap-1.5 rounded-xl border border-brown-200 bg-white px-4 py-2 text-xs font-bold text-brown-700 transition hover:border-brown-300 hover:bg-brown-100"
                             >
                               <MagnifyingGlassIcon className="h-3.5 w-3.5" />
-                              Browse Catalog
+                              Browse Supply
                             </button>
                             <button
                               type="button"
