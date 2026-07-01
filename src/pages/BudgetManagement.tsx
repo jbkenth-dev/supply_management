@@ -6,9 +6,10 @@ import {
   PencilIcon,
   CheckCircleIcon,
   ChartBarIcon,
+  XCircleIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../layout/AppShell"
-import { ToastContainer, type ToastProps } from "../components/ui/Toast"
 import { api } from "../lib/api"
 import { getStoredAuthUser } from "../lib/auth"
 
@@ -53,20 +54,11 @@ export default function BudgetManagement() {
   const authUser = getStoredAuthUser()
   const [budgets, setBudgets] = useState<BudgetRecord[]>([])
   const [loading, setLoading] = useState(true)
-  const [toasts, setToasts] = useState<ToastProps[]>([])
   const [editingDept, setEditingDept] = useState<string | null>(null)
   const [editAmount, setEditAmount] = useState("")
   const [newDept, setNewDept] = useState("")
   const [newAmount, setNewAmount] = useState("")
-
-  const removeToast = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id))
-
-  const pushToast = (title: string, message: string, type: ToastProps["type"]) => {
-    setToasts((prev) => [
-      ...prev,
-      { id: `budget-${Date.now()}`, title, message, type, onDismiss: removeToast },
-    ])
-  }
+  const [resultModal, setResultModal] = useState<{ type: "success" | "error"; title: string; message: string } | null>(null)
 
   const loadBudgets = async () => {
     if (!authUser?.id) return
@@ -79,25 +71,22 @@ export default function BudgetManagement() {
         setBudgets(result.budgets ?? [])
       }
     } catch {
-      pushToast("Load Failed", "Unable to load budget data.", "error")
+      setResultModal({ type: "error", title: "Load Failed", message: "Unable to load budget data." })
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { void loadBudgets() }, [authUser?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { void loadBudgets() }, [authUser?.id])
 
   const handleSetBudget = async (dept: string, amount?: number) => {
     const finalAmount = amount ?? parseFloat(editAmount)
-    console.log("[BudgetManagement] handleSetBudget called:", { dept, amount, editAmount, finalAmount })
     if (isNaN(finalAmount) || finalAmount < 0) {
-      console.log("[BudgetManagement] Invalid amount, aborting")
-      pushToast("Invalid Amount", "Please enter a valid budget amount.", "warning")
+      setResultModal({ type: "error", title: "Invalid Amount", message: "Please enter a valid budget amount." })
       return
     }
 
     try {
-      console.log("[BudgetManagement] Sending API request...")
       const res = await api("/api/budget-management.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -107,17 +96,14 @@ export default function BudgetManagement() {
           annualBudget: finalAmount,
         }),
       })
-      console.log("[BudgetManagement] API response status:", res.status)
       const result = await res.json()
-      console.log("[BudgetManagement] API response body:", result)
       if (!res.ok || !result.success) throw new Error(result.message ?? "Failed to update budget.")
-      pushToast("Budget Updated", `${dept} annual budget set to ₱${finalAmount.toFixed(2)}.`, "success")
+      setResultModal({ type: "success", title: "Budget Updated", message: `${dept} annual budget set to ₱${finalAmount.toFixed(2)}.` })
       setEditingDept(null)
       setEditAmount("")
       void loadBudgets()
     } catch (error) {
-      console.log("[BudgetManagement] API error:", error)
-      pushToast("Error", error instanceof Error ? error.message : "Failed to update budget.", "error")
+      setResultModal({ type: "error", title: "Error", message: error instanceof Error ? error.message : "Failed to update budget." })
     }
   }
 
@@ -127,7 +113,14 @@ export default function BudgetManagement() {
 
   return (
     <AppShell role={authUser?.role ?? "Faculty Staff"}>
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      {resultModal ? (
+        <ResultModal
+          type={resultModal.type}
+          title={resultModal.title}
+          message={resultModal.message}
+          onClose={() => setResultModal(null)}
+        />
+      ) : null}
       <div className="space-y-8">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Budget Management</p>
@@ -320,7 +313,7 @@ export default function BudgetManagement() {
                 />
                 <button
                   type="button"
-                  onClick={() => { console.log("[BudgetManagement] Set Budget clicked:", { newDept, newAmount }); if (newDept && newAmount) { void handleSetBudget(newDept, parseFloat(newAmount)); setNewDept(""); setNewAmount("") } }}
+                  onClick={() => { if (newDept && newAmount) { void handleSetBudget(newDept, parseFloat(newAmount)); setNewDept(""); setNewAmount("") } }}
                   disabled={!newDept || !newAmount}
                   className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -332,5 +325,59 @@ export default function BudgetManagement() {
         </section>
       </div>
     </AppShell>
+  )
+}
+
+function ResultModal({ type, title, message, onClose }: { type: "success" | "error"; title: string; message: string; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="w-full max-w-lg rounded-[2rem] border border-brown-200 bg-white p-6 shadow-2xl sm:p-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start gap-4">
+          <div className={`flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl ${
+            type === "success" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+          }`}>
+            {type === "success" ? (
+              <CheckCircleIcon className="h-7 w-7" />
+            ) : (
+              <XCircleIcon className="h-7 w-7" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className={`text-[10px] font-bold uppercase tracking-[0.18em] ${
+                  type === "success" ? "text-emerald-600" : "text-rose-600"
+                }`}>
+                  {type === "success" ? "Success" : "Error"}
+                </p>
+                <h3 className="mt-1.5 text-xl font-black tracking-tight text-brown-900">{title}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl border border-brown-200 bg-white text-brown-400 hover:border-brown-300 hover:text-brown-600"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-brown-500">{message}</p>
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className={`rounded-xl px-6 py-3 text-sm font-bold text-white transition ${
+              type === "success" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"
+            }`}
+          >
+            {type === "success" ? "Done" : "Close"}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
