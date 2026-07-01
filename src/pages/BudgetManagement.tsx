@@ -87,9 +87,9 @@ export default function BudgetManagement() {
 
   useEffect(() => { void loadBudgets() }, [authUser?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleSetBudget = async (dept: string) => {
-    const amount = parseFloat(editAmount)
-    if (isNaN(amount) || amount < 0) {
+  const handleSetBudget = async (dept: string, amount?: number) => {
+    const finalAmount = amount ?? parseFloat(editAmount)
+    if (isNaN(finalAmount) || finalAmount < 0) {
       pushToast("Invalid Amount", "Please enter a valid budget amount.", "warning")
       return
     }
@@ -101,12 +101,12 @@ export default function BudgetManagement() {
         body: JSON.stringify({
           action: "set_budget",
           department: dept,
-          annualBudget: amount,
+          annualBudget: finalAmount,
         }),
       })
       const result = await res.json()
       if (!res.ok || !result.success) throw new Error(result.message ?? "Failed to update budget.")
-      pushToast("Budget Updated", `${dept} annual budget set to ₱${amount.toFixed(2)}.`, "success")
+      pushToast("Budget Updated", `${dept} annual budget set to ₱${finalAmount.toFixed(2)}.`, "success")
       setEditingDept(null)
       setEditAmount("")
       void loadBudgets()
@@ -314,7 +314,7 @@ export default function BudgetManagement() {
                 />
                 <button
                   type="button"
-                  onClick={() => { if (newDept && newAmount) { void handleSetBudget(newDept); setNewDept(""); setNewAmount("") } }}
+                  onClick={() => { if (newDept && newAmount) { void handleSetBudget(newDept, parseFloat(newAmount)); setNewDept(""); setNewAmount("") } }}
                   disabled={!newDept || !newAmount}
                   className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
