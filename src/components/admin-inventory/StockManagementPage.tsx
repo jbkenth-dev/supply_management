@@ -163,6 +163,18 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
     return supplies.find((s) => s.id === Number(form.supplyId)) ?? null
   }, [supplies, form.supplyId])
 
+  // Compute latest unit cost for each supply from entries
+  const latestUnitCostBySupply = useMemo(() => {
+    const map = new Map<number, number>()
+    // Entries are already sorted by createdAt DESC from the API
+    for (const entry of entries) {
+      if (!map.has(entry.supplyId)) {
+        map.set(entry.supplyId, entry.unitCost)
+      }
+    }
+    return map
+  }, [entries])
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitting(true)
@@ -375,16 +387,17 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
                 <table className="min-w-full divide-y divide-brown-200">
                   <thead className="bg-brown-50">
                     <tr>
-                      <HeaderCell>Supply</HeaderCell>
-                      <HeaderCell>Category</HeaderCell>
                       <HeaderCell>Item Code</HeaderCell>
+                      <HeaderCell>Supply</HeaderCell>
                       <HeaderCell className="text-right">Quantity</HeaderCell>
+                      <HeaderCell className="text-right">Unit Cost</HeaderCell>
+                      <HeaderCell className="text-right">Total Cost</HeaderCell>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-brown-100 bg-white">
                     {loading ? (
                       <tr>
-                        <td colSpan={4} className="px-6 py-10">
+                        <td colSpan={5} className="px-6 py-10">
                           <div className="space-y-3 animate-pulse">
                             <div className="h-5 rounded bg-brown-100" />
                             <div className="h-5 rounded bg-brown-100" />
@@ -394,24 +407,41 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
                       </tr>
                     ) : filteredSupplies.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="px-6 py-10 text-center text-sm text-brown-500">
+                        <td colSpan={5} className="px-6 py-10 text-center text-sm text-brown-500">
                           No stock records matched your search.
                         </td>
                       </tr>
                     ) : (
-                      paginatedSupplies.map((supply) => (
-                        <tr key={supply.id} className="transition hover:bg-brown-50">
-                          <BodyCell>
-                            <div className="font-semibold text-brown-900">{supply.name}</div>
-                            <div className="text-xs text-brown-500">{supply.description || "No description"}</div>
-                          </BodyCell>
-                          <BodyCell>{supply.categoryName}</BodyCell>
-                          <BodyCell className="font-semibold text-brown-800">{supply.itemCode}</BodyCell>
-                          <BodyCell className="text-right font-semibold text-brown-900">
-                            {supply.quantityOnHand.toLocaleString()}
-                          </BodyCell>
-                        </tr>
-                      ))
+                      paginatedSupplies.map((supply) => {
+                        // Get the latest unit cost from stock entries for this supply
+                        const supplyEntries = entries.filter((e) => e.supplyId === supply.id)
+                        const latestEntry = supplyEntries.length > 0
+                          ? supplyEntries.reduce((latest, entry) =>
+                              new Date(entry.createdAt) > new Date(latest.createdAt) ? entry : latest
+                            )
+                          : null
+                        const unitCost = latestEntry?.unitCost ?? 0
+                        const totalCost = supply.quantityOnHand * unitCost
+
+                        return (
+                          <tr key={supply.id} className="transition hover:bg-brown-50">
+                            <BodyCell className="font-semibold text-brown-800">{supply.itemCode}</BodyCell>
+                            <BodyCell>
+                              <div className="font-semibold text-brown-900">{supply.name}</div>
+                              <div className="text-xs text-brown-500">{supply.categoryName}</div>
+                            </BodyCell>
+                            <BodyCell className="text-right font-semibold text-brown-900">
+                              {supply.quantityOnHand.toLocaleString()}
+                            </BodyCell>
+                            <BodyCell className="text-right text-brown-700">
+                              ₱{unitCost.toFixed(2)}
+                            </BodyCell>
+                            <BodyCell className="text-right font-semibold text-brown-900">
+                              ₱{totalCost.toFixed(2)}
+                            </BodyCell>
+                          </tr>
+                        )
+                      })
                     )}
                   </tbody>
                 </table>
