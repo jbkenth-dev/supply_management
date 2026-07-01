@@ -27,7 +27,7 @@ SET time_zone = "+00:00";
 -- Dumping data for table `login_attempts`
 --
 
-INSERT INTO `login_attempts` (`id`, `identifier_key`, `failed_attempts`, `lockout_until`, `last_failed_at`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `login_attempts` (`id`, `identifier_key`, `failed_attempts`, `lockout_until`, `last_failed_at`, `created_at`, `updated_at`) VALUES
 (14, 'crampatanta', 1, NULL, '2026-06-30 14:05:48', '2026-06-30 14:05:48', '2026-06-30 14:05:48'),
 (15, 'sarahjanecrampatanta07@gmail.com', 2, NULL, '2026-06-30 14:06:49', '2026-06-30 14:06:01', '2026-06-30 14:06:49');
 
@@ -37,7 +37,7 @@ INSERT INTO `login_attempts` (`id`, `identifier_key`, `failed_attempts`, `lockou
 -- Dumping data for table `supply_categories`
 --
 
-INSERT INTO `supply_categories` (`id`, `name`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `supply_categories` (`id`, `name`, `created_at`, `updated_at`) VALUES
 (7, 'Category 1', '2026-04-10 15:34:21', '2026-04-10 15:34:21'),
 (8, 'Category 2', '2026-04-10 15:34:26', '2026-04-10 15:34:26'),
 (9, 'Category 3', '2026-04-10 15:34:31', '2026-04-10 15:34:31'),
@@ -49,7 +49,7 @@ INSERT INTO `supply_categories` (`id`, `name`, `created_at`, `updated_at`) VALUE
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `role`, `designation`, `id_number`, `firstname`, `middlename`, `lastname`, `username`, `email`, `contact_number`, `address`, `profile_image_path`, `password_hash`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `users` (`id`, `role`, `designation`, `id_number`, `firstname`, `middlename`, `lastname`, `username`, `email`, `contact_number`, `address`, `profile_image_path`, `password_hash`, `created_at`, `updated_at`) VALUES
 (4, 'Administrator', NULL, '2026-5342', 'SFCG', NULL, 'Guihulngan City', 'sfcg-admin', 'admin@gmail.com', NULL, NULL, '/uploads/profile-pictures/admin-4-1782794178.png', '$2y$10$kaTad0gNVbjluROBe8by4ehqYbtliGvMI3uxBy3.7OYs1g6AZ3T9W', '2026-04-05 13:18:26', '2026-06-30 04:36:18'),
 (10, 'Property Custodian', NULL, 'C2324-0465', 'Jenerose', 'Ampalayohan', 'Macaya', 'Jenerose', 'jenerosemacaya1402@gmail.com', NULL, NULL, NULL, '$2y$10$RCe1odkYvRCTFhAnE7zF1e1Z6L6HdotAWHzafKodNc/9B5KS0uzHe', '2026-06-30 13:41:20', '2026-06-30 13:41:20'),
 (11, 'Faculty Staff', NULL, '2023-0110', 'Joyce', 'L.', 'Medes', 'Joyce', 'joycemedes247@gmail.com', NULL, NULL, NULL, '$2y$10$HpSVSqpQsNeEgZjfQEKu0.x/BYO0MbIaHvj9FtUS8BEbad.AjNI3S', '2026-06-30 13:55:30', '2026-06-30 13:55:30'),
@@ -63,7 +63,7 @@ INSERT INTO `users` (`id`, `role`, `designation`, `id_number`, `firstname`, `mid
 -- Dumping data for table `supplies`
 --
 
-INSERT INTO `supplies` (`id`, `category_id`, `item_code`, `name`, `description`, `unit`, `image_path`, `quantity_on_hand`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `supplies` (`id`, `category_id`, `item_code`, `name`, `description`, `unit`, `image_path`, `quantity_on_hand`, `created_at`, `updated_at`) VALUES
 (3, 7, '123456', 'Suppy Name 1', 'Details 1', '', '/uploads/supplies/0d750f173f3ff2f1af5c16125dd9c175.png', 100, '2026-04-10 15:37:18', '2026-04-10 15:51:40'),
 (4, 8, '231535', 'Supply Name 2', 'Details 2', '', '/uploads/supplies/626482232ff3137f66c8989958f78af5.png', 100, '2026-04-10 15:42:42', '2026-04-10 15:51:49'),
 (5, 9, '642370', 'Supply name 3', 'Details 3', '', '/uploads/supplies/88054df9f9ccf184ebb098ebacd02d80.png', 100, '2026-04-10 15:50:02', '2026-04-10 15:51:54'),
@@ -75,7 +75,7 @@ INSERT INTO `supplies` (`id`, `category_id`, `item_code`, `name`, `description`,
 -- Dumping data for table `stock_entries`
 --
 
-INSERT INTO `stock_entries` (`id`, `supply_id`, `quantity`, `reference_no`, `remarks`, `created_by_user_id`, `created_at`) VALUES
+INSERT IGNORE INTO `stock_entries` (`id`, `supply_id`, `quantity`, `reference_no`, `remarks`, `created_by_user_id`, `created_at`) VALUES
 (3, 3, 100, NULL, NULL, 4, '2026-04-10 15:51:40'),
 (4, 4, 100, NULL, NULL, 4, '2026-04-10 15:51:49'),
 (5, 5, 100, NULL, NULL, 4, '2026-04-10 15:51:54'),
@@ -87,7 +87,7 @@ INSERT INTO `stock_entries` (`id`, `supply_id`, `quantity`, `reference_no`, `rem
 -- Dumping data for table `supply_requests`
 --
 
-INSERT INTO `supply_requests` (`id`, `request_number`, `requested_by_user_id`, `purpose`, `department`, `date_needed`, `notes`, `status`, `total_items`, `total_quantity`, `grand_total`, `reviewed_by_user_id`, `review_notes`, `reviewed_at`, `fulfilled_by_user_id`, `fulfilled_at`, `issuance_slip_no`, `receipt_path`, `liquidation_path`, `purchase_date`, `release_date`, `completion_date`, `confirmed_received`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `supply_requests` (`id`, `request_number`, `requested_by_user_id`, `purpose`, `department`, `date_needed`, `notes`, `status`, `total_items`, `total_quantity`, `grand_total`, `reviewed_by_user_id`, `review_notes`, `reviewed_at`, `fulfilled_by_user_id`, `fulfilled_at`, `issuance_slip_no`, `receipt_path`, `liquidation_path`, `purchase_date`, `release_date`, `completion_date`, `confirmed_received`, `created_at`, `updated_at`) VALUES
 (7, 'REQ-20260630-135739-255B0B', 11, 'I need bond paper rn', NULL, NULL, 'I need bond paper rn', 'Pending', 1, 1, 0.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-06-30 13:57:39', '2026-06-30 13:57:39'),
 (8, 'REQ-20260630-135747-C8244D', 11, 'I need bond paper rn', NULL, NULL, 'I need bond paper rn', 'Pending', 1, 1, 0.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-06-30 13:57:47', '2026-06-30 13:57:47'),
 (9, 'REQ-20260630-155612-938FD2', 14, 'rush please', NULL, NULL, 'rush please', 'Pending', 3, 3, 0.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-06-30 15:56:12', '2026-06-30 15:56:12'),
@@ -100,7 +100,7 @@ INSERT INTO `supply_requests` (`id`, `request_number`, `requested_by_user_id`, `
 -- Dumping data for table `supply_request_items`
 --
 
-INSERT INTO `supply_request_items` (`id`, `request_id`, `supply_id`, `custom_item_name`, `unit_cost`, `total_amount`, `quantity_requested`, `quantity_approved`, `quantity_fulfilled`, `created_at`, `updated_at`) VALUES
+INSERT IGNORE INTO `supply_request_items` (`id`, `request_id`, `supply_id`, `custom_item_name`, `unit_cost`, `total_amount`, `quantity_requested`, `quantity_approved`, `quantity_fulfilled`, `created_at`, `updated_at`) VALUES
 (7, 7, 4, NULL, 0.00, 0.00, 1, NULL, 0, '2026-06-30 13:57:39', '2026-06-30 13:57:39'),
 (8, 8, 4, NULL, 0.00, 0.00, 1, NULL, 0, '2026-06-30 13:57:47', '2026-06-30 13:57:47'),
 (9, 9, 4, NULL, 0.00, 0.00, 1, NULL, 0, '2026-06-30 15:56:12', '2026-06-30 15:56:12'),
@@ -119,7 +119,7 @@ INSERT INTO `supply_request_items` (`id`, `request_id`, `supply_id`, `custom_ite
 -- Dumping data for table `message_typing_status`
 --
 
-INSERT INTO `message_typing_status` (`user_id`, `conversation_user_id`, `is_typing`, `updated_at`) VALUES
+INSERT IGNORE INTO `message_typing_status` (`user_id`, `conversation_user_id`, `is_typing`, `updated_at`) VALUES
 (11, 10, 0, '2026-06-30 13:58:13');
 
 -- --------------------------------------------------------
@@ -128,7 +128,7 @@ INSERT INTO `message_typing_status` (`user_id`, `conversation_user_id`, `is_typi
 -- Dumping data for table `notifications`
 --
 
-INSERT INTO `notifications` (`id`, `recipient_user_id`, `actor_user_id`, `type`, `title`, `message`, `action_url`, `metadata_json`, `is_read`, `email_sent_at`, `created_at`, `read_at`) VALUES
+INSERT IGNORE INTO `notifications` (`id`, `recipient_user_id`, `actor_user_id`, `type`, `title`, `message`, `action_url`, `metadata_json`, `is_read`, `email_sent_at`, `created_at`, `read_at`) VALUES
 (17, 10, 11, 'request_submitted', 'New Faculty Supply Request', 'Joyce L. Medes submitted REQ-20260630-135739-255B0B with 1 item(s) and 1 total quantity.', '/custodian/request-issuance', '{\"requestId\":7,\"requestNumber\":\"REQ-20260630-135739-255B0B\",\"requestStatus\":\"Pending\"}', 0, NULL, '2026-06-30 13:57:39', NULL),
 (18, 4, 11, 'request_submitted', 'New Faculty Supply Request', 'Joyce L. Medes submitted REQ-20260630-135739-255B0B with 1 item(s) and 1 total quantity.', '/admin/request-issuance', '{\"requestId\":7,\"requestNumber\":\"REQ-20260630-135739-255B0B\",\"requestStatus\":\"Pending\"}', 0, NULL, '2026-06-30 13:57:39', NULL),
 (19, 10, 11, 'request_submitted', 'New Faculty Supply Request', 'Joyce L. Medes submitted REQ-20260630-135747-C8244D with 1 item(s) and 1 total quantity.', '/custodian/request-issuance', '{\"requestId\":8,\"requestNumber\":\"REQ-20260630-135747-C8244D\",\"requestStatus\":\"Pending\"}', 0, NULL, '2026-06-30 13:57:47', NULL),
