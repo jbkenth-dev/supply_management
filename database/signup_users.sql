@@ -95,10 +95,14 @@ CREATE TABLE IF NOT EXISTS supply_requests (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     request_number VARCHAR(40) NOT NULL,
     requested_by_user_id INT UNSIGNED NOT NULL,
+    purpose VARCHAR(500) NULL,
+    department VARCHAR(100) NULL,
+    date_needed DATE NULL,
     notes VARCHAR(500) NULL,
-    status ENUM('Pending', 'Approved', 'Rejected', 'Fulfilled', 'Cancelled') NOT NULL DEFAULT 'Pending',
+    status ENUM('Pending','Pending Immediate Head','Pending Budget Officer','Pending VP Finance','Pending College President','Approved','Waiting Purchase','Purchased','Ready for Release','Released','Received','Completed','Rejected','Fulfilled','Cancelled') NOT NULL DEFAULT 'Pending Immediate Head',
     total_items INT UNSIGNED NOT NULL DEFAULT 0,
     total_quantity INT UNSIGNED NOT NULL DEFAULT 0,
+    grand_total DECIMAL(12,2) NOT NULL DEFAULT 0.00,
     reviewed_by_user_id INT UNSIGNED NULL,
     review_notes VARCHAR(500) NULL,
     reviewed_at DATETIME NULL,
@@ -118,7 +122,10 @@ CREATE TABLE IF NOT EXISTS supply_requests (
 CREATE TABLE IF NOT EXISTS supply_request_items (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     request_id BIGINT UNSIGNED NOT NULL,
-    supply_id INT UNSIGNED NOT NULL,
+    supply_id INT UNSIGNED NULL,
+    custom_item_name VARCHAR(200) NULL,
+    unit_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
     quantity_requested INT UNSIGNED NOT NULL,
     quantity_approved INT UNSIGNED NULL,
     quantity_fulfilled INT UNSIGNED NOT NULL DEFAULT 0,
@@ -127,9 +134,37 @@ CREATE TABLE IF NOT EXISTS supply_request_items (
     CONSTRAINT fk_supply_request_items_request
         FOREIGN KEY (request_id) REFERENCES supply_requests(id)
         ON UPDATE CASCADE
-        ON DELETE CASCADE,
-    CONSTRAINT fk_supply_request_items_supply
-        FOREIGN KEY (supply_id) REFERENCES supplies(id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT
+        ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS approval_log (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    request_id BIGINT UNSIGNED NOT NULL,
+    approver_user_id INT UNSIGNED NOT NULL,
+    approver_role VARCHAR(60) NOT NULL,
+    action VARCHAR(40) NOT NULL,
+    remarks TEXT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_approval_log_request
+        FOREIGN KEY (request_id) REFERENCES supply_requests(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_approval_log_approver
+        FOREIGN KEY (approver_user_id) REFERENCES users(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    INDEX idx_approval_log_request (request_id, created_at DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS designation VARCHAR(60) NULL AFTER role;
+
+CREATE TABLE IF NOT EXISTS department_budgets (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    department VARCHAR(100) NOT NULL,
+    fiscal_year YEAR NOT NULL,
+    annual_budget DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+    total_spent DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_dept_fiscal (department, fiscal_year)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

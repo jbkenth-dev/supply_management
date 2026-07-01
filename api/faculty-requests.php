@@ -60,6 +60,12 @@ function handleFacultyRequestPost(PDO $pdo): void
 
     if ($action === 'cancel_request') {
         handleFacultyRequestCancel($pdo, $payload);
+        return;
+    }
+
+    if ($action === 'confirm_received') {
+        handleConfirmReceived($pdo, $payload);
+        return;
     }
 
     handleFacultyRequestCreate($pdo, $payload);
@@ -69,6 +75,9 @@ function handleFacultyRequestCreate(PDO $pdo, array $payload): void
 {
     $userId = isset($payload['userId']) ? (int) $payload['userId'] : 0;
     $role = trim((string) ($payload['role'] ?? ''));
+    $purpose = trim((string) ($payload['purpose'] ?? ''));
+    $department = trim((string) ($payload['department'] ?? ''));
+    $dateNeeded = trim((string) ($payload['dateNeeded'] ?? ''));
     $notes = trim((string) ($payload['notes'] ?? ''));
     $items = is_array($payload['items'] ?? null) ? $payload['items'] : [];
 
@@ -81,41 +90,74 @@ function handleFacultyRequestCreate(PDO $pdo, array $payload): void
         ]);
     }
 
-    $normalizedItems = normalizeRequestedItems($items);
+    if ($purpose === '') {
+        jsonResponse(422, [
+            'success' => false,
+            'message' => 'Purpose is required.',
+        ]);
+    }
+
+    if ($department === '') {
+        jsonResponse(422, [
+            'success' => false,
+            'message' => 'Department is required.',
+        ]);
+    }
+
+    // Check budget sufficiency
+    $totalAmount = array_reduce($items, static fn (float $total, array $item): float => $total + ((float) ($item['unitCost'] ?? 0) * (int) ($item['quantity'] ?? 0)), 0.0);
+    $budgetCheck = checkBudgetEnough($pdo, $department, $totalAmount);
+    if (!$budgetCheck['sufficient']) {
+        jsonResponse(422, [
+            'success' => false,
+            'message' => 'Budget Insufficient. Your department does not have enough remaining budget.',
+            'budgetInfo' => $budgetCheck,
+        ]);
+    }
+
+    $normalizedItems = normalizeRequestedItemsV2($items);
     $validatedItems = [];
     $totalQuantity = 0;
+    $grandTotal = 0.0;
 
     foreach ($normalizedItems as $item) {
-        $supply = findSupplyById($pdo, $item['supplyId']);
+        if ($item['isCustom']) {
+            // "Others" item - custom name, no supply_id
+            $customName = trim((string) ($item['customItemName'] ?? ''));
+            if ($customName === '') {
+                jsonResponse(422, [
+                    'success' => false,
+                    'message' => 'Please specify the custom item name.',
+                ]);
+            }
+            $validatedItems[] = [
+                'supplyId' => null,
+                'customItemName' => $customName,
+                'quantityRequested' => $item['quantity'],
+                'unitCost' => $item['unitCost'],
+                'totalAmount' => $item['totalAmount'],
+            ];
+        } else {
+            $supply = findSupplyById($pdo, $item['supplyId']);
 
-        if ($supply === null) {
-            jsonResponse(422, [
-                'success' => false,
-                'message' => 'One or more selected supplies no longer exist.',
-            ]);
+            if ($supply === null) {
+                jsonResponse(422, [
+                    'success' => false,
+                    'message' => 'One or more selected supplies no longer exist.',
+                ]);
+            }
+
+            $validatedItems[] = [
+                'supplyId' => (int) $supply['id'],
+                'customItemName' => null,
+                'quantityRequested' => $item['quantity'],
+                'unitCost' => $item['unitCost'],
+                'totalAmount' => $item['totalAmount'],
+            ];
         }
 
-        $quantityOnHand = (int) $supply['quantity_on_hand'];
-
-        if ($quantityOnHand < 1) {
-            jsonResponse(422, [
-                'success' => false,
-                'message' => sprintf('%s is currently out of stock.', (string) $supply['name']),
-            ]);
-        }
-
-        if ($item['quantity'] > $quantityOnHand) {
-            jsonResponse(422, [
-                'success' => false,
-                'message' => sprintf('Only %d unit(s) of %s are available right now.', $quantityOnHand, (string) $supply['name']),
-            ]);
-        }
-
-        $validatedItems[] = [
-            'supplyId' => (int) $supply['id'],
-            'quantityRequested' => $item['quantity'],
-        ];
         $totalQuantity += $item['quantity'];
+        $grandTotal += $item['totalAmount'];
     }
 
     $requestNumber = generateFacultyRequestNumber();
@@ -124,29 +166,36 @@ function handleFacultyRequestCreate(PDO $pdo, array $payload): void
 
     try {
         $insertRequest = $pdo->prepare(
-            'INSERT INTO supply_requests (request_number, requested_by_user_id, notes, status, total_items, total_quantity)
-             VALUES (:request_number, :requested_by_user_id, :notes, :status, :total_items, :total_quantity)'
+            'INSERT INTO supply_requests (request_number, requested_by_user_id, purpose, department, date_needed, notes, status, total_items, total_quantity, grand_total)
+             VALUES (:request_number, :requested_by_user_id, :purpose, :department, :date_needed, :notes, :status, :total_items, :total_quantity, :grand_total)'
         );
         $insertRequest->execute([
             'request_number' => $requestNumber,
             'requested_by_user_id' => (int) $user['id'],
+            'purpose' => $purpose !== '' ? $purpose : null,
+            'department' => $department !== '' ? $department : null,
+            'date_needed' => $dateNeeded !== '' ? $dateNeeded : null,
             'notes' => $notes !== '' ? $notes : null,
-            'status' => 'Pending',
+            'status' => 'Pending Immediate Head',
             'total_items' => count($validatedItems),
             'total_quantity' => $totalQuantity,
+            'grand_total' => $grandTotal,
         ]);
 
         $requestId = (int) $pdo->lastInsertId();
 
         $insertItem = $pdo->prepare(
-            'INSERT INTO supply_request_items (request_id, supply_id, quantity_requested)
-             VALUES (:request_id, :supply_id, :quantity_requested)'
+            'INSERT INTO supply_request_items (request_id, supply_id, custom_item_name, unit_cost, total_amount, quantity_requested)
+             VALUES (:request_id, :supply_id, :custom_item_name, :unit_cost, :total_amount, :quantity_requested)'
         );
 
         foreach ($validatedItems as $item) {
             $insertItem->execute([
                 'request_id' => $requestId,
                 'supply_id' => $item['supplyId'],
+                'custom_item_name' => $item['customItemName'],
+                'unit_cost' => $item['unitCost'],
+                'total_amount' => $item['totalAmount'],
                 'quantity_requested' => $item['quantityRequested'],
             ]);
         }
@@ -207,7 +256,7 @@ function handleFacultyRequestCancel(PDO $pdo, array $payload): void
         ]);
     }
 
-    if ($request['status'] !== 'Pending') {
+    if ($request['status'] !== 'Pending Immediate Head') {
         jsonResponse(422, [
             'success' => false,
             'message' => 'Only pending requests can be cancelled.',
@@ -237,6 +286,56 @@ function handleFacultyRequestCancel(PDO $pdo, array $payload): void
     jsonResponse(200, [
         'success' => true,
         'message' => 'Request cancelled successfully.',
+        'requests' => $requests,
+        'summary' => buildFacultyRequestSummary($requests),
+    ]);
+}
+
+function handleConfirmReceived(PDO $pdo, array $payload): void
+{
+    $userId = isset($payload['userId']) ? (int) $payload['userId'] : 0;
+    $role = trim((string) ($payload['role'] ?? ''));
+    $requestId = isset($payload['requestId']) ? (int) $payload['requestId'] : 0;
+
+    $user = validateFacultyUser($pdo, $userId, $role);
+
+    if ($requestId < 1) {
+        jsonResponse(422, ['success' => false, 'message' => 'Valid request is required.']);
+    }
+
+    $request = findFacultyRequestById($pdo, (int) $user['id'], $requestId);
+
+    if ($request === null) {
+        jsonResponse(404, ['success' => false, 'message' => 'Request not found.']);
+    }
+
+    if ($request['status'] !== 'Released') {
+        jsonResponse(422, ['success' => false, 'message' => 'Only released requests can be confirmed.']);
+    }
+
+    $pdo->prepare(
+        'UPDATE supply_requests
+         SET status = :status, confirmed_received = 1, completion_date = NOW(), updated_at = NOW()
+         WHERE id = :id AND requested_by_user_id = :user_id'
+    )->execute([
+        'status' => 'Completed',
+        'id' => $requestId,
+        'user_id' => (int) $user['id'],
+    ]);
+
+    // Deduct budget after completion
+    $fullRequest = $pdo->prepare('SELECT * FROM supply_requests WHERE id = :id LIMIT 1');
+    $fullRequest->execute(['id' => $requestId]);
+    $updatedRequest = $fullRequest->fetch();
+    if ($updatedRequest) {
+        deductDepartmentBudget($pdo, $updatedRequest);
+    }
+
+    $requests = fetchFacultyRequests($pdo, (int) $user['id']);
+
+    jsonResponse(200, [
+        'success' => true,
+        'message' => 'Receipt confirmed. Request completed.',
         'requests' => $requests,
         'summary' => buildFacultyRequestSummary($requests),
     ]);
@@ -281,10 +380,14 @@ function ensureFacultyRequestTables(PDO $pdo): void
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             request_number VARCHAR(40) NOT NULL,
             requested_by_user_id INT UNSIGNED NOT NULL,
+            purpose VARCHAR(500) NULL,
+            department VARCHAR(100) NULL,
+            date_needed DATE NULL,
             notes VARCHAR(500) NULL,
-            status ENUM("Pending","Approved","Rejected","Fulfilled","Cancelled") NOT NULL DEFAULT "Pending",
+            status ENUM("Pending","Pending Immediate Head","Pending Budget Officer","Pending VP Finance","Pending College President","Approved","Waiting Purchase","Purchased","Ready for Release","Released","Received","Completed","Rejected","Fulfilled","Cancelled") NOT NULL DEFAULT "Pending Immediate Head",
             total_items INT UNSIGNED NOT NULL DEFAULT 0,
             total_quantity INT UNSIGNED NOT NULL DEFAULT 0,
+            grand_total DECIMAL(12,2) NOT NULL DEFAULT 0.00,
             reviewed_by_user_id INT UNSIGNED NULL,
             review_notes VARCHAR(500) NULL,
             reviewed_at DATETIME NULL,
@@ -302,11 +405,27 @@ function ensureFacultyRequestTables(PDO $pdo): void
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
     );
 
+    // Migrate existing table: add new columns if they don't exist
+    $pdo->exec("ALTER TABLE supply_requests ADD COLUMN IF NOT EXISTS purpose VARCHAR(500) NULL AFTER requested_by_user_id");
+    $pdo->exec("ALTER TABLE supply_requests ADD COLUMN IF NOT EXISTS department VARCHAR(100) NULL AFTER purpose");
+    $pdo->exec("ALTER TABLE supply_requests ADD COLUMN IF NOT EXISTS date_needed DATE NULL AFTER department");
+    $pdo->exec("ALTER TABLE supply_requests ADD COLUMN IF NOT EXISTS grand_total DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER total_quantity");
+
+    // Migrate status ENUM
+    try {
+        $pdo->exec("ALTER TABLE supply_requests MODIFY COLUMN status ENUM('Pending','Pending Immediate Head','Pending Budget Officer','Pending VP Finance','Pending College President','Approved','Waiting Purchase','Purchased','Ready for Release','Released','Received','Completed','Rejected','Fulfilled','Cancelled') NOT NULL DEFAULT 'Pending Immediate Head'");
+    } catch (PDOException $e) {
+        // If status change fails, keep existing
+    }
+
     $pdo->exec(
         'CREATE TABLE IF NOT EXISTS supply_request_items (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             request_id BIGINT UNSIGNED NOT NULL,
-            supply_id INT UNSIGNED NOT NULL,
+            supply_id INT UNSIGNED NULL,
+            custom_item_name VARCHAR(200) NULL,
+            unit_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            total_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
             quantity_requested INT UNSIGNED NOT NULL,
             quantity_approved INT UNSIGNED NULL,
             quantity_fulfilled INT UNSIGNED NOT NULL DEFAULT 0,
@@ -315,16 +434,65 @@ function ensureFacultyRequestTables(PDO $pdo): void
             CONSTRAINT fk_supply_request_items_request
                 FOREIGN KEY (request_id) REFERENCES supply_requests(id)
                 ON UPDATE CASCADE
-                ON DELETE CASCADE,
-            CONSTRAINT fk_supply_request_items_supply
-                FOREIGN KEY (supply_id) REFERENCES supplies(id)
+                ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+
+    // Migrate existing items table
+    try {
+        $pdo->exec("ALTER TABLE supply_request_items ADD COLUMN IF NOT EXISTS custom_item_name VARCHAR(200) NULL AFTER supply_id");
+        $pdo->exec("ALTER TABLE supply_request_items ADD COLUMN IF NOT EXISTS unit_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00 AFTER custom_item_name");
+        $pdo->exec("ALTER TABLE supply_request_items ADD COLUMN IF NOT EXISTS total_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER unit_cost");
+        $pdo->exec("ALTER TABLE supply_request_items MODIFY COLUMN supply_id INT UNSIGNED NULL");
+    } catch (PDOException $e) {
+        // If column already exists or can't modify, continue
+    }
+
+    // Ensure users table has designation column
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS designation VARCHAR(60) NULL AFTER role");
+    } catch (PDOException $e) {
+        // Column may already exist
+    }
+
+    // Create approval_log table for tracking approval workflow
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS approval_log (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            request_id BIGINT UNSIGNED NOT NULL,
+            approver_user_id INT UNSIGNED NOT NULL,
+            approver_role VARCHAR(60) NOT NULL,
+            action VARCHAR(40) NOT NULL,
+            remarks TEXT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT fk_approval_log_request
+                FOREIGN KEY (request_id) REFERENCES supply_requests(id)
                 ON UPDATE CASCADE
-                ON DELETE RESTRICT
+                ON DELETE CASCADE,
+            CONSTRAINT fk_approval_log_approver
+                FOREIGN KEY (approver_user_id) REFERENCES users(id)
+                ON UPDATE CASCADE
+                ON DELETE RESTRICT,
+            INDEX idx_approval_log_request (request_id, created_at DESC)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+
+    // Create department_budgets table
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS department_budgets (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            department VARCHAR(100) NOT NULL,
+            fiscal_year YEAR NOT NULL,
+            annual_budget DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+            total_spent DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_dept_fiscal (department, fiscal_year)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
     );
 }
 
-function normalizeRequestedItems(array $items): array
+function normalizeRequestedItemsV2(array $items): array
 {
     $grouped = [];
 
@@ -333,24 +501,61 @@ function normalizeRequestedItems(array $items): array
             continue;
         }
 
+        $isCustom = (bool) ($item['isCustom'] ?? false);
         $supplyId = (int) ($item['supplyId'] ?? 0);
         $quantity = (int) ($item['quantity'] ?? 0);
+        $unitCost = (float) ($item['unitCost'] ?? 0);
+        $customItemName = trim((string) ($item['customItemName'] ?? ''));
 
-        if ($supplyId < 1 || $quantity < 1) {
+        if ($quantity < 1) {
             jsonResponse(422, [
                 'success' => false,
-                'message' => 'Each requested supply must include a valid item and quantity.',
+                'message' => 'Each requested item must have a valid quantity.',
             ]);
         }
 
-        if (!isset($grouped[$supplyId])) {
-            $grouped[$supplyId] = [
-                'supplyId' => $supplyId,
-                'quantity' => 0,
-            ];
+        if ($unitCost < 0) {
+            jsonResponse(422, [
+                'success' => false,
+                'message' => 'Unit cost cannot be negative.',
+            ]);
         }
 
-        $grouped[$supplyId]['quantity'] += $quantity;
+        if ($isCustom) {
+            $key = 'custom_' . $customItemName;
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = [
+                    'isCustom' => true,
+                    'supplyId' => 0,
+                    'customItemName' => $customItemName,
+                    'quantity' => 0,
+                    'unitCost' => $unitCost,
+                    'totalAmount' => 0.0,
+                ];
+            }
+            $grouped[$key]['quantity'] += $quantity;
+            $grouped[$key]['totalAmount'] = $grouped[$key]['quantity'] * $grouped[$key]['unitCost'];
+        } else {
+            if ($supplyId < 1) {
+                jsonResponse(422, [
+                    'success' => false,
+                    'message' => 'Each requested supply must include a valid item.',
+                ]);
+            }
+
+            if (!isset($grouped['supply_' . $supplyId])) {
+                $grouped['supply_' . $supplyId] = [
+                    'isCustom' => false,
+                    'supplyId' => $supplyId,
+                    'customItemName' => '',
+                    'quantity' => 0,
+                    'unitCost' => $unitCost,
+                    'totalAmount' => 0.0,
+                ];
+            }
+            $grouped['supply_' . $supplyId]['quantity'] += $quantity;
+            $grouped['supply_' . $supplyId]['totalAmount'] = $grouped['supply_' . $supplyId]['quantity'] * $grouped['supply_' . $supplyId]['unitCost'];
+        }
     }
 
     return array_values($grouped);
@@ -363,11 +568,12 @@ function generateFacultyRequestNumber(): string
 
 function buildFacultyRequestSummary(array $requests): array
 {
+    $pendingStatuses = ['Pending', 'Pending Immediate Head', 'Pending Budget Officer', 'Pending VP Finance', 'Pending College President'];
     return [
         'totalRequests' => count($requests),
-        'pendingRequests' => count(array_filter($requests, static fn (array $request): bool => $request['status'] === 'Pending')),
-        'approvedRequests' => count(array_filter($requests, static fn (array $request): bool => $request['status'] === 'Approved')),
-        'fulfilledRequests' => count(array_filter($requests, static fn (array $request): bool => $request['status'] === 'Fulfilled')),
+        'pendingRequests' => count(array_filter($requests, static fn (array $request): bool => in_array($request['status'], $pendingStatuses, true))),
+        'approvedRequests' => count(array_filter($requests, static fn (array $request): bool => $request['status'] === 'Approved' || $request['status'] === 'Completed' || $request['status'] === 'Fulfilled')),
+        'fulfilledRequests' => count(array_filter($requests, static fn (array $request): bool => in_array($request['status'], ['Fulfilled', 'Completed', 'Received'], true))),
         'rejectedRequests' => count(array_filter($requests, static fn (array $request): bool => $request['status'] === 'Rejected')),
     ];
 }
@@ -375,7 +581,7 @@ function buildFacultyRequestSummary(array $requests): array
 function fetchFacultyRequests(PDO $pdo, int $userId): array
 {
     $requestRows = $pdo->prepare(
-        'SELECT sr.id, sr.request_number, sr.notes, sr.status, sr.total_items, sr.total_quantity, sr.review_notes, sr.reviewed_at, sr.created_at, sr.updated_at,
+        'SELECT sr.id, sr.request_number, sr.purpose, sr.department, sr.date_needed, sr.notes, sr.status, sr.total_items, sr.total_quantity, sr.grand_total, sr.review_notes, sr.reviewed_at, sr.created_at, sr.updated_at,
                 CONCAT_WS(" ", u.firstname, u.lastname) AS requested_by_name
          FROM supply_requests sr
          INNER JOIN users u ON u.id = sr.requested_by_user_id
@@ -396,11 +602,12 @@ function fetchFacultyRequests(PDO $pdo, int $userId): array
 
     $itemsStatement = $pdo->prepare(
         'SELECT sri.request_id, sri.quantity_requested, sri.quantity_approved, sri.quantity_fulfilled,
+                sri.custom_item_name, sri.unit_cost, sri.total_amount,
                 s.id AS supply_id, s.item_code, s.name, s.description, s.image_path, s.quantity_on_hand,
                 c.id AS category_id, c.name AS category_name
          FROM supply_request_items sri
-         INNER JOIN supplies s ON s.id = sri.supply_id
-         INNER JOIN supply_categories c ON c.id = s.category_id
+         LEFT JOIN supplies s ON s.id = sri.supply_id
+         LEFT JOIN supply_categories c ON c.id = s.category_id
          WHERE sri.request_id IN (' . $placeholders . ')
          ORDER BY sri.id ASC'
     );
@@ -412,16 +619,19 @@ function fetchFacultyRequests(PDO $pdo, int $userId): array
     foreach ($items as $item) {
         $requestId = (int) $item['request_id'];
         $itemsByRequestId[$requestId][] = [
-            'supplyId' => (int) $item['supply_id'],
-            'itemCode' => (string) $item['item_code'],
-            'name' => (string) $item['name'],
-            'categoryName' => (string) $item['category_name'],
+            'supplyId' => $item['supply_id'] !== null ? (int) $item['supply_id'] : null,
+            'customItemName' => $item['custom_item_name'] !== null ? (string) $item['custom_item_name'] : null,
+            'unitCost' => (float) $item['unit_cost'],
+            'totalAmount' => (float) $item['total_amount'],
+            'itemCode' => $item['item_code'] !== null ? (string) $item['item_code'] : '',
+            'name' => $item['custom_item_name'] !== null ? (string) $item['custom_item_name'] : ((string) ($item['name'] ?? '')),
+            'categoryName' => $item['category_name'] !== null ? (string) $item['category_name'] : 'Other',
             'description' => $item['description'] !== null ? (string) $item['description'] : '',
             'imagePath' => $item['image_path'] !== null ? (string) $item['image_path'] : '',
             'quantityRequested' => (int) $item['quantity_requested'],
             'quantityApproved' => $item['quantity_approved'] !== null ? (int) $item['quantity_approved'] : null,
             'quantityFulfilled' => (int) $item['quantity_fulfilled'],
-            'quantityOnHand' => (int) $item['quantity_on_hand'],
+            'quantityOnHand' => $item['quantity_on_hand'] !== null ? (int) $item['quantity_on_hand'] : 0,
         ];
     }
 
@@ -431,6 +641,10 @@ function fetchFacultyRequests(PDO $pdo, int $userId): array
             'id' => $requestId,
             'requestNumber' => (string) $request['request_number'],
             'requestedByName' => trim((string) ($request['requested_by_name'] ?? '')),
+            'purpose' => $request['purpose'] !== null ? (string) $request['purpose'] : '',
+            'department' => $request['department'] !== null ? (string) $request['department'] : '',
+            'dateNeeded' => $request['date_needed'] !== null ? (string) $request['date_needed'] : null,
+            'grandTotal' => (float) ($request['grand_total'] ?? 0),
             'status' => (string) $request['status'],
             'notes' => $request['notes'] !== null ? (string) $request['notes'] : '',
             'reviewNotes' => $request['review_notes'] !== null ? (string) $request['review_notes'] : '',
@@ -453,4 +667,35 @@ function findFacultyRequestById(PDO $pdo, int $userId, int $requestId): ?array
     }
 
     return null;
+}
+
+function checkBudgetEnough(PDO $pdo, string $department, float $amount): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT annual_budget, total_spent,
+                (annual_budget - total_spent) AS remaining_budget
+         FROM department_budgets
+         WHERE department = :department AND fiscal_year = :fiscal_year
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'department' => $department,
+        'fiscal_year' => (int) date('Y'),
+    ]);
+    $budget = $stmt->fetch();
+
+    if (!$budget) {
+        // No budget set = no restriction
+        return ['sufficient' => true, 'remainingBudget' => null, 'requestAmount' => $amount];
+    }
+
+    $remainingBudget = (float) $budget['remaining_budget'];
+
+    return [
+        'sufficient' => $remainingBudget >= $amount,
+        'remainingBudget' => $remainingBudget,
+        'requestAmount' => $amount,
+        'annualBudget' => (float) $budget['annual_budget'],
+        'totalSpent' => (float) $budget['total_spent'],
+    ];
 }

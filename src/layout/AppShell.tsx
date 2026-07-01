@@ -19,7 +19,8 @@ import {
   ClipboardDocumentCheckIcon,
   ChatBubbleLeftRightIcon,
   MegaphoneIcon,
-  UserCircleIcon
+  UserCircleIcon,
+  CurrencyDollarIcon
 } from "@heroicons/react/24/outline"
 import { api } from "../lib/api"
 import { clearStoredAuthUser, getDashboardPath, getMessagesPath, getMyAccountPath, getNotificationPath, getStoredAuthUser, getUserDisplayName, type AuthRole, type AuthUser } from "../lib/auth"
@@ -37,6 +38,7 @@ const adminNavGroups = [
       { name: "Dashboard", to: "/admin/dashboard", icon: ChartBarIcon },
       { name: "Messages", to: "/admin/message", icon: ChatBubbleLeftRightIcon },
       { name: "Request & Issuance", to: "/admin/request-issuance", icon: DocumentChartBarIcon },
+      { name: "Reports", to: "/admin/reports", icon: DocumentChartBarIcon },
     ]
   },
   {
@@ -49,6 +51,7 @@ const adminNavGroups = [
   {
     name: "System",
     items: [
+      { name: "Budget", to: "/admin/budget", icon: CurrencyDollarIcon },
       { name: "Announcements", to: "/admin/announcements", icon: MegaphoneIcon },
       { name: "Users", to: "/admin/users", icon: UsersIcon },
       { name: "My Account", to: "/admin/my-account", icon: UserCircleIcon },

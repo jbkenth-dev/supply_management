@@ -392,10 +392,14 @@ function ensureFacultyRequestTables(PDO $pdo): void
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             request_number VARCHAR(40) NOT NULL,
             requested_by_user_id INT UNSIGNED NOT NULL,
+            purpose VARCHAR(500) NULL,
+            department VARCHAR(100) NULL,
+            date_needed DATE NULL,
             notes VARCHAR(500) NULL,
-            status ENUM("Pending","Approved","Rejected","Fulfilled","Cancelled") NOT NULL DEFAULT "Pending",
+            status ENUM("Pending","Pending Immediate Head","Pending Budget Officer","Pending VP Finance","Pending College President","Approved","Waiting Purchase","Purchased","Ready for Release","Released","Received","Completed","Rejected","Fulfilled","Cancelled") NOT NULL DEFAULT "Pending Immediate Head",
             total_items INT UNSIGNED NOT NULL DEFAULT 0,
             total_quantity INT UNSIGNED NOT NULL DEFAULT 0,
+            grand_total DECIMAL(12,2) NOT NULL DEFAULT 0.00,
             reviewed_by_user_id INT UNSIGNED NULL,
             review_notes VARCHAR(500) NULL,
             reviewed_at DATETIME NULL,
@@ -417,7 +421,10 @@ function ensureFacultyRequestTables(PDO $pdo): void
         'CREATE TABLE IF NOT EXISTS supply_request_items (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             request_id BIGINT UNSIGNED NOT NULL,
-            supply_id INT UNSIGNED NOT NULL,
+            supply_id INT UNSIGNED NULL,
+            custom_item_name VARCHAR(200) NULL,
+            unit_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            total_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
             quantity_requested INT UNSIGNED NOT NULL,
             quantity_approved INT UNSIGNED NULL,
             quantity_fulfilled INT UNSIGNED NOT NULL DEFAULT 0,
@@ -426,11 +433,48 @@ function ensureFacultyRequestTables(PDO $pdo): void
             CONSTRAINT fk_supply_request_items_request
                 FOREIGN KEY (request_id) REFERENCES supply_requests(id)
                 ON UPDATE CASCADE
-                ON DELETE CASCADE,
-            CONSTRAINT fk_supply_request_items_supply
-                FOREIGN KEY (supply_id) REFERENCES supplies(id)
+                ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+
+    // Ensure users table has designation column
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS designation VARCHAR(60) NULL AFTER role");
+    } catch (PDOException $e) {}
+
+    // Create approval_log table
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS approval_log (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            request_id BIGINT UNSIGNED NOT NULL,
+            approver_user_id INT UNSIGNED NOT NULL,
+            approver_role VARCHAR(60) NOT NULL,
+            action VARCHAR(40) NOT NULL,
+            remarks TEXT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT fk_approval_log_request
+                FOREIGN KEY (request_id) REFERENCES supply_requests(id)
                 ON UPDATE CASCADE
-                ON DELETE RESTRICT
+                ON DELETE CASCADE,
+            CONSTRAINT fk_approval_log_approver
+                FOREIGN KEY (approver_user_id) REFERENCES users(id)
+                ON UPDATE CASCADE
+                ON DELETE RESTRICT,
+            INDEX idx_approval_log_request (request_id, created_at DESC)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+
+    // Create department_budgets table
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS department_budgets (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            department VARCHAR(100) NOT NULL,
+            fiscal_year YEAR NOT NULL,
+            annual_budget DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+            total_spent DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_dept_fiscal (department, fiscal_year)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
     );
 }
@@ -465,7 +509,7 @@ function ensureRequestIssuanceColumns(PDO $pdo): void
 function fetchAllRequestsForAdmin(PDO $pdo): array
 {
     $requestRows = $pdo->query(
-        'SELECT sr.id, sr.request_number, sr.notes, sr.status, sr.total_items, sr.total_quantity,
+        'SELECT sr.id, sr.request_number, sr.purpose, sr.department, sr.date_needed, sr.notes, sr.status, sr.total_items, sr.total_quantity, sr.grand_total,
                 sr.review_notes, sr.reviewed_at, sr.fulfilled_at, sr.issuance_slip_no, sr.created_at, sr.updated_at,
                 sr.reviewed_by_user_id, sr.fulfilled_by_user_id,
                 sr.requested_by_user_id,
@@ -490,12 +534,12 @@ function fetchAllRequestsForAdmin(PDO $pdo): array
     $placeholders = implode(', ', array_fill(0, count($requestIds), '?'));
 
     $itemsStatement = $pdo->prepare(
-        'SELECT sri.id, sri.request_id, sri.quantity_requested, sri.quantity_approved, sri.quantity_fulfilled,
+        'SELECT sri.id, sri.request_id, sri.custom_item_name, sri.unit_cost, sri.total_amount, sri.quantity_requested, sri.quantity_approved, sri.quantity_fulfilled,
                 s.id AS supply_id, s.item_code, s.name, s.description, s.image_path, s.quantity_on_hand,
                 c.name AS category_name
          FROM supply_request_items sri
-         INNER JOIN supplies s ON s.id = sri.supply_id
-         INNER JOIN supply_categories c ON c.id = s.category_id
+         LEFT JOIN supplies s ON s.id = sri.supply_id
+         LEFT JOIN supply_categories c ON c.id = s.category_id
          WHERE sri.request_id IN (' . $placeholders . ')
          ORDER BY sri.id ASC'
     );
@@ -508,16 +552,19 @@ function fetchAllRequestsForAdmin(PDO $pdo): array
         $requestId = (int) $item['request_id'];
         $itemsByRequestId[$requestId][] = [
             'requestItemId' => (int) $item['id'],
-            'supplyId' => (int) $item['supply_id'],
-            'itemCode' => (string) $item['item_code'],
-            'name' => (string) $item['name'],
-            'categoryName' => (string) $item['category_name'],
+            'supplyId' => $item['supply_id'] !== null ? (int) $item['supply_id'] : null,
+            'customItemName' => $item['custom_item_name'] !== null ? (string) $item['custom_item_name'] : null,
+            'unitCost' => (float) $item['unit_cost'],
+            'totalAmount' => (float) $item['total_amount'],
+            'itemCode' => $item['item_code'] !== null ? (string) $item['item_code'] : '',
+            'name' => $item['custom_item_name'] !== null ? (string) $item['custom_item_name'] : ((string) ($item['name'] ?? '')),
+            'categoryName' => $item['category_name'] !== null ? (string) $item['category_name'] : 'Other',
             'description' => $item['description'] !== null ? (string) $item['description'] : '',
             'imagePath' => $item['image_path'] !== null ? (string) $item['image_path'] : '',
             'quantityRequested' => (int) $item['quantity_requested'],
             'quantityApproved' => $item['quantity_approved'] !== null ? (int) $item['quantity_approved'] : null,
             'quantityFulfilled' => (int) $item['quantity_fulfilled'],
-            'quantityOnHand' => (int) $item['quantity_on_hand'],
+            'quantityOnHand' => $item['quantity_on_hand'] !== null ? (int) $item['quantity_on_hand'] : 0,
         ];
     }
 
@@ -528,6 +575,10 @@ function fetchAllRequestsForAdmin(PDO $pdo): array
             'id' => $requestId,
             'requestedByUserId' => (int) $request['requested_by_user_id'],
             'requestNumber' => (string) $request['request_number'],
+            'purpose' => $request['purpose'] !== null ? (string) $request['purpose'] : '',
+            'department' => $request['department'] !== null ? (string) $request['department'] : '',
+            'dateNeeded' => $request['date_needed'] !== null ? (string) $request['date_needed'] : null,
+            'grandTotal' => (float) ($request['grand_total'] ?? 0),
             'issuanceSlipNo' => $request['issuance_slip_no'] !== null ? (string) $request['issuance_slip_no'] : null,
             'requestedByName' => trim((string) ($request['requested_by_name'] ?? '')),
             'requestedByIdNumber' => $request['requested_by_id_number'] !== null ? (string) $request['requested_by_id_number'] : '',
@@ -563,12 +614,14 @@ function findRequestById(PDO $pdo, int $requestId): ?array
 
 function buildRequestIssuanceSummary(array $requests): array
 {
+    $pendingStatuses = ['Pending', 'Pending Immediate Head', 'Pending Budget Officer', 'Pending VP Finance', 'Pending College President'];
+    $fulfilledStatuses = ['Fulfilled', 'Completed', 'Received'];
     return [
         'totalRequests' => count($requests),
-        'pendingRequests' => count(array_filter($requests, static fn (array $request): bool => $request['status'] === 'Pending')),
+        'pendingRequests' => count(array_filter($requests, static fn (array $request): bool => in_array($request['status'], $pendingStatuses, true))),
         'approvedRequests' => count(array_filter($requests, static fn (array $request): bool => $request['status'] === 'Approved')),
         'rejectedRequests' => count(array_filter($requests, static fn (array $request): bool => $request['status'] === 'Rejected')),
-        'fulfilledRequests' => count(array_filter($requests, static fn (array $request): bool => $request['status'] === 'Fulfilled')),
+        'fulfilledRequests' => count(array_filter($requests, static fn (array $request): bool => in_array($request['status'], $fulfilledStatuses, true))),
     ];
 }
 

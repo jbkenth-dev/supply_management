@@ -558,17 +558,7 @@ export default function Dashboard() {
                           {dayjs(request.createdAt).format("MMM D, YYYY h:mm A")}
                         </p>
                       </div>
-                      <div
-                        className={`rounded-full px-3 py-1 text-sm font-bold ${
-                          request.status === "Pending"
-                            ? "bg-amber-50 text-amber-700"
-                            : request.status === "Approved" || request.status === "Fulfilled"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : request.status === "Rejected"
-                                ? "bg-rose-50 text-rose-700"
-                                : "bg-brown-200 text-brown-700"
-                        }`}
-                      >
+                      <div className={getStatusClass(request.status)}>
                         {request.status}
                       </div>
                     </div>
@@ -706,8 +696,29 @@ function buildNotifications(requests: FacultyRequest[], contacts: MessageContact
     .map(({ sortTime: _sortTime, ...notification }) => notification)
 }
 
-function getRequestNotificationTitle(status: FacultyRequest["status"]) {
-  if (status === "Approved") {
+function getStatusClass(status: string) {
+  const info: Record<string, string> = {
+    "Pending": "bg-amber-50 text-amber-700",
+    "Pending Immediate Head": "bg-amber-50 text-amber-700",
+    "Pending Budget Officer": "bg-amber-100 text-amber-800",
+    "Pending VP Finance": "bg-amber-100 text-amber-800",
+    "Pending College President": "bg-amber-100 text-amber-800",
+    "Approved": "bg-emerald-50 text-emerald-700",
+    "Waiting Purchase": "bg-blue-50 text-blue-700",
+    "Purchased": "bg-indigo-50 text-indigo-700",
+    "Ready for Release": "bg-teal-50 text-teal-700",
+    "Released": "bg-cyan-50 text-cyan-700",
+    "Received": "bg-emerald-50 text-emerald-700",
+    "Completed": "bg-emerald-50 text-emerald-700",
+    "Fulfilled": "bg-emerald-50 text-emerald-700",
+    "Rejected": "bg-rose-50 text-rose-700",
+    "Cancelled": "bg-brown-200 text-brown-700",
+  }
+  return info[status] ?? "bg-brown-200 text-brown-700"
+}
+
+function getRequestNotificationTitle(status: string) {
+  if (["Approved", "Completed", "Fulfilled", "Received"].includes(status)) {
     return "Request Approved"
   }
 
@@ -715,8 +726,8 @@ function getRequestNotificationTitle(status: FacultyRequest["status"]) {
     return "Request Rejected"
   }
 
-  if (status === "Fulfilled") {
-    return "Request Fulfilled"
+  if (["Purchased", "Ready for Release", "Released"].includes(status)) {
+    return "Request Updated"
   }
 
   if (status === "Cancelled") {
@@ -726,8 +737,8 @@ function getRequestNotificationTitle(status: FacultyRequest["status"]) {
   return "Request Pending"
 }
 
-function getRequestNotificationType(status: FacultyRequest["status"]): Notification["type"] {
-  if (status === "Approved" || status === "Fulfilled") {
+function getRequestNotificationType(status: string): Notification["type"] {
+  if (["Approved", "Completed", "Fulfilled", "Received"].includes(status)) {
     return "success"
   }
 

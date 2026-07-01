@@ -39,7 +39,7 @@ type AdminRequestRecord = {
   requestedByProfileImageUrl: string | null
   reviewedByName: string
   fulfilledByName: string
-  status: "Pending" | "Approved" | "Rejected" | "Fulfilled" | "Cancelled"
+  status: string
   notes: string
   reviewNotes: string
   totalItems: number
@@ -774,17 +774,21 @@ function SummaryCard({ label, value, tone }: { label: string; value: number; ton
   )
 }
 
-function StatusBadge({ status }: { status: AdminRequestRecord["status"] }) {
+function StatusBadge({ status }: { status: string }) {
   const className =
-    status === "Pending"
+    status === "Pending" || status === "Pending Immediate Head"
       ? "bg-amber-100 text-amber-700"
-      : status === "Approved"
-        ? "bg-primary-100 text-primary-700"
-        : status === "Fulfilled"
+      : ["Pending Budget Officer", "Pending VP Finance", "Pending College President"].includes(status)
+        ? "bg-amber-200 text-amber-800"
+        : status === "Approved" || status === "Completed"
           ? "bg-emerald-100 text-emerald-700"
-          : status === "Rejected"
-            ? "bg-rose-100 text-rose-700"
-            : "bg-brown-200 text-brown-700"
+          : ["Waiting Purchase", "Purchased", "Ready for Release", "Released", "Received"].includes(status)
+            ? "bg-blue-100 text-blue-700"
+            : status === "Fulfilled"
+              ? "bg-emerald-100 text-emerald-700"
+              : status === "Rejected"
+                ? "bg-rose-100 text-rose-700"
+                : "bg-brown-200 text-brown-700"
 
   return <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${className}`}>{status}</span>
 }

@@ -1,5 +1,8 @@
 export type FacultyRequestItem = {
-  supplyId: number
+  supplyId: number | null
+  customItemName: string | null
+  unitCost: number
+  totalAmount: number
   itemCode: string
   name: string
   categoryName: string
@@ -11,11 +14,17 @@ export type FacultyRequestItem = {
   quantityOnHand: number
 }
 
+export type RequestStatus = "Pending" | "Pending Immediate Head" | "Pending Budget Officer" | "Pending VP Finance" | "Pending College President" | "Approved" | "Waiting Purchase" | "Purchased" | "Ready for Release" | "Released" | "Received" | "Completed" | "Rejected" | "Fulfilled" | "Cancelled"
+
 export type FacultyRequest = {
   id: number
   requestNumber: string
   requestedByName: string
-  status: "Pending" | "Approved" | "Rejected" | "Fulfilled" | "Cancelled"
+  purpose: string
+  department: string
+  dateNeeded: string | null
+  grandTotal: number
+  status: RequestStatus
   notes: string
   reviewNotes: string
   totalItems: number

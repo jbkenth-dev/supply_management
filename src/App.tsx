@@ -8,6 +8,8 @@ import NotFound from "./pages/NotFound";
 import SignUp from "./pages/auth/SignUp";
 import Login from "./pages/auth/Login";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import ApprovalDashboard from "./pages/ApprovalDashboard"
+import BudgetManagement from "./pages/BudgetManagement"
 import AdminCreate from "./pages/admin/AdminCreate";
 import CustodianDashboard from "./pages/custodian/CustodianDashboard";
 import Dashboard from "./pages/Dashboard";
@@ -27,6 +29,7 @@ import CustodianStockManagement from "./pages/custodian/StockManagement";
 import CustodianMessages from "./pages/custodian/CustodianMessages";
 import CustodianMyAccount from "./pages/custodian/CustodianMyAccount";
 import CustodianNotification from "./pages/custodian/Notification";
+import CustodianPurchasePage from "./pages/custodian/CustodianPurchasePage"
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminNotification from "./pages/admin/Notification";
 import AdminUsers from "./pages/admin/Users";
@@ -49,11 +52,12 @@ export default function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/new-request" element={<NewRequest />} />
       <Route path="/my-requests" element={<MyRequests />} />
+      <Route path="/approval" element={<ApprovalDashboard />} />
       <Route path="/notification" element={<Notification />} />
       <Route path="/custodian/dashboard" element={<CustodianDashboard />} />
       <Route path="/custodian/supply" element={<CustodianSupplyManagement />} />
       <Route path="/custodian/stock" element={<CustodianStockManagement />} />
-      <Route path="/custodian/request-issuance" element={<CustodianRequestIssuance />} />
+      <Route path="/custodian/request-issuance" element={<CustodianPurchasePage />} />
       <Route path="/custodian/notification" element={<CustodianNotification />} />
       <Route path="/cusodian/notification" element={<Navigate to="/custodian/notification" replace />} />
       <Route path="/custodian/reports" element={<Navigate to="/custodian/request-issuance" replace />} />
@@ -63,7 +67,8 @@ export default function App() {
       <Route path="/admin/request-issuance" element={<RequestIssuance />} />
       <Route path="/admin/notification" element={<AdminNotification />} />
       <Route path="/admin/announcements" element={<AdminAnnouncements />} />
-      <Route path="/admin/reports" element={<Navigate to="/admin/request-issuance" replace />} />
+      <Route path="/admin/reports" element={<Reports />} />
+      <Route path="/admin/budget" element={<BudgetManagement />} />
       <Route path="/admin/users" element={<AdminUsers />} />
       <Route path="/admin/my-account" element={<MyAccount />} />
       <Route path="/my-account" element={<FacultyMyAccount />} />
