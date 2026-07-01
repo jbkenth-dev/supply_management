@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react"
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { ArrowDownTrayIcon, ArrowPathIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline"
+import { ArrowDownTrayIcon, ArrowPathIcon, MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
 import { api } from "../../lib/api"
 import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
@@ -35,6 +35,9 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
   const [isSuccess, setIsSuccess] = useState(false)
   const [stockPage, setStockPage] = useState(1)
   const [entriesPage, setEntriesPage] = useState(1)
+  const [supplySearch, setSupplySearch] = useState("")
+  const [supplyDropdownOpen, setSupplyDropdownOpen] = useState(false)
+  const supplyContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     void loadStockData()
@@ -134,6 +137,32 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
     }
   }, [entriesPage, entriesTotalPages])
 
+  // Close supply dropdown on outside click
+  useEffect(() => {
+    const handleClick = (event: MouseEvent) => {
+      if (supplyContainerRef.current && !supplyContainerRef.current.contains(event.target as Node)) {
+        setSupplyDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [])
+
+  const filteredSuppliesList = useMemo(() => {
+    const query = supplySearch.trim().toLowerCase()
+    if (!query) return supplies
+    return supplies.filter((s) =>
+      s.name.toLowerCase().includes(query) ||
+      s.itemCode.toLowerCase().includes(query) ||
+      s.categoryName.toLowerCase().includes(query)
+    )
+  }, [supplies, supplySearch])
+
+  const selectedSupply = useMemo(() => {
+    if (!form.supplyId) return null
+    return supplies.find((s) => s.id === Number(form.supplyId)) ?? null
+  }, [supplies, form.supplyId])
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitting(true)
@@ -223,20 +252,53 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Supply</label>
-                <select
-                  value={form.supplyId}
-                  onChange={(event) => setForm((current) => ({ ...current, supplyId: event.target.value }))}
-                  className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                >
-                  <option value="">Select supply</option>
-                  {supplies.map((supply) => (
-                    <option key={supply.id} value={supply.id}>
-                      {supply.itemCode} - {supply.name}
-                    </option>
-                  ))}
-                </select>
+              <div ref={supplyContainerRef} className="relative">
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-brown-500">Supply <span className="text-rose-500">*</span></label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={selectedSupply ? `${selectedSupply.itemCode} - ${selectedSupply.name}` : supplySearch}
+                    onChange={(e) => { setSupplySearch(e.target.value); setForm((f) => ({ ...f, supplyId: "" })); setSupplyDropdownOpen(true) }}
+                    onFocus={() => setSupplyDropdownOpen(true)}
+                    placeholder="Search supply by name, code, or category..."
+                    className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3 pr-10 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                  />
+                  {selectedSupply ? (
+                    <button
+                      type="button"
+                      onClick={() => { setForm((f) => ({ ...f, supplyId: "" })); setSupplySearch(""); setSupplyDropdownOpen(false) }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-brown-400 hover:text-brown-600"
+                    >
+                      <XMarkIcon className="h-5 w-5" />
+                    </button>
+                  ) : (
+                    <MagnifyingGlassIcon className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-brown-400" />
+                  )}
+                </div>
+                {supplyDropdownOpen && !selectedSupply ? (
+                  <div className="absolute z-50 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-brown-200 bg-white shadow-lg">
+                    {filteredSuppliesList.length === 0 ? (
+                      <div className="px-4 py-3 text-sm text-brown-400">No supplies match your search.</div>
+                    ) : (
+                      filteredSuppliesList.map((supply) => (
+                        <button
+                          key={supply.id}
+                          type="button"
+                          onClick={() => { setForm((f) => ({ ...f, supplyId: String(supply.id) })); setSupplySearch(""); setSupplyDropdownOpen(false) }}
+                          className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition hover:bg-primary-50 ${
+                            form.supplyId === String(supply.id) ? "bg-primary-50 font-semibold" : ""
+                          }`}
+                        >
+                          <div>
+                            <p className="font-medium text-brown-900">{supply.name}</p>
+                            <p className="text-xs text-brown-400">{supply.itemCode} · {supply.categoryName}</p>
+                          </div>
+                          <span className="text-xs font-semibold text-brown-500">{supply.quantityOnHand.toLocaleString()} in stock</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                ) : null}
                 {errors.supplyId ? <p className="mt-2 text-xs font-semibold text-rose-600">{errors.supplyId}</p> : null}
               </div>
 
