@@ -299,14 +299,10 @@ export default function NewRequest() {
             <h2 className="text-base font-black uppercase tracking-[0.15em] text-brown-900 sm:text-lg">
               REQUEST FORM
             </h2>
-            <p className="mt-2 text-xs text-brown-500">
-              Employee:{" "}
-              <span className="font-semibold text-brown-800">
-                {authUser ? getUserDisplayName(authUser, "Faculty Staff") : "-"}
-              </span>
-            </p>
             <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-brown-500">
-              ()EMPLOYEE)
+              (<span className="font-semibold text-brown-800">
+                {authUser ? getUserDisplayName(authUser, "Faculty Staff") : "-"}
+              </span>)
             </p>
           </div>
 
