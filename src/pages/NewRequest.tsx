@@ -287,23 +287,26 @@ export default function NewRequest() {
         <div className="w-full max-w-[210mm] overflow-hidden rounded-[1.75rem] border border-brown-200 bg-white shadow-sm print:rounded-none print:shadow-none">
           <div className="border-b border-brown-200 bg-gradient-to-b from-brown-50 to-white px-6 pb-5 pt-6 text-center sm:px-10">
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-primary-600">
-              Republic of the Philippines
+              Saint Francis College, Guihulngan, Negros Oriental, Incorporated
+            </p>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-brown-500">
+              Bateria, Poblacion, Guihulngan City, Negros Oriental
             </p>
             <h1 className="mt-2 text-lg font-black uppercase tracking-wide text-brown-900 sm:text-xl">
-              St. Francis College - Guagua
+              OFFICE OF THE VICE PRIESIDENT FOR FINANCE
             </h1>
-            <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-brown-500">
-              Office of the Property and Supply
-            </p>
             <div className="mx-auto my-4 h-0.5 w-24 rounded-full bg-primary-500" />
             <h2 className="text-base font-black uppercase tracking-[0.15em] text-brown-900 sm:text-lg">
-              Supply Request Form
+              REQUEST FORM
             </h2>
             <p className="mt-2 text-xs text-brown-500">
               Employee:{" "}
               <span className="font-semibold text-brown-800">
                 {authUser ? getUserDisplayName(authUser, "Faculty Staff") : "-"}
               </span>
+            </p>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-brown-500">
+              ()EMPLOYEE)
             </p>
           </div>
 
