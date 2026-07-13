@@ -317,6 +317,15 @@ export default function Login() {
                 "Sign in to Dashboard"
               )}
             </button>
+
+            <div className="text-center mt-4">
+              <Link
+                to="/auth/forgot-password"
+                className="text-sm text-brown-500 font-medium hover:text-primary-600 transition-colors"
+              >
+                Forgot Password?
+              </Link>
+            </div>
           </form>
 
           <div className="mt-10 text-center">

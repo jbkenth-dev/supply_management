@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, message: 'Method not allowed.' });
   }
 
-  const { email, name, code, type } = req.body || {};
+  const { email, name, code, type, expiryMinutes } = req.body || {};
 
   if (!email || !code) {
     return res.status(400).json({ success: false, message: 'Missing required fields.' });
@@ -35,11 +35,15 @@ export default async function handler(req, res) {
   }
 
   const isResend = type === 'resend';
-  const subject = 'Verify Your SFC-G Supply Management Account';
+  const isPasswordReset = type === 'password-reset';
+  const subject = isPasswordReset
+    ? 'Reset Your Password — SFC-G Supply Management'
+    : 'Verify Your SFC-G Supply Management Account';
   const displayName = name || 'User';
+  const resetExpiry = expiryMinutes || 10;
 
-  const htmlBody = buildHtml(displayName, code, isResend);
-  const textBody = buildText(displayName, code, isResend);
+  const htmlBody = buildHtml(displayName, code, isResend, isPasswordReset, resetExpiry);
+  const textBody = buildText(displayName, code, isResend, isPasswordReset, resetExpiry);
 
   try {
     const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -78,10 +82,22 @@ export default async function handler(req, res) {
   }
 }
 
-function buildHtml(displayName, code, isResend) {
-  const bodyText = isResend
-    ? 'Here is your new verification code.'
-    : 'Use the verification code below to complete your account registration.';
+function buildHtml(displayName, code, isResend, isPasswordReset, resetExpiry) {
+  const expiry = resetExpiry || 10;
+  let headerTitle, headerSubtitle, bodyText;
+  if (isPasswordReset) {
+    headerTitle = 'Password Reset';
+    headerSubtitle = 'Password Reset';
+    bodyText = 'We received a request to reset your password. Use the verification code below to proceed.';
+  } else if (isResend) {
+    headerTitle = 'SFC-G Supply Management';
+    headerSubtitle = 'Email Verification';
+    bodyText = 'Here is your new verification code.';
+  } else {
+    headerTitle = 'SFC-G Supply Management';
+    headerSubtitle = 'Email Verification';
+    bodyText = 'Use the verification code below to complete your account registration.';
+  }
   const year = parseInt(new Intl.DateTimeFormat('en', { timeZone: 'Asia/Manila', year: 'numeric' }).format(new Date()), 10);
 
   return `<!DOCTYPE html>
@@ -93,7 +109,7 @@ function buildHtml(displayName, code, isResend) {
       <table width="480" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
         <tr><td style="background:linear-gradient(135deg,#8B5E3C,#A0522D);padding:32px;text-align:center;">
           <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:900;letter-spacing:-0.5px;">SFC-G Supply Management</h1>
-          <p style="color:rgba(255,255,255,0.85);margin:8px 0 0;font-size:14px;">Email Verification</p>
+          <p style="color:rgba(255,255,255,0.85);margin:8px 0 0;font-size:14px;">${escapeHtml(headerSubtitle)}</p>
         </td></tr>
         <tr><td style="padding:40px 32px;text-align:center;">
           <p style="color:#5C4033;font-size:16px;margin:0 0 8px;">Hello ${escapeHtml(displayName)},</p>
@@ -102,7 +118,7 @@ function buildHtml(displayName, code, isResend) {
             <p style="color:#8B5E3C;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin:0 0 12px;">Your Verification Code</p>
             <p style="color:#2D1810;font-size:42px;font-weight:900;letter-spacing:12px;margin:0;font-family:'Courier New',monospace;">${escapeHtml(code)}</p>
           </div>
-          <p style="color:#999;font-size:13px;margin:0 0 8px;">This code expires in <strong style="color:#A0522D;">5 minutes</strong>.</p>
+          <p style="color:#999;font-size:13px;margin:0 0 8px;">This code expires in <strong style="color:#A0522D;">${expiry} minutes</strong>.</p>
           <p style="color:#999;font-size:12px;margin:0;">If you did not request this code, please ignore this email.</p>
         </td></tr>
         <tr><td style="background-color:#f5f0eb;padding:20px 32px;text-align:center;">
@@ -115,12 +131,18 @@ function buildHtml(displayName, code, isResend) {
 </html>`;
 }
 
-function buildText(displayName, code, isResend) {
-  const bodyText = isResend
-    ? 'Here is your new verification code'
-    : 'Use the verification code below to complete your account registration';
+function buildText(displayName, code, isResend, isPasswordReset, resetExpiry) {
+  const expiry = resetExpiry || 10;
+  let bodyText;
+  if (isPasswordReset) {
+    bodyText = 'We received a request to reset your password. Your verification code is';
+  } else if (isResend) {
+    bodyText = 'Here is your new verification code';
+  } else {
+    bodyText = 'Use the verification code below to complete your account registration';
+  }
 
-  return `Hello ${displayName},\n\n${bodyText}: ${code}\n\nThis code expires in 5 minutes.\n\nIf you did not request this code, please ignore this email.`;
+  return `Hello ${displayName},\n\n${bodyText}: ${code}\n\nThis code expires in ${expiry} minutes.\n\nIf you did not request this code, please ignore this email.`;
 }
 
 function escapeHtml(str) {
