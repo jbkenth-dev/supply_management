@@ -64,10 +64,6 @@ if (!function_exists('ensureVerificationTables')) {
 
 configureCors(['GET', 'POST', 'PUT', 'DELETE']);
 
-if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-    require_once __DIR__ . '/config/email.php';
-}
-
 try {
     $pdo = getDatabaseConnection();
     ensureUserProfileColumns($pdo);

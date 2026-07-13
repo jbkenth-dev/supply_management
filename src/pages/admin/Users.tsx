@@ -335,7 +335,13 @@ export default function AdminUsers() {
           id: approvalTarget.id,
         }),
       })
-      const result = (await response.json()) as UsersResponse
+
+      let result: UsersResponse
+      try {
+        result = (await response.json()) as UsersResponse
+      } catch {
+        throw new Error("Server error. Please try again.")
+      }
 
       if (!response.ok || !result.success) {
         throw new Error(result.message ?? "Unable to update user status.")
