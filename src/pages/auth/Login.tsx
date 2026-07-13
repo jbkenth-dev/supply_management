@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline"
 import { api } from "../../lib/api"
 import { getDashboardPath, getStoredAuthUser, setStoredAuthUser, getAccountStatusPath, getVerificationPath, type AuthUser } from "../../lib/auth"
+import { MessageModal } from "../../components/ui/MessageModal"
 
 const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY?.trim() ?? ""
 const shouldUseRecaptcha = Boolean(recaptchaSiteKey)
@@ -37,8 +38,15 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [captcha, setCaptcha] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [showModal, setShowModal] = useState(false)
 
   const isLocked = lockoutSeconds > 0
+
+  useEffect(() => {
+    if (serverMessage) {
+      setShowModal(true)
+    }
+  }, [serverMessage])
 
   useEffect(() => {
     const storedUser = getStoredAuthUser()
@@ -205,21 +213,19 @@ export default function Login() {
             <p className="text-brown-500">Welcome back! Please enter your details.</p>
           </div>
 
-          {serverMessage ? (
-            <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-              <p>{serverMessage}</p>
-              {attemptsRemaining !== null && attemptsRemaining > 0 ? (
-                <p className="mt-1 text-xs font-semibold text-rose-600">
-                  Attempts remaining: {attemptsRemaining} of 5
-                </p>
-              ) : null}
-              {isLocked ? (
-                <p className="mt-1 text-xs font-semibold text-rose-600">
-                  Try again in {formatCountdown(lockoutSeconds)}.
-                </p>
-              ) : null}
-            </div>
-          ) : null}
+          <MessageModal
+            open={showModal}
+            title="Sign In Error"
+            message={
+              serverMessage +
+              (attemptsRemaining !== null && attemptsRemaining > 0
+                ? ` (Attempts remaining: ${attemptsRemaining} of 5)`
+                : "") +
+              (isLocked ? ` Try again in ${formatCountdown(lockoutSeconds)}.` : "")
+            }
+            type="error"
+            onClose={() => setShowModal(false)}
+          />
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-5">

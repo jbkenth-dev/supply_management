@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { ArrowDownTrayIcon, ArrowPathIcon, MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
 import { api } from "../../lib/api"
+import { MessageModal } from "../ui/MessageModal"
 import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
 import type { StockEntry, SupplyItem } from "../../types/adminInventory"
 
@@ -38,6 +39,7 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
   const [supplySearch, setSupplySearch] = useState("")
   const [supplyDropdownOpen, setSupplyDropdownOpen] = useState(false)
   const supplyContainerRef = useRef<HTMLDivElement>(null)
+  const [showMessageModal, setShowMessageModal] = useState(false)
 
   useEffect(() => {
     void loadStockData()
@@ -47,6 +49,8 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
     if (!message) {
       return
     }
+
+    setShowMessageModal(true)
 
     const timer = window.setTimeout(() => {
       setMessage("")
@@ -228,21 +232,13 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
           </button>
         </div>
 
-        <AnimatePresence mode="wait">
-          {message ? (
-            <motion.div
-              key={message}
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className={`rounded-2xl border px-4 py-3 text-sm font-medium ${
-                isSuccess ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"
-              }`}
-            >
-              {message}
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+        <MessageModal
+          open={showMessageModal}
+          title={isSuccess ? "Success" : "Error"}
+          message={message}
+          type={isSuccess ? "success" : "error"}
+          onClose={() => setShowMessageModal(false)}
+        />
 
         <div className="grid gap-8 xl:grid-cols-[380px_minmax(0,1fr)]">
           <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm">

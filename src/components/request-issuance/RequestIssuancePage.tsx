@@ -13,6 +13,7 @@ import {
 } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
 import { api } from "../../lib/api"
+import { MessageModal } from "../ui/MessageModal"
 import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
 
 type RequestItem = {
@@ -95,6 +96,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   const [busyAction, setBusyAction] = useState<ActionKind | null>(null)
   const [requestPage, setRequestPage] = useState(1)
   const [issuancePage, setIssuancePage] = useState(1)
+  const [showMessageModal, setShowMessageModal] = useState(false)
 
   useEffect(() => {
     void loadData()
@@ -104,6 +106,8 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
     if (!message) {
       return
     }
+
+    setShowMessageModal(true)
 
     const timer = window.setTimeout(() => {
       setMessage("")
@@ -432,15 +436,13 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
           </button>
         </div>
 
-        {message ? (
-          <div
-            className={`rounded-2xl border px-4 py-3 text-sm font-medium ${
-              isSuccess ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"
-            }`}
-          >
-            {message}
-          </div>
-        ) : null}
+        <MessageModal
+          open={showMessageModal}
+          title={isSuccess ? "Success" : "Error"}
+          message={message}
+          type={isSuccess ? "success" : "error"}
+          onClose={() => setShowMessageModal(false)}
+        />
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <SummaryCard label="Total Requests" value={summary.totalRequests} tone="slate" />

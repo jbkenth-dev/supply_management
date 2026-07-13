@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { motion } from 'framer-motion';
@@ -12,6 +12,7 @@ import {
   EyeSlashIcon
 } from '@heroicons/react/24/outline';
 import { api } from '../../lib/api';
+import { MessageModal } from '../../components/ui/MessageModal';
 
 const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY?.trim() ?? '';
 const shouldUseRecaptcha = Boolean(recaptchaSiteKey);
@@ -37,6 +38,7 @@ const SignUp = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -44,6 +46,12 @@ const SignUp = () => {
     setErrors((currentErrors) => ({ ...currentErrors, [name]: '' }));
     setServerMessage('');
   };
+
+  useEffect(() => {
+    if (serverMessage) {
+      setShowModal(true);
+    }
+  }, [serverMessage]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -141,17 +149,13 @@ const SignUp = () => {
             <p className="text-brown-500 font-medium">Register as faculty staff/property custodian to start managing supplies.</p>
           </div>
 
-          {serverMessage && (
-            <div
-              className={`mb-6 rounded-2xl border px-4 py-3 text-sm font-medium ${
-                isSuccess
-                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                  : 'border-rose-200 bg-rose-50 text-rose-700'
-              }`}
-            >
-              {serverMessage}
-            </div>
-          )}
+          <MessageModal
+            open={showModal}
+            title={isSuccess ? "Account Created" : "Account Creation Error"}
+            message={serverMessage}
+            type={isSuccess ? "success" : "error"}
+            onClose={() => setShowModal(false)}
+          />
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>

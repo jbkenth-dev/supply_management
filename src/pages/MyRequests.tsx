@@ -11,7 +11,7 @@ import {
   XCircleIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../layout/AppShell"
-import { ToastContainer, type ToastProps } from "../components/ui/Toast"
+import { MessageModal } from "../components/ui/MessageModal"
 import { api } from "../lib/api"
 import { getStoredAuthUser } from "../lib/auth"
 import type { FacultyRequest, FacultyRequestSummary, RequestStatus } from "../types/requests"
@@ -40,27 +40,20 @@ export default function MyRequests() {
   const [summary, setSummary] = useState<FacultyRequestSummary>(emptySummary)
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<"All" | RequestStatus>("All")
-  const [toasts, setToasts] = useState<ToastProps[]>([])
   const [page, setPage] = useState(1)
   const [requestToCancel, setRequestToCancel] = useState<FacultyRequest | null>(null)
   const [busyRequestId, setBusyRequestId] = useState<number | null>(null)
   const authUser = getStoredAuthUser()
+  const [showModal, setShowModal] = useState(false)
+  const [modalTitle, setModalTitle] = useState("")
+  const [modalMessage, setModalMessage] = useState("")
+  const [modalType, setModalType] = useState<"success" | "error">("error")
 
-  const removeToast = (id: string) => {
-    setToasts((current) => current.filter((toast) => toast.id !== id))
-  }
-
-  const pushToast = (title: string, message: string, type: ToastProps["type"]) => {
-    setToasts((current) => [
-      ...current,
-      {
-        id: `requests-toast-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        title,
-        message,
-        type,
-        onDismiss: removeToast,
-      },
-    ])
+  const pushMessage = (title: string, message: string, type: "success" | "error") => {
+    setModalTitle(title)
+    setModalMessage(message)
+    setModalType(type)
+    setShowModal(true)
   }
 
   useEffect(() => {
@@ -95,7 +88,7 @@ export default function MyRequests() {
         if (!cancelled) {
           setRequests([])
           setSummary(emptySummary)
-          pushToast("Request Sync Failed", error instanceof Error ? error.message : "Unable to load your supply requests.", "error")
+          pushMessage("Request Sync Failed", error instanceof Error ? error.message : "Unable to load your supply requests.", "error")
         }
       } finally {
         if (!cancelled) {
@@ -165,9 +158,9 @@ export default function MyRequests() {
       setSummary(result.summary ?? emptySummary)
       setRequestToCancel(null)
       setPage(1)
-      pushToast("Request Cancelled", result.message ?? "Your request has been cancelled and office staff were notified.", "success")
+      pushMessage("Request Cancelled", result.message ?? "Your request has been cancelled and office staff were notified.", "success")
     } catch (error) {
-      pushToast("Cancellation Failed", error instanceof Error ? error.message : "Unable to cancel your request.", "error")
+      pushMessage("Cancellation Failed", error instanceof Error ? error.message : "Unable to cancel your request.", "error")
     } finally {
       setBusyRequestId(null)
     }
@@ -200,9 +193,9 @@ export default function MyRequests() {
       setRequests(result.requests ?? [])
       setSummary(result.summary ?? emptySummary)
       setPage(1)
-      pushToast("Confirmed", "Receipt confirmed. Thank you!", "success")
+      pushMessage("Confirmed", "Receipt confirmed. Thank you!", "success")
     } catch (error) {
-      pushToast("Confirmation Failed", error instanceof Error ? error.message : "Unable to confirm receipt.", "error")
+      pushMessage("Confirmation Failed", error instanceof Error ? error.message : "Unable to confirm receipt.", "error")
     } finally {
       setBusyRequestId(null)
     }
@@ -210,7 +203,13 @@ export default function MyRequests() {
 
   return (
     <AppShell role="Faculty Staff">
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <MessageModal
+        open={showModal}
+        title={modalTitle}
+        message={modalMessage}
+        type={modalType}
+        onClose={() => setShowModal(false)}
+      />
       <div className="space-y-8">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>

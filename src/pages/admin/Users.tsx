@@ -15,6 +15,7 @@ import {
 } from "@heroicons/react/24/outline"
 import { api } from "../../lib/api"
 import AppShell from "../../layout/AppShell"
+import { MessageModal } from "../../components/ui/MessageModal"
 
 type ManagedRole = "Faculty Staff" | "Property Custodian" | "Resource Planning Officer" | "Vice President for Finance" | "College President"
 
@@ -93,6 +94,7 @@ export default function AdminUsers() {
   const [approvalAction, setApprovalAction] = useState<"approve" | "reject">("approve")
   const [isApprovalSubmitting, setIsApprovalSubmitting] = useState(false)
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null)
+  const [showMessageModal, setShowMessageModal] = useState(false)
 
   const isEditing = editingUserId !== null
   const formTitle = useMemo(() => (isEditing ? "Edit user account" : "Create new user account"), [isEditing])
@@ -187,6 +189,12 @@ export default function AdminUsers() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [openDropdownId])
+
+  useEffect(() => {
+    if (serverMessage) {
+      setShowMessageModal(true)
+    }
+  }, [serverMessage])
 
   const resetForm = () => {
     setFormData(initialForm)
@@ -444,15 +452,13 @@ export default function AdminUsers() {
           </button>
         </div>
 
-        {serverMessage ? (
-          <div
-            className={`rounded-2xl border px-4 py-3 text-sm font-medium ${
-              isSuccess ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"
-            }`}
-          >
-            {serverMessage}
-          </div>
-        ) : null}
+        <MessageModal
+          open={showMessageModal}
+          title={isSuccess ? "Success" : "Error"}
+          message={serverMessage}
+          type={isSuccess ? "success" : "error"}
+          onClose={() => setShowMessageModal(false)}
+        />
 
         <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">

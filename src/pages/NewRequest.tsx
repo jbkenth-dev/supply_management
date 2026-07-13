@@ -7,7 +7,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../layout/AppShell"
-import { ToastContainer, type ToastProps } from "../components/ui/Toast"
+import { MessageModal } from "../components/ui/MessageModal"
 import { api } from "../lib/api"
 import { getStoredAuthUser, getUserDisplayName } from "../lib/auth"
 import type { SupplyItem } from "../types/adminInventory"
@@ -61,7 +61,6 @@ export default function NewRequest() {
   const [items, setItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [toasts, setToasts] = useState<ToastProps[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [catalogOpen, setCatalogOpen] = useState(false)
   const [customRowOpen, setCustomRowOpen] = useState(false)
@@ -70,13 +69,16 @@ export default function NewRequest() {
   const [customCost, setCustomCost] = useState(0)
   const authUser = getStoredAuthUser()
   const preselectedItemCode = searchParams.get("itemCode")?.trim().toUpperCase() ?? ""
+  const [showModal, setShowModal] = useState(false)
+  const [modalTitle, setModalTitle] = useState("")
+  const [modalMessage, setModalMessage] = useState("")
+  const [modalType, setModalType] = useState<"success" | "error">("error")
 
-  const removeToast = (id: string) => {
-    setToasts((current) => current.filter((toast) => toast.id !== id))
-  }
-
-  const pushToast = (toast: Omit<ToastProps, "onDismiss">) => {
-    setToasts((current) => [...current, { ...toast, onDismiss: removeToast }])
+  const pushMessage = (title: string, message: string, type: "success" | "error") => {
+    setModalTitle(title)
+    setModalMessage(message)
+    setModalType(type)
+    setShowModal(true)
   }
 
   useEffect(() => {
@@ -96,12 +98,7 @@ export default function NewRequest() {
       } catch (error) {
         if (!cancelled) {
           setSupplies([])
-          pushToast({
-            id: `catalog-error-${Date.now()}`,
-            title: "Catalog Load Failed",
-            message: error instanceof Error ? error.message : "Unable to load supply catalog.",
-            type: "error",
-          })
+          pushMessage("Catalog Load Failed", error instanceof Error ? error.message : "Unable to load supply catalog.", "error")
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -207,22 +204,12 @@ export default function NewRequest() {
 
   const handleSubmit = async () => {
     if (!authUser?.id || authUser.role !== "Faculty Staff") {
-      pushToast({
-        id: `auth-error-${Date.now()}`,
-        title: "Faculty Login Required",
-        message: "Sign in with a faculty account before submitting a request.",
-        type: "error",
-      })
+      pushMessage("Faculty Login Required", "Sign in with a faculty account before submitting a request.", "error")
       return
     }
 
     if (!validate()) {
-      pushToast({
-        id: `validation-error-${Date.now()}`,
-        title: "Validation Error",
-        message: "Please fix the highlighted fields before submitting.",
-        type: "warning",
-      })
+      pushMessage("Validation Error", "Please fix the highlighted fields before submitting.", "error")
       return
     }
 
@@ -258,20 +245,10 @@ export default function NewRequest() {
       setDateNeeded("")
       setNotes("")
       setErrors({})
-      pushToast({
-        id: `request-created-${Date.now()}`,
-        title: "Request Submitted",
-        message: result.message ?? "Your supply request has been submitted.",
-        type: "success",
-      })
+      pushMessage("Request Submitted", result.message ?? "Your supply request has been submitted.", "success")
       navigate("/my-requests")
     } catch (error) {
-      pushToast({
-        id: `request-error-${Date.now()}`,
-        title: "Submission Failed",
-        message: error instanceof Error ? error.message : "Unable to submit your supply request.",
-        type: "error",
-      })
+      pushMessage("Submission Failed", error instanceof Error ? error.message : "Unable to submit your supply request.", "error")
     } finally {
       setSubmitting(false)
     }
@@ -281,7 +258,13 @@ export default function NewRequest() {
 
   return (
     <AppShell role="Faculty Staff">
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <MessageModal
+        open={showModal}
+        title={modalTitle}
+        message={modalMessage}
+        type={modalType}
+        onClose={() => setShowModal(false)}
+      />
 
       <div className="flex justify-center py-4 sm:py-6">
         <div className="w-full max-w-[210mm] overflow-hidden rounded-[1.75rem] border border-brown-200 bg-white shadow-sm print:rounded-none print:shadow-none">

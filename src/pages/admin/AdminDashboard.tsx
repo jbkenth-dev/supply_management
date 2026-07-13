@@ -11,7 +11,7 @@ import {
   UsersIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
-import { ToastContainer, type ToastProps } from "../../components/ui/Toast"
+import { MessageModal } from "../../components/ui/MessageModal"
 import { StaggerContainer, StaggerItem } from "../../components/ui/animations"
 import { api } from "../../lib/api"
 import type { StockEntry } from "../../types/adminInventory"
@@ -53,11 +53,8 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState<DashboardStats>(emptyStats)
   const [recentEntries, setRecentEntries] = useState<StockEntry[]>([])
-  const [toasts, setToasts] = useState<ToastProps[]>([])
-
-  const removeToast = (id: string) => {
-    setToasts((current) => current.filter((toast) => toast.id !== id))
-  }
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
   async function loadDashboard() {
     setLoading(true)
@@ -75,16 +72,8 @@ export default function AdminDashboard() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to load dashboard data."
 
-      setToasts((current) => [
-        ...current,
-        {
-          id: `dashboard-error-${Date.now()}`,
-          title: "Dashboard Sync Failed",
-          message,
-          type: "error",
-          onDismiss: removeToast,
-        },
-      ])
+      setErrorMessage(message)
+      setShowErrorModal(true)
     } finally {
       setLoading(false)
     }
@@ -104,7 +93,13 @@ export default function AdminDashboard() {
 
   return (
     <AppShell role="Administrator">
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <MessageModal
+        open={showErrorModal}
+        title="Dashboard Error"
+        message={errorMessage}
+        type="error"
+        onClose={() => setShowErrorModal(false)}
+      />
       <StaggerContainer className="space-y-8">
         <StaggerItem>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

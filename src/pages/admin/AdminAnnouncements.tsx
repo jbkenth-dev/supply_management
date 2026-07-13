@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import dayjs from "dayjs"
 import { MegaphoneIcon, SparklesIcon, WrenchScrewdriverIcon, InformationCircleIcon } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
-import { ToastContainer, type ToastProps } from "../../components/ui/Toast"
+import { MessageModal } from "../../components/ui/MessageModal"
 import { api } from "../../lib/api"
 import { getStoredAuthUser } from "../../lib/auth"
 
@@ -38,26 +38,9 @@ export default function AdminAnnouncements() {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [toasts, setToasts] = useState<ToastProps[]>([])
   const [statusMessage, setStatusMessage] = useState("")
   const [statusType, setStatusType] = useState<"success" | "error" | "">("")
-
-  const removeToast = (id: string) => {
-    setToasts((current) => current.filter((toast) => toast.id !== id))
-  }
-
-  const pushToast = (title: string, message: string, type: ToastProps["type"]) => {
-    setToasts((current) => [
-      ...current,
-      {
-        id: `announcement-toast-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        title,
-        message,
-        type,
-        onDismiss: removeToast,
-      },
-    ])
-  }
+  const [showMessageModal, setShowMessageModal] = useState(false)
 
   const recentAnnouncements = useMemo(() => announcements.slice(0, 10), [announcements])
 
@@ -69,6 +52,8 @@ export default function AdminAnnouncements() {
     if (!statusMessage) {
       return
     }
+
+    setShowMessageModal(true)
 
     const timer = window.setTimeout(() => {
       setStatusMessage("")
@@ -94,7 +79,6 @@ export default function AdminAnnouncements() {
       const message = error instanceof Error ? error.message : "Unable to load announcements."
       setStatusMessage(message)
       setStatusType("error")
-      pushToast("Announcement Sync Failed", message, "error")
     } finally {
       setLoading(false)
     }
@@ -137,12 +121,10 @@ export default function AdminAnnouncements() {
       setForm(initialForm)
       setStatusMessage(result.message ?? "Announcement posted successfully.")
       setStatusType("success")
-      pushToast("Announcement Posted", result.message ?? "Announcement posted successfully.", "success")
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to post announcement."
       setStatusMessage(message)
       setStatusType("error")
-      pushToast("Announcement Failed", message, "error")
     } finally {
       setSaving(false)
     }
@@ -150,7 +132,13 @@ export default function AdminAnnouncements() {
 
   return (
     <AppShell role="Administrator">
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <MessageModal
+        open={showMessageModal}
+        title={statusType === "success" ? "Success" : "Error"}
+        message={statusMessage}
+        type={statusType === "success" ? "success" : "error"}
+        onClose={() => setShowMessageModal(false)}
+      />
       <div className="space-y-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -168,18 +156,6 @@ export default function AdminAnnouncements() {
             Refresh Data
           </button>
         </div>
-
-        {statusMessage ? (
-          <div
-            className={`rounded-2xl border px-4 py-3 text-sm font-medium ${
-              statusType === "success"
-                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                : "border-rose-200 bg-rose-50 text-rose-700"
-            }`}
-          >
-            {statusMessage}
-          </div>
-        ) : null}
 
         <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
           <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">

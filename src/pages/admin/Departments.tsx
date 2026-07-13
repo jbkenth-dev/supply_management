@@ -11,6 +11,7 @@ import {
 } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
 import { api } from "../../lib/api"
+import { MessageModal } from "../../components/ui/MessageModal"
 
 type Department = {
   id: number
@@ -45,6 +46,7 @@ export default function AdminDepartments() {
   const [isSuccess, setIsSuccess] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
+  const [showMessageModal, setShowMessageModal] = useState(false)
 
   const isEditing = editingDepartment !== null
   const filteredDepartments = useMemo(() => {
@@ -96,6 +98,12 @@ export default function AdminDepartments() {
       setCurrentPage(totalPages)
     }
   }, [currentPage, totalPages])
+
+  useEffect(() => {
+    if (serverMessage) {
+      setShowMessageModal(true)
+    }
+  }, [serverMessage])
 
   const resetForm = () => {
     setDepartmentName("")
@@ -274,15 +282,13 @@ export default function AdminDepartments() {
           </button>
         </div>
 
-        {serverMessage ? (
-          <div
-            className={`rounded-2xl border px-4 py-3 text-sm font-medium ${
-              isSuccess ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"
-            }`}
-          >
-            {serverMessage}
-          </div>
-        ) : null}
+        <MessageModal
+          open={showMessageModal}
+          title={isSuccess ? "Success" : "Error"}
+          message={serverMessage}
+          type={isSuccess ? "success" : "error"}
+          onClose={() => setShowMessageModal(false)}
+        />
 
         <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">

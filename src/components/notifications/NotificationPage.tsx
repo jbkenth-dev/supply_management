@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
 import { api } from "../../lib/api"
+import { MessageModal } from "../ui/MessageModal"
 import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
 import type { AppNotification, NotificationsResponse } from "../../types/notifications"
 
@@ -27,12 +28,19 @@ export default function NotificationPage({ role }: { role: AuthRole }) {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState("")
+  const [showMessageModal, setShowMessageModal] = useState(false)
 
   const groupedNotifications = useMemo(() => notifications, [notifications])
 
   useEffect(() => {
     void loadNotifications(true)
   }, [authUser?.id, authUser?.role, role])
+
+  useEffect(() => {
+    if (message) {
+      setShowMessageModal(true)
+    }
+  }, [message])
 
   async function loadNotifications(showLoading = false) {
     if (!authUser?.id || authUser.role !== role) {
@@ -162,11 +170,13 @@ export default function NotificationPage({ role }: { role: AuthRole }) {
           </div>
         </div>
 
-        {message ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-            {message}
-          </div>
-        ) : null}
+        <MessageModal
+          open={showMessageModal}
+          title="Error"
+          message={message}
+          type="error"
+          onClose={() => setShowMessageModal(false)}
+        />
 
         <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
           {loading ? (

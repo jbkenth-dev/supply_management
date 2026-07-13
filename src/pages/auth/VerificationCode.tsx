@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline"
 import { api } from "../../lib/api"
 import { getAccountStatusPath, setStoredAuthUser, type AuthUser, type AuthRole } from "../../lib/auth"
+import { MessageModal } from "../../components/ui/MessageModal"
 
 const CODE_LENGTH = 6
 const EXPIRY_SECONDS = 5 * 60 // 5 minutes
@@ -37,6 +38,8 @@ export default function VerificationCode() {
   const [remainingSeconds, setRemainingSeconds] = useState(EXPIRY_SECONDS)
   const [isExpired, setIsExpired] = useState(false)
   const [canResend, setCanResend] = useState(false)
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   // Redirect if no userId/email
   useEffect(() => {
@@ -73,6 +76,18 @@ export default function VerificationCode() {
 
     return () => window.clearTimeout(resendTimer)
   }, [])
+
+  useEffect(() => {
+    if (error) {
+      setShowErrorModal(true)
+    }
+  }, [error])
+
+  useEffect(() => {
+    if (successMessage) {
+      setShowSuccessModal(true)
+    }
+  }, [successMessage])
 
   const getFullCode = useCallback(() => {
     return digits.join("")
@@ -295,26 +310,21 @@ export default function VerificationCode() {
           </div>
 
           {/* Messages */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 flex items-start gap-2"
-            >
-              <ExclamationCircleIcon className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
-              <span>{error}</span>
-            </motion.div>
-          )}
+          <MessageModal
+            open={showErrorModal}
+            title="Verification Error"
+            message={error}
+            type="error"
+            onClose={() => setShowErrorModal(false)}
+          />
 
-          {successMessage && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
-            >
-              {successMessage}
-            </motion.div>
-          )}
+          <MessageModal
+            open={showSuccessModal}
+            title="Verification Success"
+            message={successMessage}
+            type="success"
+            onClose={() => setShowSuccessModal(false)}
+          />
 
           {/* Code Input */}
           <div className="mb-6">

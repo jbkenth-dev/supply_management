@@ -18,7 +18,7 @@ import AppShell from "../layout/AppShell"
 import { LoadingState } from "../components/ui/LoadingStates"
 import { StaggerContainer, StaggerItem } from "../components/ui/animations"
 import { api } from "../lib/api"
-import { ToastContainer, type ToastProps } from "../components/ui/Toast"
+import { MessageModal } from "../components/ui/MessageModal"
 import { getMessagesPath, getStoredAuthUser } from "../lib/auth"
 import type { FacultyRequest, FacultyRequestSummary } from "../types/requests"
 
@@ -92,12 +92,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<DashboardData | null>(null)
   const [activeTab, setActiveTab] = useState<"notifications" | "messages">("notifications")
-  const [toasts, setToasts] = useState<ToastProps[]>([])
   const authUser = getStoredAuthUser()
-
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id))
-  }
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
   useEffect(() => {
     let cancelled = false
@@ -173,16 +170,8 @@ export default function Dashboard() {
             messages: [],
             notifications: [],
           })
-          setToasts((prev) => [
-            ...prev,
-            {
-              id: `dashboard-error-${Date.now()}`,
-              title: "Dashboard Sync Failed",
-              message: error instanceof Error ? error.message : "Unable to load dashboard data.",
-              type: "error",
-              onDismiss: removeToast,
-            },
-          ])
+          setErrorMessage(error instanceof Error ? error.message : "Unable to load dashboard data.")
+          setShowErrorModal(true)
         }
       } finally {
         if (!cancelled) {
@@ -232,7 +221,13 @@ export default function Dashboard() {
 
   return (
     <AppShell role="Faculty Staff">
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <MessageModal
+        open={showErrorModal}
+        title="Dashboard Error"
+        message={errorMessage}
+        type="error"
+        onClose={() => setShowErrorModal(false)}
+      />
       <StaggerContainer className="space-y-8">
         <StaggerItem>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

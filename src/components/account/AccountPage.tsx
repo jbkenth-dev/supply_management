@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react"
 import { useNavigate } from "react-router-dom"
 import { AnimatePresence, motion } from "framer-motion"
+import { MessageModal } from "../ui/MessageModal"
 import {
   CameraIcon,
   CheckCircleIcon,
@@ -94,9 +95,14 @@ export default function AccountPage({ role }: { role: AuthRole }) {
     confirmPassword: false,
   })
   const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
+  const [showPasswordMsgModal, setShowPasswordMsgModal] = useState(false)
 
   useEffect(() => {
     if (!serverMessage) return
+
+    setShowProfileModal(true)
+
     const timer = window.setTimeout(() => {
       setServerMessage("")
       setIsSuccess(false)
@@ -106,6 +112,9 @@ export default function AccountPage({ role }: { role: AuthRole }) {
 
   useEffect(() => {
     if (!passwordMessage || showPasswordChangeModal) return
+
+    setShowPasswordMsgModal(true)
+
     const timer = window.setTimeout(() => {
       setPasswordMessage("")
       setPasswordSuccess(false)
@@ -355,22 +364,13 @@ export default function AccountPage({ role }: { role: AuthRole }) {
           </p>
         </div>
 
-        <AnimatePresence mode="wait">
-          {serverMessage ? (
-            <motion.div
-              key={`profile-message-${serverMessage}`}
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.35 }}
-              className={`rounded-2xl border px-4 py-3 text-sm font-medium ${
-                isSuccess ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"
-              }`}
-            >
-              {serverMessage}
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+        <MessageModal
+          open={showProfileModal}
+          title={isSuccess ? "Profile Updated" : "Profile Update Error"}
+          message={serverMessage}
+          type={isSuccess ? "success" : "error"}
+          onClose={() => setShowProfileModal(false)}
+        />
 
         {isLoading ? (
           <div className="rounded-3xl border border-brown-200 bg-white p-10 shadow-sm">
@@ -569,22 +569,13 @@ export default function AccountPage({ role }: { role: AuthRole }) {
                   </p>
                 </div>
 
-                <AnimatePresence mode="wait">
-                  {passwordMessage ? (
-                    <motion.div
-                      key={`password-message-${passwordMessage}`}
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={{ duration: 0.35 }}
-                      className={`mb-6 rounded-2xl border px-4 py-3 text-sm font-medium ${
-                        passwordSuccess ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"
-                      }`}
-                    >
-                      {passwordMessage}
-                    </motion.div>
-                  ) : null}
-                </AnimatePresence>
+                <MessageModal
+                  open={showPasswordMsgModal}
+                  title={passwordSuccess ? "Password Changed" : "Password Change Error"}
+                  message={passwordMessage}
+                  type={passwordSuccess ? "success" : "error"}
+                  onClose={() => setShowPasswordMsgModal(false)}
+                />
 
                 <form onSubmit={handlePasswordSubmit} className="space-y-6">
                   <div className="grid gap-5 md:grid-cols-3">

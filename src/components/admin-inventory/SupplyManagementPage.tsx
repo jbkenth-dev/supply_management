@@ -13,6 +13,7 @@ import {
 } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
 import type { AuthRole } from "../../lib/auth"
+import { MessageModal } from "../ui/MessageModal"
 import { api } from "../../lib/api"
 import type { SupplyCategory, SupplyItem } from "../../types/adminInventory"
 
@@ -65,6 +66,7 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>("category")
   const [isSupplyModalOpen, setIsSupplyModalOpen] = useState(false)
+  const [showMessageModal, setShowMessageModal] = useState(false)
 
   useEffect(() => {
     void loadSupplyData()
@@ -74,6 +76,8 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
     if (!message) {
       return
     }
+
+    setShowMessageModal(true)
 
     const timer = window.setTimeout(() => {
       setMessage("")
@@ -466,21 +470,13 @@ export default function SupplyManagementPage({ role }: { role: Extract<AuthRole,
           </div>
         </section>
 
-        <AnimatePresence mode="wait">
-          {message ? (
-            <motion.div
-              key={message}
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className={`rounded-2xl border px-4 py-3 text-sm font-medium ${
-                isSuccess ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"
-              }`}
-            >
-              {message}
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+        <MessageModal
+          open={showMessageModal}
+          title={isSuccess ? "Success" : "Error"}
+          message={message}
+          type={isSuccess ? "success" : "error"}
+          onClose={() => setShowMessageModal(false)}
+        />
 
         <AnimatePresence mode="wait" initial={false}>
           {viewMode === "category" ? (

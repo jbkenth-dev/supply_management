@@ -9,7 +9,7 @@ import {
   CheckBadgeIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../layout/AppShell"
-import { ToastContainer, type ToastProps } from "../components/ui/Toast"
+import { MessageModal } from "../components/ui/MessageModal"
 import { api } from "../lib/api"
 import { getStoredAuthUser } from "../lib/auth"
 import type { RequestStatus } from "../types/requests"
@@ -78,18 +78,17 @@ export default function ApprovalDashboard() {
   const [selectedRequest, setSelectedRequest] = useState<ApprovalRequest | null>(null)
   const [actionRemarks, setActionRemarks] = useState("")
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null)
-  const [toasts, setToasts] = useState<ToastProps[]>([])
   const [page, setPage] = useState(1)
+  const [showModal, setShowModal] = useState(false)
+  const [modalTitle, setModalTitle] = useState("")
+  const [modalMessage, setModalMessage] = useState("")
+  const [modalType, setModalType] = useState<"success" | "error">("error")
 
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id))
-  }
-
-  const pushToast = (title: string, message: string, type: ToastProps["type"]) => {
-    setToasts((prev) => [
-      ...prev,
-      { id: `approval-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, title, message, type, onDismiss: removeToast },
-    ])
+  const pushMessage = (title: string, message: string, type: "success" | "error") => {
+    setModalTitle(title)
+    setModalMessage(message)
+    setModalType(type)
+    setShowModal(true)
   }
 
   useEffect(() => {
@@ -108,7 +107,7 @@ export default function ApprovalDashboard() {
           setPage(1)
         }
       } catch {
-        if (!cancelled) pushToast("Load Failed", "Unable to load approval queue.", "error")
+        if (!cancelled) pushMessage("Load Failed", "Unable to load approval queue.", "error")
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -150,7 +149,7 @@ export default function ApprovalDashboard() {
         throw new Error(result.message ?? "Action failed.")
       }
 
-      pushToast("Success", result.message ?? "Action completed.", "success")
+      pushMessage("Success", result.message ?? "Action completed.", "success")
       setSelectedRequest(null)
       setActionType(null)
       setActionRemarks("")
@@ -164,7 +163,7 @@ export default function ApprovalDashboard() {
         setApprovalHistory(reloadResult.approvalHistory ?? [])
       }
     } catch (error) {
-      pushToast("Action Failed", error instanceof Error ? error.message : "Unable to process action.", "error")
+      pushMessage("Action Failed", error instanceof Error ? error.message : "Unable to process action.", "error")
     } finally {
       setSubmitting(false)
     }
@@ -172,7 +171,13 @@ export default function ApprovalDashboard() {
 
   return (
     <AppShell role={authUser?.role ?? "Faculty Staff"}>
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <MessageModal
+        open={showModal}
+        title={modalTitle}
+        message={modalMessage}
+        type={modalType}
+        onClose={() => setShowModal(false)}
+      />
       <div className="space-y-8">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Approval Workflow</p>

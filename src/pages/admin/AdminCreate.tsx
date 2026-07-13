@@ -1,5 +1,5 @@
 import { api } from "../../lib/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -12,6 +12,7 @@ import {
   ShieldCheckIcon,
   UserIcon,
 } from "@heroicons/react/24/outline";
+import { MessageModal } from "../../components/ui/MessageModal";
 
 type AdminCreateErrors = Partial<
   Record<
@@ -60,6 +61,7 @@ export default function AdminCreate() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -75,6 +77,12 @@ export default function AdminCreate() {
     setServerMessage("");
     setIsSuccess(false);
   };
+
+  useEffect(() => {
+    if (serverMessage) {
+      setShowModal(true);
+    }
+  }, [serverMessage]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -186,17 +194,13 @@ export default function AdminCreate() {
               </p>
             </div>
 
-            {serverMessage ? (
-              <div
-                className={`mb-6 rounded-2xl border px-4 py-3 text-sm font-medium ${
-                  isSuccess
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : "border-rose-200 bg-rose-50 text-rose-700"
-                }`}
-              >
-                {serverMessage}
-              </div>
-            ) : null}
+            <MessageModal
+              open={showModal}
+              title={isSuccess ? "Admin Account Created" : "Admin Account Error"}
+              message={serverMessage}
+              type={isSuccess ? "success" : "error"}
+              onClose={() => setShowModal(false)}
+            />
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid gap-4 sm:grid-cols-3">

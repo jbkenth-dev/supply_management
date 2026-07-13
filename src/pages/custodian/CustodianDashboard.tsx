@@ -11,7 +11,7 @@ import {
 } from "@heroicons/react/24/outline"
 import { motion } from "framer-motion"
 import AppShell from "../../layout/AppShell"
-import { ToastContainer, type ToastProps } from "../../components/ui/Toast"
+import { MessageModal } from "../../components/ui/MessageModal"
 import { api } from "../../lib/api"
 import { StaggerContainer, StaggerItem } from "../../components/ui/animations"
 
@@ -81,13 +81,10 @@ export default function CustodianDashboard() {
   const [stats, setStats] = useState<DashboardStats>(emptyStats)
   const [recentRequests, setRecentRequests] = useState<DashboardRequest[]>([])
   const [recentEntries, setRecentEntries] = useState<StockEntry[]>([])
-  const [toasts, setToasts] = useState<ToastProps[]>([])
   const [requestPage, setRequestPage] = useState(1)
   const [entryPage, setEntryPage] = useState(1)
-
-  const removeToast = (id: string) => {
-    setToasts((current) => current.filter((toast) => toast.id !== id))
-  }
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
   async function loadDashboard() {
     setLoading(true)
@@ -108,16 +105,8 @@ export default function CustodianDashboard() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to load dashboard data."
 
-      setToasts((current) => [
-        ...current,
-        {
-          id: `custodian-dashboard-error-${Date.now()}`,
-          title: "Dashboard Sync Failed",
-          message,
-          type: "error",
-          onDismiss: removeToast,
-        },
-      ])
+      setErrorMessage(message)
+      setShowErrorModal(true)
     } finally {
       setLoading(false)
     }
@@ -142,7 +131,13 @@ export default function CustodianDashboard() {
 
   return (
     <AppShell role="Property Custodian">
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <MessageModal
+        open={showErrorModal}
+        title="Dashboard Error"
+        message={errorMessage}
+        type="error"
+        onClose={() => setShowErrorModal(false)}
+      />
       <StaggerContainer className="space-y-8">
         <StaggerItem>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

@@ -10,7 +10,7 @@ import {
   TruckIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
-import { ToastContainer, type ToastProps } from "../../components/ui/Toast"
+import { MessageModal } from "../../components/ui/MessageModal"
 import { api } from "../../lib/api"
 import { getStoredAuthUser } from "../../lib/auth"
 
@@ -69,13 +69,17 @@ export default function CustodianPurchasePage() {
   const [actionMode, setActionMode] = useState<string | null>(null)
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
   const [liquidationFile, setLiquidationFile] = useState<File | null>(null)
-  const [toasts, setToasts] = useState<ToastProps[]>([])
   const [page, setPage] = useState(1)
+  const [showModal, setShowModal] = useState(false)
+  const [modalTitle, setModalTitle] = useState("")
+  const [modalMessage, setModalMessage] = useState("")
+  const [modalType, setModalType] = useState<"success" | "error">("error")
 
-  const removeToast = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id))
-
-  const pushToast = (title: string, message: string, type: ToastProps["type"]) => {
-    setToasts((prev) => [...prev, { id: `cust-${Date.now()}`, title, message, type, onDismiss: removeToast }])
+  const pushMessage = (title: string, message: string, type: "success" | "error") => {
+    setModalTitle(title)
+    setModalMessage(message)
+    setModalType(type)
+    setShowModal(true)
   }
 
   const loadData = async () => {
@@ -90,7 +94,7 @@ export default function CustodianPurchasePage() {
         setHistory(result.history ?? [])
       }
     } catch {
-      pushToast("Load Failed", "Unable to load purchase data.", "error")
+      pushMessage("Load Failed", "Unable to load purchase data.", "error")
     } finally {
       setLoading(false)
     }
@@ -118,14 +122,14 @@ export default function CustodianPurchasePage() {
       const result = await res.json()
       if (!res.ok || !result.success) throw new Error(result.message ?? "Action failed.")
 
-      pushToast("Success", result.message ?? "Action completed.", "success")
+      pushMessage("Success", result.message ?? "Action completed.", "success")
       setSelectedRequest(null)
       setActionMode(null)
       setReceiptFile(null)
       setLiquidationFile(null)
       void loadData()
     } catch (error) {
-      pushToast("Error", error instanceof Error ? error.message : "Action failed.", "error")
+      pushMessage("Error", error instanceof Error ? error.message : "Action failed.", "error")
     } finally {
       setSubmitting(false)
     }
@@ -141,7 +145,13 @@ export default function CustodianPurchasePage() {
 
   return (
     <AppShell role="Property Custodian">
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <MessageModal
+        open={showModal}
+        title={modalTitle}
+        message={modalMessage}
+        type={modalType}
+        onClose={() => setShowModal(false)}
+      />
       <div className="space-y-8">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Property Custodian</p>
