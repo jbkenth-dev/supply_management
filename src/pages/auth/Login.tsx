@@ -47,6 +47,12 @@ export default function Login() {
       return
     }
 
+    // Admins always go straight to dashboard — no verification/approval flow
+    if (storedUser.role === "Administrator") {
+      navigate(getDashboardPath(storedUser.role), { replace: true })
+      return
+    }
+
     // Redirect based on verification and approval status
     if (storedUser.isVerified === false) {
       navigate(getVerificationPath(), {
@@ -129,6 +135,20 @@ export default function Login() {
       setAttemptsRemaining(null)
       setLockoutSeconds(0)
       setStoredAuthUser(user)
+
+      // Admins always go straight to dashboard — no verification/approval flow
+      if (user.role === "Administrator") {
+        const destination = getDashboardPath(user.role)
+
+        navigate(destination, {
+          replace: true,
+          state: {
+            role: user.role,
+            user
+          }
+        })
+        return
+      }
 
       // Check verification and approval status before navigating
       if (user.isVerified === false) {
