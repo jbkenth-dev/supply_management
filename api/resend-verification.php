@@ -199,6 +199,8 @@ function sendVerificationEmail(string $toEmail, string $toName, string $code): v
         $code
     );
 
+    @require_once __DIR__ . '/config/email.php';
+
     if (function_exists('sendSmtpMail')) {
         sendSmtpMail($toEmail, $toName !== '' ? $toName : $toEmail, $subject, $htmlBody, $textBody);
     }

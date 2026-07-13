@@ -36,7 +36,6 @@ export default function VerificationCode() {
   const [successMessage, setSuccessMessage] = useState("")
   const [remainingSeconds, setRemainingSeconds] = useState(EXPIRY_SECONDS)
   const [isExpired, setIsExpired] = useState(false)
-  const [canResend, setCanResend] = useState(false)
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
 
@@ -66,15 +65,6 @@ export default function VerificationCode() {
 
     return () => window.clearInterval(timer)
   }, [remainingSeconds])
-
-  // Allow resend after 30 seconds
-  useEffect(() => {
-    const resendTimer = window.setTimeout(() => {
-      setCanResend(true)
-    }, 30000)
-
-    return () => window.clearTimeout(resendTimer)
-  }, [])
 
   useEffect(() => {
     if (error) {
@@ -256,16 +246,8 @@ export default function VerificationCode() {
       setRemainingSeconds(EXPIRY_SECONDS)
       setIsExpired(false)
       setDigits(Array(CODE_LENGTH).fill(""))
-      setCanResend(false)
       setSuccessMessage("A new verification code has been sent to your email.")
       inputRefs.current[0]?.focus()
-
-      // Re-allow resend after 30 seconds
-      const resendTimer = window.setTimeout(() => {
-        setCanResend(true)
-      }, 30000)
-
-      return () => window.clearTimeout(resendTimer)
     } catch {
       setError("Unable to connect to the verification service. Please try again.")
     } finally {
@@ -396,7 +378,7 @@ export default function VerificationCode() {
           <div className="mt-6 text-center">
             <p className="text-sm text-brown-500 font-medium">
               Didn't receive the code?{" "}
-              {canResend ? (
+              {isExpired ? (
                 <button
                   onClick={handleResend}
                   disabled={isResending}
@@ -416,7 +398,7 @@ export default function VerificationCode() {
                 </button>
               ) : (
                 <span className="text-brown-400">
-                  Resend available in {formatCountdown(Math.max(0, 30 - (EXPIRY_SECONDS - remainingSeconds)))}
+                  Resend available in {formatCountdown(remainingSeconds)}
                 </span>
               )}
             </p>

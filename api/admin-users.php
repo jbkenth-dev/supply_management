@@ -289,6 +289,8 @@ function handleApprovalAction(PDO $pdo, array $payload, string $action): void
             : 'We regret to inform you that your account application has not been approved at this time.'
     );
 
+    @require_once __DIR__ . '/config/email.php';
+
     if (function_exists('sendSmtpMail')) {
         sendSmtpMail((string) $user['email'], $userName, $subject, $htmlBody, $textBody);
     }
