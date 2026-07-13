@@ -23,3 +23,38 @@ function ensureUserProfileColumns(PDO $pdo): void
     }
 }
 
+function ensureApprovalColumns(PDO $pdo): void
+{
+    $columns = [
+        'is_verified' => "ALTER TABLE users ADD COLUMN is_verified TINYINT(1) NOT NULL DEFAULT 0 AFTER profile_image_path",
+        'approval_status' => "ALTER TABLE users ADD COLUMN approval_status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending' AFTER is_verified",
+    ];
+
+    foreach ($columns as $columnName => $statement) {
+        $checkColumn = $pdo->prepare('SHOW COLUMNS FROM users LIKE :column_name');
+        $checkColumn->execute([
+            'column_name' => $columnName,
+        ]);
+
+        if (!$checkColumn->fetch()) {
+            $pdo->exec($statement);
+        }
+    }
+}
+
+function ensureVerificationTables(PDO $pdo): void
+{
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS email_verifications (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            user_id INT UNSIGNED NOT NULL,
+            code VARCHAR(6) NOT NULL,
+            expires_at DATETIME NOT NULL,
+            used TINYINT(1) NOT NULL DEFAULT 0,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_ev_user (user_id),
+            INDEX idx_ev_code (user_id, code, used)
+        )'
+    );
+}
+

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { motion } from 'framer-motion';
 import {
@@ -17,6 +17,7 @@ const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY?.trim() ?? '';
 const shouldUseRecaptcha = Boolean(recaptchaSiteKey);
 
 const SignUp = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     role: 'Faculty Staff',
     idNumber: '',
@@ -82,6 +83,17 @@ const SignUp = () => {
       setErrors({});
       setIsSuccess(true);
       setServerMessage(result.message ?? 'Account created successfully.');
+
+      // Redirect to verification page after a brief moment
+      setTimeout(() => {
+        navigate('/auth/verification-code', {
+          state: {
+            userId: result.userId,
+            email: result.email,
+          },
+        });
+      }, 1500);
+
       setFormData({
         role: 'Faculty Staff',
         idNumber: '',

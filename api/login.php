@@ -52,6 +52,7 @@ try {
     $pdo = getDatabaseConnection();
     ensureLoginAttemptsTable($pdo);
     ensureUserProfileColumns($pdo);
+    ensureApprovalColumns($pdo);
 
     $pdo->beginTransaction();
 
@@ -91,7 +92,7 @@ try {
     }
 
     $userQuery = $pdo->prepare(
-        'SELECT id, role, id_number, firstname, middlename, lastname, username, email, contact_number, address, profile_image_path, password_hash
+        'SELECT id, role, id_number, firstname, middlename, lastname, username, email, contact_number, address, profile_image_path, password_hash, is_verified, approval_status
          FROM users
          WHERE LOWER(username) = :identifier OR LOWER(email) = :identifier
          LIMIT 1'
@@ -158,6 +159,8 @@ try {
             'contactNumber' => $user['contact_number'] !== null ? (string) $user['contact_number'] : null,
             'address' => $user['address'] !== null ? (string) $user['address'] : null,
             'profileImageUrl' => $user['profile_image_path'] !== null ? (string) $user['profile_image_path'] : null,
+            'isVerified' => (int) $user['is_verified'] === 1,
+            'approvalStatus' => $user['approval_status'] ?? 'pending',
         ],
     ]);
 } catch (PDOException $exception) {

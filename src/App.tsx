@@ -8,6 +8,8 @@ import NotFound from "./pages/NotFound";
 import SignUp from "./pages/auth/SignUp";
 import Login from "./pages/auth/Login";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import VerificationCode from "./pages/auth/VerificationCode";
+import AccountStatus from "./pages/auth/AccountStatus";
 import ApprovalDashboard from "./pages/ApprovalDashboard"
 import BudgetManagement from "./pages/BudgetManagement"
 import AdminCreate from "./pages/admin/AdminCreate";
@@ -48,6 +50,7 @@ export default function App() {
         <Route path="auth/login" element={<Login />} />
         <Route path="admin-create" element={<AdminCreate />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="auth/verification-code" element={<VerificationCode />} />
         <Route path="*" element={<NotFound />} />
       </Route>
       <Route path="/dashboard" element={<Dashboard />} />
@@ -55,6 +58,7 @@ export default function App() {
       <Route path="/my-requests" element={<MyRequests />} />
       <Route path="/approval" element={<ApprovalDashboard />} />
       <Route path="/notification" element={<Notification />} />
+      <Route path="/custodian/account-status" element={<AccountStatus />} />
       <Route path="/custodian/dashboard" element={<CustodianDashboard />} />
       <Route path="/custodian/supply" element={<CustodianSupplyManagement />} />
       <Route path="/custodian/stock" element={<CustodianStockManagement />} />

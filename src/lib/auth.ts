@@ -1,8 +1,12 @@
 export type AuthRole = "Administrator" | "Property Custodian" | "Faculty Staff"
 
+export type ApprovalStatus = "pending" | "approved" | "rejected"
+
 export type AuthUser = {
   id: number
   role: AuthRole
+  isVerified: boolean
+  approvalStatus: ApprovalStatus
   idNumber?: string | null
   firstname: string
   middlename: string | null
@@ -117,4 +121,20 @@ export const getUserDisplayName = (user: AuthUser | null, fallbackRole: AuthRole
 
   const nameParts = [user.firstname, user.middlename, user.lastname].filter(Boolean)
   return nameParts.join(" ")
+}
+
+export const getAccountStatusPath = () => "/custodian/account-status"
+
+export const getVerificationPath = () => "/auth/verification-code"
+
+export const isUserFullyApproved = (user: AuthUser): boolean => {
+  return user.isVerified === true && user.approvalStatus === "approved"
+}
+
+export const needsVerification = (user: AuthUser): boolean => {
+  return user.isVerified === false
+}
+
+export const needsApproval = (user: AuthUser): boolean => {
+  return user.isVerified === true && user.approvalStatus !== "approved"
 }

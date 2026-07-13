@@ -9,7 +9,7 @@ import {
   EyeSlashIcon
 } from "@heroicons/react/24/outline"
 import { api } from "../../lib/api"
-import { getDashboardPath, getStoredAuthUser, setStoredAuthUser, type AuthUser } from "../../lib/auth"
+import { getDashboardPath, getStoredAuthUser, setStoredAuthUser, getAccountStatusPath, getVerificationPath, type AuthUser } from "../../lib/auth"
 
 const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY?.trim() ?? ""
 const shouldUseRecaptcha = Boolean(recaptchaSiteKey)
@@ -44,6 +44,20 @@ export default function Login() {
     const storedUser = getStoredAuthUser()
 
     if (!storedUser) {
+      return
+    }
+
+    // Redirect based on verification and approval status
+    if (storedUser.isVerified === false) {
+      navigate(getVerificationPath(), {
+        replace: true,
+        state: { userId: storedUser.id, email: storedUser.email },
+      })
+      return
+    }
+
+    if (storedUser.approvalStatus !== "approved") {
+      navigate(getAccountStatusPath(), { replace: true })
       return
     }
 
@@ -115,6 +129,21 @@ export default function Login() {
       setAttemptsRemaining(null)
       setLockoutSeconds(0)
       setStoredAuthUser(user)
+
+      // Check verification and approval status before navigating
+      if (user.isVerified === false) {
+        navigate(getVerificationPath(), {
+          replace: true,
+          state: { userId: user.id, email: user.email },
+        })
+        return
+      }
+
+      if (user.approvalStatus !== "approved") {
+        navigate(getAccountStatusPath(), { replace: true })
+        return
+      }
+
       const destination = getDashboardPath(user.role)
 
       navigate(destination, {

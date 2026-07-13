@@ -1,0 +1,159 @@
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/config/user_schema.php';
+require_once __DIR__ . '/config/cors.php';
+require_once __DIR__ . '/config/email.php';
+
+configureCors(['POST']);
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    jsonResponse(405, [
+        'success' => false,
+        'message' => 'Method not allowed.',
+    ]);
+}
+
+$rawInput = file_get_contents('php://input');
+$payload = json_decode($rawInput ?: '', true);
+
+if (!is_array($payload)) {
+    jsonResponse(400, [
+        'success' => false,
+        'message' => 'Invalid request payload.',
+    ]);
+}
+
+$userId = isset($payload['userId']) ? (int) $payload['userId'] : 0;
+
+if ($userId <= 0) {
+    jsonResponse(422, [
+        'success' => false,
+        'message' => 'Invalid user ID.',
+    ]);
+}
+
+try {
+    $pdo = getDatabaseConnection();
+    ensureUserProfileColumns($pdo);
+    ensureApprovalColumns($pdo);
+    ensureVerificationTables($pdo);
+
+    // Check if user exists and is not yet verified
+    $userQuery = $pdo->prepare(
+        'SELECT id, is_verified, firstname, middlename, lastname, email
+         FROM users WHERE id = :id LIMIT 1'
+    );
+    $userQuery->execute(['id' => $userId]);
+    $user = $userQuery->fetch();
+
+    if (!$user) {
+        jsonResponse(404, [
+            'success' => false,
+            'message' => 'User not found.',
+        ]);
+    }
+
+    if ((int) $user['is_verified'] === 1) {
+        jsonResponse(200, [
+            'success' => true,
+            'message' => 'Account is already verified.',
+        ]);
+    }
+
+    // Invalidate all existing unused codes for this user
+    $invalidate = $pdo->prepare(
+        'UPDATE email_verifications SET used = 1 WHERE user_id = :user_id AND used = 0'
+    );
+    $invalidate->execute(['user_id' => $userId]);
+
+    // Generate new 6-digit verification code
+    $verificationCode = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $expiresAt = (new DateTimeImmutable())->modify('+5 minutes')->format('Y-m-d H:i:s');
+
+    $insertCode = $pdo->prepare(
+        'INSERT INTO email_verifications (user_id, code, expires_at)
+         VALUES (:user_id, :code, :expires_at)'
+    );
+    $insertCode->execute([
+        'user_id' => $userId,
+        'code' => $verificationCode,
+        'expires_at' => $expiresAt,
+    ]);
+
+    // Send verification email
+    $fullName = trim(implode(' ', array_filter([
+        (string) $user['firstname'],
+        $user['middlename'] !== null ? (string) $user['middlename'] : '',
+        (string) $user['lastname'],
+    ])));
+
+    sendVerificationEmail((string) $user['email'], $fullName, $verificationCode);
+
+    jsonResponse(200, [
+        'success' => true,
+        'message' => 'A new verification code has been sent to your email.',
+    ]);
+} catch (PDOException $exception) {
+    jsonResponse(500, [
+        'success' => false,
+        'message' => 'Unable to resend verification code right now.',
+    ]);
+}
+
+function sendVerificationEmail(string $toEmail, string $toName, string $code): void
+{
+    $subject = 'Verify Your SFC-G Supply Management Account';
+
+    $htmlBody = sprintf(
+        '<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background-color:#f5f0eb;font-family:\'Segoe UI\',Tahoma,Geneva,Verdana,sans-serif;">
+  <table width="100%%" cellpadding="0" cellspacing="0" style="background-color:#f5f0eb;padding:40px 20px;">
+    <tr><td align="center">
+      <table width="480" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#8B5E3C,#A0522D);padding:32px;text-align:center;">
+          <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:900;letter-spacing:-0.5px;">SFC-G Supply Management</h1>
+          <p style="color:rgba(255,255,255,0.85);margin:8px 0 0;font-size:14px;">Email Verification</p>
+        </td></tr>
+        <tr><td style="padding:40px 32px;text-align:center;">
+          <p style="color:#5C4033;font-size:16px;margin:0 0 8px;">Hello %s,</p>
+          <p style="color:#5C4033;font-size:14px;margin:0 0 32px;line-height:1.6;">Here is your new verification code.</p>
+          <div style="background-color:#f5f0eb;border-radius:16px;padding:24px;margin:0 0 32px;">
+            <p style="color:#8B5E3C;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin:0 0 12px;">Your Verification Code</p>
+            <p style="color:#2D1810;font-size:42px;font-weight:900;letter-spacing:12px;margin:0;font-family:\'Courier New\',monospace;">%s</p>
+          </div>
+          <p style="color:#999;font-size:13px;margin:0 0 8px;">This code expires in <strong style="color:#A0522D;">5 minutes</strong>.</p>
+          <p style="color:#999;font-size:12px;margin:0;">If you did not request this code, please ignore this email.</p>
+        </td></tr>
+        <tr><td style="background-color:#f5f0eb;padding:20px 32px;text-align:center;">
+          <p style="color:#999;font-size:11px;margin:0;">&copy; %d SFC-G Supply Management System. All rights reserved.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>',
+        htmlspecialchars($toName !== '' ? $toName : 'User'),
+        $code,
+        (int) date('Y')
+    );
+
+    $textBody = sprintf(
+        "Hello %s,\n\nYour new verification code is: %s\n\nThis code expires in 5 minutes.\n\nIf you did not request this code, please ignore this email.",
+        $toName !== '' ? $toName : 'User',
+        $code
+    );
+
+    sendSmtpMail($toEmail, $toName !== '' ? $toName : $toEmail, $subject, $htmlBody, $textBody);
+}
+
+function jsonResponse(int $statusCode, array $body): void
+{
+    http_response_code($statusCode);
+    echo json_encode($body, JSON_UNESCAPED_SLASHES);
+    exit;
+}
