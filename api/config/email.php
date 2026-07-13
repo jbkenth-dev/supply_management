@@ -32,7 +32,9 @@ function sendSmtpMail(string $toEmail, string $toName, string $subject, string $
     // than raw SMTP when credentials may be stale.
     if ($config['api_key'] !== '') {
         try {
-            return sendViaBrevoApi($config, $toEmail, $toName, $subject, $htmlBody, $textBody);
+            $result = sendViaBrevoApi($config, $toEmail, $toName, $subject, $htmlBody, $textBody);
+            logEmailSuccess($toEmail, $subject, $config, 'brevo-api');
+            return $result;
         } catch (Throwable $exception) {
             logEmailError(
                 $toEmail,
@@ -50,6 +52,7 @@ function sendSmtpMail(string $toEmail, string $toName, string $subject, string $
     if (hasUsableSmtpConfig($config)) {
         try {
             sendViaSmtpRelay($config, $toEmail, $toName, $subject, $htmlBody, $textBody);
+            logEmailSuccess($toEmail, $subject, $config, 'smtp');
             return true;
         } catch (Throwable $exception) {
             $smtpException = $exception;
@@ -163,6 +166,58 @@ function sendViaBrevoApi(array $config, string $toEmail, string $toName, string 
         throw new RuntimeException('Unable to encode the Brevo email payload.');
     }
 
+    // Prefer cURL — shared hosting (Awardspace) often disables
+    // allow_url_fopen which makes file_get_contents silently fail.
+    if (function_exists('curl_init')) {
+        return sendViaBrevoApiCurl($config, $jsonPayload);
+    }
+
+    return sendViaBrevoApiStream($config, $jsonPayload);
+}
+
+function sendViaBrevoApiCurl(array $config, string $jsonPayload): bool
+{
+    $timeout = max(5, (int) $config['timeout']);
+
+    $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $jsonPayload,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => $timeout,
+        CURLOPT_CONNECTTIMEOUT => $timeout,
+        CURLOPT_HTTPHEADER     => [
+            'Content-Type: application/json',
+            'Accept: application/json',
+            'api-key: ' . $config['api_key'],
+        ],
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+    ]);
+
+    $response  = curl_exec($ch);
+    $httpCode  = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    $curlErrno = curl_errno($ch);
+    curl_close($ch);
+
+    if ($response === false || $curlErrno !== 0) {
+        $GLOBALS['__last_email_exception'] = $curlError ?: 'cURL request failed.';
+        throw new RuntimeException('Brevo API cURL failed: ' . ($curlError ?: 'unknown error'));
+    }
+
+    if ($httpCode < 200 || $httpCode >= 300) {
+        $GLOBALS['__last_email_exception'] = trim($response);
+        throw new RuntimeException(
+            'Brevo API returned status ' . $httpCode . ($response ? ': ' . trim($response) : '.')
+        );
+    }
+
+    return true;
+}
+
+function sendViaBrevoApiStream(array $config, string $jsonPayload): bool
+{
     $headers = implode("\r\n", [
         'Content-Type: application/json',
         'Accept: application/json',
@@ -171,15 +226,15 @@ function sendViaBrevoApi(array $config, string $toEmail, string $toName, string 
 
     $context = stream_context_create([
         'http' => [
-            'method' => 'POST',
-            'header' => $headers,
-            'content' => $jsonPayload,
-            'timeout' => max(5, (int) $config['timeout']),
-            'ignore_errors' => true,
+            'method'          => 'POST',
+            'header'          => $headers,
+            'content'         => $jsonPayload,
+            'timeout'         => max(5, (int) $config['timeout']),
+            'ignore_errors'   => true,
         ],
         'ssl' => [
-            'verify_peer' => false,
-            'verify_peer_name' => false,
+            'verify_peer'       => false,
+            'verify_peer_name'  => false,
             'allow_self_signed' => true,
         ],
     ]);
@@ -350,6 +405,30 @@ function logEmailError(
         $errorMessage,
         $errorNumber,
         $smtpResponse ?? '',
+        PHP_EOL
+    );
+
+    @file_put_contents($logDirectory . '/email.log', $logLine, FILE_APPEND);
+}
+
+function logEmailSuccess(
+    string $recipient,
+    string $subject,
+    array $config,
+    string $transport = 'smtp'
+): void {
+    $logDirectory = dirname(__DIR__, 2) . '/api/logs';
+
+    if (!is_dir($logDirectory) && !mkdir($logDirectory, 0775, true) && !is_dir($logDirectory)) {
+        return;
+    }
+
+    $logLine = sprintf(
+        "[%s] SUCCESS transport=%s recipient=%s subject=\"%s\"%s",
+        date('Y-m-d H:i:s'),
+        $transport,
+        $recipient,
+        str_replace('"', '\"', $subject),
         PHP_EOL
     );
 
