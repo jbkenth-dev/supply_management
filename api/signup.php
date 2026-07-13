@@ -5,7 +5,6 @@ declare(strict_types=1);
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/user_schema.php';
 require_once __DIR__ . '/config/cors.php';
-require_once __DIR__ . '/config/email.php';
 
 if (!function_exists('ensureApprovalColumns')) {
     function ensureApprovalColumns(PDO $pdo): void
@@ -291,5 +290,7 @@ function sendVerificationEmail(string $toEmail, string $toName, string $code): v
         $code
     );
 
-    sendSmtpMail($toEmail, $toName !== '' ? $toName : $toEmail, $subject, $htmlBody, $textBody);
+    if (function_exists('sendSmtpMail')) {
+        sendSmtpMail($toEmail, $toName !== '' ? $toName : $toEmail, $subject, $htmlBody, $textBody);
+    }
 }

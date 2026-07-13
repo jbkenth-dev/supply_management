@@ -172,7 +172,13 @@ export default function VerificationCode() {
         body: JSON.stringify({ userId, code: fullCode }),
       })
 
-      const result = await response.json()
+      let result: any
+      try {
+        result = await response.json()
+      } catch {
+        setError("Server error. Please try again.")
+        return
+      }
 
       if (!response.ok) {
         setError(result.message ?? "Invalid verification code. Please try again.")
@@ -219,7 +225,13 @@ export default function VerificationCode() {
         body: JSON.stringify({ userId }),
       })
 
-      const result = await response.json()
+      let result: any
+      try {
+        result = await response.json()
+      } catch {
+        setError("Server error. Please try again.")
+        return
+      }
 
       if (!response.ok) {
         setError(result.message ?? "Unable to resend verification code.")

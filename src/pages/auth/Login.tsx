@@ -119,7 +119,13 @@ export default function Login() {
         })
       })
 
-      const result = await response.json()
+      let result: any
+      try {
+        result = await response.json()
+      } catch {
+        setServerMessage("Server error. Please try again.")
+        return
+      }
 
       if (!response.ok) {
         setErrors(result.errors ?? {})
@@ -174,7 +180,7 @@ export default function Login() {
         }
       })
     } catch {
-      setServerMessage("Unable to connect to the PHP login service. Make sure Apache and MySQL are running in XAMPP.")
+      setServerMessage("Unable to connect to the login service. Please try again later.")
     } finally {
       setIsLoading(false)
     }

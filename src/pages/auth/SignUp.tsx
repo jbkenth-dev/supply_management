@@ -72,7 +72,14 @@ const SignUp = () => {
         body: JSON.stringify(formData),
       });
 
-      const result = await response.json();
+      let result: any;
+      try {
+        result = await response.json();
+      } catch {
+        setServerMessage('Server error. Please try again.');
+        setIsSuccess(false);
+        return;
+      }
 
       if (!response.ok) {
         setErrors(result.errors ?? {});
@@ -108,7 +115,7 @@ const SignUp = () => {
       });
       setCaptcha(null);
     } catch {
-      setServerMessage('Unable to connect to the PHP signup service. Make sure Apache and MySQL are running in XAMPP.');
+      setServerMessage('Unable to connect to the signup service. Please try again later.');
       setIsSuccess(false);
     } finally {
       setIsSubmitting(false);
