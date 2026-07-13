@@ -103,7 +103,7 @@ const SignUp = () => {
       setTimeout(() => {
         navigate('/auth/verification-code', {
           state: {
-            userId: result.userId,
+            pendingId: result.pendingId,
             email: result.email,
             role: formData.role,
           },

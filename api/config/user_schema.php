@@ -58,3 +58,25 @@ function ensureVerificationTables(PDO $pdo): void
     );
 }
 
+function ensurePendingRegistrationsTable(PDO $pdo): void
+{
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS pending_registrations (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            role VARCHAR(60) NOT NULL,
+            id_number VARCHAR(50) NOT NULL,
+            firstname VARCHAR(100) NOT NULL,
+            middlename VARCHAR(100) DEFAULT NULL,
+            lastname VARCHAR(100) NOT NULL,
+            username VARCHAR(30) NOT NULL,
+            email VARCHAR(150) NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            code VARCHAR(6) NOT NULL,
+            expires_at DATETIME NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_pr_email (email),
+            INDEX idx_pr_code (email, code)
+        )'
+    );
+}
+

@@ -25,8 +25,10 @@ export default function VerificationCode() {
   const location = useLocation()
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
-  const state = location.state as { userId?: number; email?: string; role?: AuthRole } | null
-  const userId = state?.userId
+  const state = location.state as { pendingId?: number; userId?: number; email?: string; role?: AuthRole } | null
+  const pendingId = state?.pendingId ?? null
+  const userId = state?.userId ?? null
+  const regId = pendingId ?? userId
   const email = state?.email
 
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(""))
@@ -39,12 +41,12 @@ export default function VerificationCode() {
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
 
-  // Redirect if no userId/email
+  // Redirect if no regId/email
   useEffect(() => {
-    if (!userId || !email) {
+    if (!regId || !email) {
       navigate("/auth/signup", { replace: true })
     }
-  }, [userId, email, navigate])
+  }, [regId, email, navigate])
 
   // Countdown timer
   useEffect(() => {
@@ -173,7 +175,7 @@ export default function VerificationCode() {
       const response = await api("/api/verify-email.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, code: fullCode }),
+        body: JSON.stringify({ pendingId: pendingId ?? undefined, userId: userId ?? undefined, code: fullCode }),
       })
 
       let result: any
@@ -226,7 +228,7 @@ export default function VerificationCode() {
       const response = await api("/api/resend-verification.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ pendingId: pendingId ?? undefined, userId: userId ?? undefined }),
       })
 
       let result: any
@@ -255,7 +257,7 @@ export default function VerificationCode() {
     }
   }
 
-  if (!userId || !email) {
+  if (!regId || !email) {
     return null
   }
 

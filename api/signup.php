@@ -58,6 +58,30 @@ if (!function_exists('ensureVerificationTables')) {
     }
 }
 
+if (!function_exists('ensurePendingRegistrationsTable')) {
+    function ensurePendingRegistrationsTable(PDO $pdo): void
+    {
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS pending_registrations (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                role VARCHAR(60) NOT NULL,
+                id_number VARCHAR(50) NOT NULL,
+                firstname VARCHAR(100) NOT NULL,
+                middlename VARCHAR(100) DEFAULT NULL,
+                lastname VARCHAR(100) NOT NULL,
+                username VARCHAR(30) NOT NULL,
+                email VARCHAR(150) NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                code VARCHAR(6) NOT NULL,
+                expires_at DATETIME NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_pr_email (email),
+                INDEX idx_pr_code (email, code)
+            )'
+        );
+    }
+}
+
 configureCors(['POST']);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -145,33 +169,34 @@ try {
     ensureUserProfileColumns($pdo);
     ensureApprovalColumns($pdo);
     ensureVerificationTables($pdo);
+    ensurePendingRegistrationsTable($pdo);
 
+    // Check for duplicates in both users and pending_registrations
     $duplicateCheck = $pdo->prepare(
-        'SELECT id_number, username, email
-         FROM users
-         WHERE id_number = :id_number OR username = :username OR email = :email
-         LIMIT 1'
+        '(SELECT id_number, username, email FROM users WHERE id_number = :id_number OR username = :username OR email = :email LIMIT 1)
+         UNION ALL
+         (SELECT id_number, username, email FROM pending_registrations WHERE id_number = :id_number OR username = :username OR email = :email LIMIT 1)'
     );
     $duplicateCheck->execute([
         'id_number' => $idNumber,
         'username' => $username,
         'email' => $email,
     ]);
-    $existingUser = $duplicateCheck->fetch();
+    $existingRows = $duplicateCheck->fetchAll();
 
-    if ($existingUser) {
+    if ($existingRows !== []) {
         $duplicateErrors = [];
 
-        if (strcasecmp((string) ($existingUser['id_number'] ?? ''), $idNumber) === 0) {
-            $duplicateErrors['idNumber'] = 'ID number is already registered.';
-        }
-
-        if (strcasecmp((string) $existingUser['username'], $username) === 0) {
-            $duplicateErrors['username'] = 'Username is already taken.';
-        }
-
-        if (strcasecmp((string) $existingUser['email'], $email) === 0) {
-            $duplicateErrors['email'] = 'Email is already registered.';
+        foreach ($existingRows as $existingUser) {
+            if (strcasecmp((string) ($existingUser['id_number'] ?? ''), $idNumber) === 0) {
+                $duplicateErrors['idNumber'] = 'ID number is already registered.';
+            }
+            if (strcasecmp((string) $existingUser['username'], $username) === 0) {
+                $duplicateErrors['username'] = 'Username is already taken.';
+            }
+            if (strcasecmp((string) $existingUser['email'], $email) === 0) {
+                $duplicateErrors['email'] = 'Email is already registered.';
+            }
         }
 
         jsonResponse(409, [
@@ -183,12 +208,16 @@ try {
 
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-    $insertUser = $pdo->prepare(
-        'INSERT INTO users (role, id_number, firstname, middlename, lastname, username, email, password_hash, is_verified, approval_status)
-         VALUES (:role, :id_number, :firstname, :middlename, :lastname, :username, :email, :password_hash, 0, \'pending\')'
-    );
+    // Generate 6-digit verification code
+    $verificationCode = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $expiresAt = (new DateTimeImmutable())->modify('+5 minutes')->format('Y-m-d H:i:s');
 
-    $insertUser->execute([
+    // Store in pending_registrations (NOT users)
+    $insertPending = $pdo->prepare(
+        'INSERT INTO pending_registrations (role, id_number, firstname, middlename, lastname, username, email, password_hash, code, expires_at)
+         VALUES (:role, :id_number, :firstname, :middlename, :lastname, :username, :email, :password_hash, :code, :expires_at)'
+    );
+    $insertPending->execute([
         'role' => $role,
         'id_number' => $idNumber,
         'firstname' => $firstname,
@@ -197,23 +226,11 @@ try {
         'username' => $username,
         'email' => $email,
         'password_hash' => $passwordHash,
-    ]);
-
-    $newUserId = (int) $pdo->lastInsertId();
-
-    // Generate 6-digit verification code
-    $verificationCode = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-    $expiresAt = (new DateTimeImmutable())->modify('+5 minutes')->format('Y-m-d H:i:s');
-
-    $insertCode = $pdo->prepare(
-        'INSERT INTO email_verifications (user_id, code, expires_at)
-         VALUES (:user_id, :code, :expires_at)'
-    );
-    $insertCode->execute([
-        'user_id' => $newUserId,
         'code' => $verificationCode,
         'expires_at' => $expiresAt,
     ]);
+
+    $pendingId = (int) $pdo->lastInsertId();
 
     // Send verification email
     $fullName = trim(implode(' ', array_filter([$firstname, $middlename !== '' ? $middlename : null, $lastname])));
@@ -221,8 +238,8 @@ try {
 
     jsonResponse(201, [
         'success' => true,
-        'message' => 'Account created successfully. Please check your email for the verification code.',
-        'userId' => $newUserId,
+        'message' => 'A verification code has been sent to your email. Please verify to complete registration.',
+        'pendingId' => $pendingId,
         'email' => $email,
     ]);
 } catch (PDOException $exception) {

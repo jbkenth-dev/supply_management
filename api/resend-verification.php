@@ -6,6 +6,7 @@ require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/user_schema.php';
 require_once __DIR__ . '/config/cors.php';
 
+// Fallback definitions
 if (!function_exists('ensureApprovalColumns')) {
     function ensureApprovalColumns(PDO $pdo): void
     {
@@ -58,6 +59,30 @@ if (!function_exists('ensureVerificationTables')) {
     }
 }
 
+if (!function_exists('ensurePendingRegistrationsTable')) {
+    function ensurePendingRegistrationsTable(PDO $pdo): void
+    {
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS pending_registrations (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                role VARCHAR(60) NOT NULL,
+                id_number VARCHAR(50) NOT NULL,
+                firstname VARCHAR(100) NOT NULL,
+                middlename VARCHAR(100) DEFAULT NULL,
+                lastname VARCHAR(100) NOT NULL,
+                username VARCHAR(30) NOT NULL,
+                email VARCHAR(150) NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                code VARCHAR(6) NOT NULL,
+                expires_at DATETIME NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_pr_email (email),
+                INDEX idx_pr_code (email, code)
+            )'
+        );
+    }
+}
+
 configureCors(['POST']);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -77,12 +102,13 @@ if (!is_array($payload)) {
     ]);
 }
 
+$pendingId = isset($payload['pendingId']) ? (int) $payload['pendingId'] : 0;
 $userId = isset($payload['userId']) ? (int) $payload['userId'] : 0;
 
-if ($userId <= 0) {
+if ($pendingId <= 0 && $userId <= 0) {
     jsonResponse(422, [
         'success' => false,
-        'message' => 'Invalid user ID.',
+        'message' => 'Invalid registration ID.',
     ]);
 }
 
@@ -91,57 +117,83 @@ try {
     ensureUserProfileColumns($pdo);
     ensureApprovalColumns($pdo);
     ensureVerificationTables($pdo);
+    ensurePendingRegistrationsTable($pdo);
 
-    // Check if user exists and is not yet verified
-    $userQuery = $pdo->prepare(
-        'SELECT id, is_verified, firstname, middlename, lastname, email
-         FROM users WHERE id = :id LIMIT 1'
-    );
-    $userQuery->execute(['id' => $userId]);
-    $user = $userQuery->fetch();
+    // Look up the pending registration (new flow) OR existing user (old flow)
+    $pending = null;
 
-    if (!$user) {
+    if ($pendingId > 0) {
+        $pendingQuery = $pdo->prepare(
+            'SELECT id, firstname, middlename, lastname, email
+             FROM pending_registrations WHERE id = :id LIMIT 1'
+        );
+        $pendingQuery->execute(['id' => $pendingId]);
+        $pending = $pendingQuery->fetch();
+    }
+
+    if (!$pending && $userId > 0) {
+        // Old flow: look up existing unverified user
+        $userQuery = $pdo->prepare(
+            'SELECT id, firstname, middlename, lastname, email, is_verified
+             FROM users WHERE id = :id LIMIT 1'
+        );
+        $userQuery->execute(['id' => $userId]);
+        $existingUser = $userQuery->fetch();
+
+        if ($existingUser && (int) $existingUser['is_verified'] === 0) {
+            // Invalidate old codes
+            $invalidate = $pdo->prepare('UPDATE email_verifications SET used = 1 WHERE user_id = :user_id AND used = 0');
+            $invalidate->execute(['user_id' => $userId]);
+
+            $verificationCode = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $expiresAt = (new DateTimeImmutable())->modify('+5 minutes')->format('Y-m-d H:i:s');
+
+            $insertCode = $pdo->prepare('INSERT INTO email_verifications (user_id, code, expires_at) VALUES (:user_id, :code, :expires_at)');
+            $insertCode->execute(['user_id' => $userId, 'code' => $verificationCode, 'expires_at' => $expiresAt]);
+
+            $fullName = trim(implode(' ', array_filter([
+                (string) $existingUser['firstname'],
+                $existingUser['middlename'] !== null ? (string) $existingUser['middlename'] : '',
+                (string) $existingUser['lastname'],
+            ])));
+
+            sendVerificationEmail((string) $existingUser['email'], $fullName, $verificationCode);
+
+            jsonResponse(200, ['success' => true, 'message' => 'A new verification code has been sent to your email.']);
+        }
+
+        jsonResponse(404, ['success' => false, 'message' => 'User not found.']);
+    }
+
+    if (!$pending) {
         jsonResponse(404, [
             'success' => false,
-            'message' => 'User not found.',
+            'message' => 'Registration not found. Please sign up again.',
         ]);
     }
-
-    if ((int) $user['is_verified'] === 1) {
-        jsonResponse(200, [
-            'success' => true,
-            'message' => 'Account is already verified.',
-        ]);
-    }
-
-    // Invalidate all existing unused codes for this user
-    $invalidate = $pdo->prepare(
-        'UPDATE email_verifications SET used = 1 WHERE user_id = :user_id AND used = 0'
-    );
-    $invalidate->execute(['user_id' => $userId]);
 
     // Generate new 6-digit verification code
     $verificationCode = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     $expiresAt = (new DateTimeImmutable())->modify('+5 minutes')->format('Y-m-d H:i:s');
 
-    $insertCode = $pdo->prepare(
-        'INSERT INTO email_verifications (user_id, code, expires_at)
-         VALUES (:user_id, :code, :expires_at)'
+    // Update the pending registration with new code
+    $updatePending = $pdo->prepare(
+        'UPDATE pending_registrations SET code = :code, expires_at = :expires_at WHERE id = :id'
     );
-    $insertCode->execute([
-        'user_id' => $userId,
+    $updatePending->execute([
         'code' => $verificationCode,
         'expires_at' => $expiresAt,
+        'id' => $pendingId,
     ]);
 
     // Send verification email
     $fullName = trim(implode(' ', array_filter([
-        (string) $user['firstname'],
-        $user['middlename'] !== null ? (string) $user['middlename'] : '',
-        (string) $user['lastname'],
+        (string) $pending['firstname'],
+        $pending['middlename'] !== null ? (string) $pending['middlename'] : '',
+        (string) $pending['lastname'],
     ])));
 
-    sendVerificationEmail((string) $user['email'], $fullName, $verificationCode);
+    sendVerificationEmail((string) $pending['email'], $fullName, $verificationCode);
 
     jsonResponse(200, [
         'success' => true,
