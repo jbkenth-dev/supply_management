@@ -174,6 +174,11 @@ function sendViaBrevoApi(array $config, string $toEmail, string $toName, string 
             'timeout' => max(5, (int) $config['timeout']),
             'ignore_errors' => true,
         ],
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'allow_self_signed' => true,
+        ],
     ]);
 
     $response = @file_get_contents('https://api.brevo.com/v3/smtp/email', false, $context);

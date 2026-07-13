@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+// Suppress any stray output (PHP notices/warnings) so the JSON response is always clean.
+ob_start();
+
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/user_schema.php';
 require_once __DIR__ . '/config/cors.php';
@@ -297,6 +300,11 @@ try {
 
 function jsonResponse(int $statusCode, array $body): void
 {
+    // Discard any unexpected output so the response is always clean JSON.
+    if (ob_get_level()) {
+        ob_clean();
+    }
+
     http_response_code($statusCode);
     echo json_encode($body, JSON_UNESCAPED_SLASHES);
     exit;

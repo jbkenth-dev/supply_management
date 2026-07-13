@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+ob_start();
+
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/user_schema.php';
 require_once __DIR__ . '/config/cors.php';
@@ -292,10 +294,19 @@ try {
         'success' => false,
         'message' => 'Unable to verify email right now.',
     ]);
+} catch (Throwable $exception) {
+    jsonResponse(500, [
+        'success' => false,
+        'message' => 'An unexpected error occurred. Please try again.',
+    ]);
 }
 
 function jsonResponse(int $statusCode, array $body): void
 {
+    if (ob_get_level()) {
+        ob_clean();
+    }
+
     http_response_code($statusCode);
     echo json_encode($body, JSON_UNESCAPED_SLASHES);
     exit;
