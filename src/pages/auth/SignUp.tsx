@@ -104,6 +104,23 @@ const SignUp = () => {
       setIsSuccess(true);
       setServerMessage(result.message ?? 'Account created successfully.');
 
+      // Send verification email via Vercel serverless function
+      // (Awardspace blocks all outbound connections).
+      if (result.code) {
+        api('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: result.email,
+            name: result.name,
+            code: result.code,
+            type: 'verification',
+          }),
+        }).catch(() => {
+          // Email failure is non-fatal — user can use "Resend Code"
+        });
+      }
+
       // Redirect to verification page after a brief moment
       setTimeout(() => {
         navigate('/auth/verification-code', {
@@ -111,7 +128,6 @@ const SignUp = () => {
             pendingId: result.pendingId,
             email: result.email,
             role: formData.role,
-            // Pass full form data so "Change Email" can pre-fill the signup form
             signupFormData: {
               role: formData.role,
               idNumber: formData.idNumber,

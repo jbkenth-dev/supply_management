@@ -245,6 +245,23 @@ export default function VerificationCode() {
         return
       }
 
+      // Send verification email via Vercel serverless function
+      // (Awardspace blocks all outbound connections).
+      if (result.code) {
+        api("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: result.email ?? email,
+            name: result.name ?? "",
+            code: result.code,
+            type: "resend",
+          }),
+        }).catch(() => {
+          // Email failure is non-fatal — the code was regenerated
+        })
+      }
+
       // Reset the timer and code
       setRemainingSeconds(EXPIRY_SECONDS)
       setIsExpired(false)

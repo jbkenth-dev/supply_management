@@ -159,13 +159,18 @@ try {
                 (string) $existingUser['lastname'],
             ])));
 
-            $emailSent = sendVerificationEmail((string) $existingUser['email'], $fullName, $verificationCode);
+            try {
+                sendVerificationEmail((string) $existingUser['email'], $fullName, $verificationCode);
+            } catch (Throwable $e) {
+                // Ignore — frontend will send via Vercel function.
+            }
 
             jsonResponse(200, [
                 'success' => true,
-                'message' => $emailSent
-                    ? 'A new verification code has been sent to your email.'
-                    : 'A new verification code was generated but the email could not be sent. Please try again.',
+                'message' => 'A new verification code has been sent to your email.',
+                'code' => $verificationCode,
+                'name' => $fullName,
+                'email' => (string) $existingUser['email'],
             ]);
         }
 
@@ -200,13 +205,18 @@ try {
         (string) $pending['lastname'],
     ])));
 
-    $emailSent = sendVerificationEmail((string) $pending['email'], $fullName, $verificationCode);
+    try {
+        sendVerificationEmail((string) $pending['email'], $fullName, $verificationCode);
+    } catch (Throwable $e) {
+        // Ignore — frontend will send via Vercel function.
+    }
 
     jsonResponse(200, [
         'success' => true,
-        'message' => $emailSent
-            ? 'A new verification code has been sent to your email.'
-            : 'A new verification code was generated but the email could not be sent. Please try again.',
+        'message' => 'A new verification code has been sent to your email.',
+        'code' => $verificationCode,
+        'name' => $fullName,
+        'email' => (string) $pending['email'],
     ]);
 } catch (PDOException $exception) {
     jsonResponse(500, [

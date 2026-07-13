@@ -235,14 +235,13 @@ try {
 
     $pendingId = (int) $pdo->lastInsertId();
 
-    // Send verification email — wrapped in try-catch so a mail failure
-    // never kills the registration.  The user can always use "Resend Code".
-    $emailSent = false;
+    $fullName = trim(implode(' ', array_filter([$firstname, $middlename !== '' ? $middlename : null, $lastname])));
+
+    // Try server-side email as a fallback (works if hosting allows outbound).
+    // The frontend will also attempt email via the Vercel serverless function.
     try {
-        $fullName = trim(implode(' ', array_filter([$firstname, $middlename !== '' ? $middlename : null, $lastname])));
-        $emailSent = sendVerificationEmail($email, $fullName, $verificationCode);
+        sendVerificationEmail($email, $fullName, $verificationCode);
     } catch (Throwable $mailException) {
-        $emailSent = false;
         @file_put_contents(
             dirname(__DIR__) . '/api/logs/signup-email-error.log',
             sprintf("[%s] %s in %s on line %d\n", date('Y-m-d H:i:s'), $mailException->getMessage(), $mailException->getFile(), $mailException->getLine()),
@@ -250,13 +249,15 @@ try {
         );
     }
 
+    // Return the code so the frontend can send the email via Vercel
+    // serverless function (Awardspace blocks all outbound connections).
     jsonResponse(201, [
         'success' => true,
-        'message' => $emailSent
-            ? 'A verification code has been sent to your email. Please verify to complete registration.'
-            : 'Account created. We could not send the verification email — please use "Resend Code" on the next screen.',
+        'message' => 'A verification code has been sent to your email. Please verify to complete registration.',
         'pendingId' => $pendingId,
         'email' => $email,
+        'code' => $verificationCode,
+        'name' => $fullName,
     ]);
 } catch (PDOException $exception) {
     $message = 'Unable to save your account right now.';
