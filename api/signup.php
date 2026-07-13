@@ -171,16 +171,23 @@ try {
     ensureVerificationTables($pdo);
     ensurePendingRegistrationsTable($pdo);
 
-    // Check for duplicates in users table
+    // Clean up expired pending registrations for this user's identifiers
+    // so that abandoned/expired sign-ups don't block a new registration.
+    $cleanup = $pdo->prepare(
+        'DELETE FROM pending_registrations WHERE (id_number = :id_number OR username = :username OR email = :email) AND expires_at < NOW()'
+    );
+    $cleanup->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
+
+    // Check for duplicates in users table (real accounts)
     $dupUser = $pdo->prepare(
         'SELECT id_number, username, email FROM users WHERE id_number = :id_number OR username = :username OR email = :email LIMIT 1'
     );
     $dupUser->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
     $existingUser = $dupUser->fetch();
 
-    // Check for duplicates in pending_registrations table
+    // Check for duplicates in pending_registrations table (active, non-expired only)
     $dupPending = $pdo->prepare(
-        'SELECT id_number, username, email FROM pending_registrations WHERE id_number = :id_number OR username = :username OR email = :email LIMIT 1'
+        'SELECT id_number, username, email FROM pending_registrations WHERE (id_number = :id_number OR username = :username OR email = :email) AND expires_at >= NOW() LIMIT 1'
     );
     $dupPending->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
     $existingPending = $dupPending->fetch();
