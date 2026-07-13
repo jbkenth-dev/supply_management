@@ -219,6 +219,24 @@ export default function ForgotPassword() {
         return
       }
 
+      // Send password reset email via Vercel serverless function
+      // (Awardspace blocks all outbound connections).
+      if (result.code) {
+        api("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: result.email ?? trimmed,
+            name: result.name ?? "",
+            code: result.code,
+            type: "password-reset",
+            expiryMinutes: 10,
+          }),
+        }).catch(() => {
+          // Email failure is non-fatal — the code was saved on the server
+        })
+      }
+
       // Success — advance to step 2
       setRemainingSeconds(CODE_EXPIRY_SECONDS)
       setIsExpired(false)
@@ -361,20 +379,23 @@ export default function ForgotPassword() {
         return
       }
 
-      // Send email via Vercel function (Awardspace blocks outbound)
-      api("/api/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          name: "",
-          code: "resent",
-          type: "password-reset",
-          expiryMinutes: 10,
-        }),
-      }).catch(() => {
-        // Email failure is non-fatal — the code was regenerated on the server
-      })
+      // Send password reset email via Vercel serverless function
+      // (Awardspace blocks all outbound connections).
+      if (result.code) {
+        api("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: result.email ?? email.trim().toLowerCase(),
+            name: result.name ?? "",
+            code: result.code,
+            type: "password-reset",
+            expiryMinutes: 10,
+          }),
+        }).catch(() => {
+          // Email failure is non-fatal — the code was regenerated on the server
+        })
+      }
 
       setRemainingSeconds(CODE_EXPIRY_SECONDS)
       setIsExpired(false)

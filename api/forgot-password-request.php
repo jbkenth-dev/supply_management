@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+// Suppress any stray output (PHP notices/warnings) so the JSON response is always clean.
 ob_start();
 
 require_once __DIR__ . '/config/database.php';
@@ -112,25 +113,43 @@ try {
         (string) $user['lastname'],
     ])));
 
-    // Send the password reset email
-    $emailSent = sendPasswordResetEmail(
-        (string) $user['email'],
-        $fullName !== '' ? $fullName : 'User',
-        $code,
-        $CODE_EXPIRY_MINUTES
-    );
-
-    jsonResponse(200, $genericSuccess);
-} catch (PDOException $exception) {
-    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
-        $pdo->rollBack();
+    // Try server-side email as a fallback (works if hosting allows outbound).
+    // The frontend will also attempt email via the Vercel serverless function.
+    try {
+        sendPasswordResetEmail(
+            (string) $user['email'],
+            $fullName !== '' ? $fullName : 'User',
+            $code,
+            $CODE_EXPIRY_MINUTES
+        );
+    } catch (Throwable $mailException) {
+        @file_put_contents(
+            dirname(__DIR__) . '/api/logs/forgot-password-email-error.log',
+            sprintf("[%s] %s in %s on line %d\n", date('Y-m-d H:i:s'), $mailException->getMessage(), $mailException->getFile(), $mailException->getLine()),
+            FILE_APPEND
+        );
     }
 
+    // Return the code so the frontend can send the email via Vercel
+    // serverless function (Awardspace blocks all outbound connections).
+    jsonResponse(200, [
+        'success' => true,
+        'message' => 'A verification code has been sent to your email.',
+        'email' => (string) $user['email'],
+        'name' => $fullName,
+        'code' => $code,
+    ]);
+} catch (PDOException $exception) {
     jsonResponse(500, [
         'success' => false,
         'message' => 'Unable to process your request right now. Please try again later.',
     ]);
 } catch (Throwable $exception) {
+    @file_put_contents(
+        dirname(__DIR__) . '/api/logs/forgot-password-error.log',
+        sprintf("[%s] %s in %s on line %d\n", date('Y-m-d H:i:s'), $exception->getMessage(), $exception->getFile(), $exception->getLine()),
+        FILE_APPEND
+    );
     jsonResponse(500, [
         'success' => false,
         'message' => 'An unexpected error occurred. Please try again.',
@@ -213,6 +232,7 @@ function sendPasswordResetEmail(string $toEmail, string $toName, string $code, i
 
 function jsonResponse(int $statusCode, array $body): void
 {
+    // Discard any unexpected output so the response is always clean JSON.
     if (ob_get_level()) {
         ob_clean();
     }
