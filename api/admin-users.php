@@ -6,7 +6,67 @@ require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/user_schema.php';
 require_once __DIR__ . '/config/cors.php';
 
+// Fallback: define if user_schema.php on server is outdated
+if (!function_exists('ensureApprovalColumns')) {
+    function ensureApprovalColumns(PDO $pdo): void
+    {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS _schema_check (id INT)");
+        foreach (['is_verified', 'approval_status'] as $col) {
+            $chk = $pdo->prepare("SHOW COLUMNS FROM users LIKE ?");
+            $chk->execute([$col]);
+            if (!$chk->fetch()) {
+                if ($col === 'is_verified') {
+                    $pdo->exec("ALTER TABLE users ADD COLUMN is_verified TINYINT(1) NOT NULL DEFAULT 0 AFTER profile_image_path");
+                } else {
+                    $pdo->exec("ALTER TABLE users ADD COLUMN approval_status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending' AFTER is_verified");
+                }
+            }
+        }
+    }
+}
+
+if (!function_exists('ensureUserProfileColumns')) {
+    function ensureUserProfileColumns(PDO $pdo): void
+    {
+        foreach (['id_number','contact_number','address','profile_image_path'] as $col) {
+            $chk = $pdo->prepare("SHOW COLUMNS FROM users LIKE ?");
+            $chk->execute([$col]);
+            if (!$chk->fetch()) {
+                $map = [
+                    'id_number' => 'ALTER TABLE users ADD COLUMN id_number VARCHAR(50) NULL AFTER role',
+                    'contact_number' => 'ALTER TABLE users ADD COLUMN contact_number VARCHAR(20) NULL AFTER email',
+                    'address' => 'ALTER TABLE users ADD COLUMN address VARCHAR(255) NULL AFTER contact_number',
+                    'profile_image_path' => 'ALTER TABLE users ADD COLUMN profile_image_path VARCHAR(255) NULL AFTER address',
+                ];
+                $pdo->exec($map[$col]);
+            }
+        }
+    }
+}
+
+if (!function_exists('ensureVerificationTables')) {
+    function ensureVerificationTables(PDO $pdo): void
+    {
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS email_verifications (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                user_id INT UNSIGNED NOT NULL,
+                code VARCHAR(6) NOT NULL,
+                expires_at DATETIME NOT NULL,
+                used TINYINT(1) NOT NULL DEFAULT 0,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_ev_user (user_id),
+                INDEX idx_ev_code (user_id, code, used)
+            )'
+        );
+    }
+}
+
 configureCors(['GET', 'POST', 'PUT', 'DELETE']);
+
+if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    require_once __DIR__ . '/config/email.php';
+}
 
 try {
     $pdo = getDatabaseConnection();
@@ -49,6 +109,16 @@ try {
     jsonResponse(500, [
         'success' => false,
         'message' => $message,
+    ]);
+} catch (Throwable $exception) {
+    @file_put_contents(
+        dirname(__DIR__) . '/api/logs/admin-users-error.log',
+        sprintf("[%s] %s in %s on line %d\n", date('Y-m-d H:i:s'), $exception->getMessage(), $exception->getFile(), $exception->getLine()),
+        FILE_APPEND
+    );
+    jsonResponse(500, [
+        'success' => false,
+        'message' => 'An unexpected error occurred. Please try again.',
     ]);
 }
 
@@ -134,7 +204,6 @@ function handleCreatePayload(PDO $pdo, array $payload): void
 
 function handleApprovalAction(PDO $pdo, array $payload, string $action): void
 {
-    require_once __DIR__ . '/config/email.php';
     ensureApprovalColumns($pdo);
 
     $id = filter_var($payload['id'] ?? null, FILTER_VALIDATE_INT);
@@ -224,7 +293,9 @@ function handleApprovalAction(PDO $pdo, array $payload, string $action): void
             : 'We regret to inform you that your account application has not been approved at this time.'
     );
 
-    sendSmtpMail((string) $user['email'], $userName, $subject, $htmlBody, $textBody);
+    if (function_exists('sendSmtpMail')) {
+        sendSmtpMail((string) $user['email'], $userName, $subject, $htmlBody, $textBody);
+    }
 
     jsonResponse(200, [
         'success' => true,
