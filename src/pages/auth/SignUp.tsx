@@ -90,6 +90,7 @@ const SignUp = () => {
           state: {
             userId: result.userId,
             email: result.email,
+            role: formData.role,
           },
         });
       }, 1500);

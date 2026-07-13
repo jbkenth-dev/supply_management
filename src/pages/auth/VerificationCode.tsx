@@ -9,7 +9,7 @@ import {
   EnvelopeIcon,
 } from "@heroicons/react/24/outline"
 import { api } from "../../lib/api"
-import { setStoredAuthUser, type AuthUser } from "../../lib/auth"
+import { getAccountStatusPath, setStoredAuthUser, type AuthUser, type AuthRole } from "../../lib/auth"
 
 const CODE_LENGTH = 6
 const EXPIRY_SECONDS = 5 * 60 // 5 minutes
@@ -25,9 +25,10 @@ export default function VerificationCode() {
   const location = useLocation()
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
-  const state = location.state as { userId?: number; email?: string } | null
+  const state = location.state as { userId?: number; email?: string; role?: AuthRole } | null
   const userId = state?.userId
   const email = state?.email
+  const role = state?.role
 
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(""))
   const [error, setError] = useState("")
@@ -186,8 +187,9 @@ export default function VerificationCode() {
 
       // If already verified, just use the user data from result
       if (result.alreadyVerified && result.user) {
-        setStoredAuthUser(result.user as AuthUser)
-        navigate("/custodian/account-status", { replace: true })
+        const user = result.user as AuthUser
+        setStoredAuthUser(user)
+        navigate(getAccountStatusPath(user.role), { replace: true })
         return
       }
 
@@ -196,7 +198,7 @@ export default function VerificationCode() {
         const user = result.user as AuthUser
         setStoredAuthUser(user)
         setTimeout(() => {
-          navigate("/custodian/account-status", { replace: true })
+          navigate(getAccountStatusPath(user.role), { replace: true })
         }, 1000)
       }
     } catch {

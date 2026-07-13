@@ -51,13 +51,13 @@ export default function Login() {
     if (storedUser.isVerified === false) {
       navigate(getVerificationPath(), {
         replace: true,
-        state: { userId: storedUser.id, email: storedUser.email },
+        state: { userId: storedUser.id, email: storedUser.email, role: storedUser.role },
       })
       return
     }
 
     if (storedUser.approvalStatus !== "approved") {
-      navigate(getAccountStatusPath(), { replace: true })
+      navigate(getAccountStatusPath(storedUser.role), { replace: true })
       return
     }
 
@@ -134,13 +134,13 @@ export default function Login() {
       if (user.isVerified === false) {
         navigate(getVerificationPath(), {
           replace: true,
-          state: { userId: user.id, email: user.email },
+          state: { userId: user.id, email: user.email, role: user.role },
         })
         return
       }
 
       if (user.approvalStatus !== "approved") {
-        navigate(getAccountStatusPath(), { replace: true })
+        navigate(getAccountStatusPath(user.role), { replace: true })
         return
       }
 

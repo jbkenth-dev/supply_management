@@ -59,6 +59,7 @@ export default function App() {
       <Route path="/approval" element={<ApprovalDashboard />} />
       <Route path="/notification" element={<Notification />} />
       <Route path="/custodian/account-status" element={<AccountStatus />} />
+      <Route path="/account-status" element={<AccountStatus />} />
       <Route path="/custodian/dashboard" element={<CustodianDashboard />} />
       <Route path="/custodian/supply" element={<CustodianSupplyManagement />} />
       <Route path="/custodian/stock" element={<CustodianStockManagement />} />

@@ -123,7 +123,14 @@ export const getUserDisplayName = (user: AuthUser | null, fallbackRole: AuthRole
   return nameParts.join(" ")
 }
 
-export const getAccountStatusPath = () => "/custodian/account-status"
+export const getAccountStatusPath = (role?: AuthRole) => {
+  if (role === "Faculty Staff") {
+    return "/account-status"
+  }
+
+  // Property Custodian and Administrator (fallback) go to custodian path
+  return "/custodian/account-status"
+}
 
 export const getVerificationPath = () => "/auth/verification-code"
 
