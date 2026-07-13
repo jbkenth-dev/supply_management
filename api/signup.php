@@ -174,42 +174,32 @@ try {
     ensureVerificationTables($pdo);
     ensurePendingRegistrationsTable($pdo);
 
-    // Clean up expired pending registrations for this user's identifiers
-    // so that abandoned/expired sign-ups don't block a new registration.
-    $cleanup = $pdo->prepare(
-        'DELETE FROM pending_registrations WHERE (id_number = :id_number OR username = :username OR email = :email) AND expires_at < NOW()'
+    // Remove ALL pending registrations (expired AND non-expired) for the same
+    // identifiers so a previous abandoned/unverified attempt never blocks a retry.
+    $removeStale = $pdo->prepare(
+        'DELETE FROM pending_registrations WHERE id_number = :id_number OR username = :username OR email = :email'
     );
-    $cleanup->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
+    $removeStale->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
 
-    // Check for duplicates in users table (real accounts)
+    // Check for duplicates in users table only (real, verified accounts).
+    // Pending registrations have already been cleaned up above.
     $dupUser = $pdo->prepare(
         'SELECT id_number, username, email FROM users WHERE id_number = :id_number OR username = :username OR email = :email LIMIT 1'
     );
     $dupUser->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
     $existingUser = $dupUser->fetch();
 
-    // Check for duplicates in pending_registrations table (active, non-expired only)
-    $dupPending = $pdo->prepare(
-        'SELECT id_number, username, email FROM pending_registrations WHERE (id_number = :id_number OR username = :username OR email = :email) AND expires_at >= NOW() LIMIT 1'
-    );
-    $dupPending->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
-    $existingPending = $dupPending->fetch();
-
-    $allExisting = array_filter([$existingUser, $existingPending]);
-
-    if ($allExisting !== []) {
+    if ($existingUser) {
         $duplicateErrors = [];
 
-        foreach ($allExisting as $row) {
-            if (strcasecmp((string) ($row['id_number'] ?? ''), $idNumber) === 0) {
-                $duplicateErrors['idNumber'] = 'ID number is already registered.';
-            }
-            if (strcasecmp((string) ($row['username'] ?? ''), $username) === 0) {
-                $duplicateErrors['username'] = 'Username is already taken.';
-            }
-            if (strcasecmp((string) ($row['email'] ?? ''), $email) === 0) {
-                $duplicateErrors['email'] = 'Email is already registered.';
-            }
+        if (strcasecmp((string) ($existingUser['id_number'] ?? ''), $idNumber) === 0) {
+            $duplicateErrors['idNumber'] = 'ID number is already registered.';
+        }
+        if (strcasecmp((string) ($existingUser['username'] ?? ''), $username) === 0) {
+            $duplicateErrors['username'] = 'Username is already taken.';
+        }
+        if (strcasecmp((string) ($existingUser['email'] ?? ''), $email) === 0) {
+            $duplicateErrors['email'] = 'Email is already registered.';
         }
 
         jsonResponse(409, [
@@ -224,13 +214,6 @@ try {
     // Generate 6-digit verification code
     $verificationCode = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     $expiresAt = (new DateTimeImmutable())->modify('+5 minutes')->format('Y-m-d H:i:s');
-
-    // Remove any active pending registration for the same identifiers
-    // so a previous failed attempt doesn't block a retry.
-    $removeStale = $pdo->prepare(
-        'DELETE FROM pending_registrations WHERE id_number = :id_number OR username = :username OR email = :email'
-    );
-    $removeStale->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
 
     // Store in pending_registrations (NOT users)
     $insertPending = $pdo->prepare(
