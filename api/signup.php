@@ -222,6 +222,13 @@ try {
     $verificationCode = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     $expiresAt = (new DateTimeImmutable())->modify('+5 minutes')->format('Y-m-d H:i:s');
 
+    // Remove any active pending registration for the same identifiers
+    // so a previous failed attempt doesn't block a retry.
+    $removeStale = $pdo->prepare(
+        'DELETE FROM pending_registrations WHERE id_number = :id_number OR username = :username OR email = :email'
+    );
+    $removeStale->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
+
     // Store in pending_registrations (NOT users)
     $insertPending = $pdo->prepare(
         'INSERT INTO pending_registrations (role, id_number, firstname, middlename, lastname, username, email, password_hash, code, expires_at)
@@ -242,13 +249,26 @@ try {
 
     $pendingId = (int) $pdo->lastInsertId();
 
-    // Send verification email
-    $fullName = trim(implode(' ', array_filter([$firstname, $middlename !== '' ? $middlename : null, $lastname])));
-    sendVerificationEmail($email, $fullName, $verificationCode);
+    // Send verification email — wrapped in try-catch so a mail failure
+    // never kills the registration.  The user can always use "Resend Code".
+    $emailSent = false;
+    try {
+        $fullName = trim(implode(' ', array_filter([$firstname, $middlename !== '' ? $middlename : null, $lastname])));
+        sendVerificationEmail($email, $fullName, $verificationCode);
+        $emailSent = true;
+    } catch (Throwable $mailException) {
+        @file_put_contents(
+            dirname(__DIR__) . '/api/logs/signup-email-error.log',
+            sprintf("[%s] %s in %s on line %d\n", date('Y-m-d H:i:s'), $mailException->getMessage(), $mailException->getFile(), $mailException->getLine()),
+            FILE_APPEND
+        );
+    }
 
     jsonResponse(201, [
         'success' => true,
-        'message' => 'A verification code has been sent to your email. Please verify to complete registration.',
+        'message' => $emailSent
+            ? 'A verification code has been sent to your email. Please verify to complete registration.'
+            : 'Account created. We could not send the verification email — please use "Resend Code" on the next screen.',
         'pendingId' => $pendingId,
         'email' => $email,
     ]);
