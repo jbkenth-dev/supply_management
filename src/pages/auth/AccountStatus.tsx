@@ -245,11 +245,6 @@ export default function AccountStatus() {
           </div>
         </div>
 
-        {/* Footer hint */}
-        <p className="mt-6 text-center text-xs text-brown-400">
-          Need help?{" "}
-          <span className="font-semibold text-brown-500">Contact your system administrator</span>
-        </p>
       </motion.div>
     </div>
   )
@@ -269,7 +264,7 @@ function InfoRow({
   return (
     <div className="flex items-center gap-3 rounded-xl bg-white border border-brown-200 px-4 py-3">
       <Icon className="h-4 w-4 shrink-0 text-brown-400" />
-      <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-brown-400 min-w-[72px]">
+      <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-brown-400 min-w-18">
         {label}
       </span>
       <span className="text-sm font-medium text-brown-800 truncate">{value}</span>
