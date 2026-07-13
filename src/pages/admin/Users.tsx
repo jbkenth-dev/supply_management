@@ -8,11 +8,16 @@ import {
   TrashIcon,
   UserPlusIcon,
   XMarkIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline"
 import { api } from "../../lib/api"
 import AppShell from "../../layout/AppShell"
 
 type ManagedRole = "Faculty Staff" | "Property Custodian" | "Resource Planning Officer" | "Vice President for Finance" | "College President"
+
+type ApprovalStatus = "pending" | "approved" | "rejected"
 
 type ManagedUser = {
   id: number
@@ -24,6 +29,8 @@ type ManagedUser = {
   username: string
   email: string
   profileImageUrl?: string | null
+  isVerified: boolean
+  approvalStatus: ApprovalStatus
   createdAt: string
   updatedAt: string
 }
@@ -81,6 +88,9 @@ export default function AdminUsers() {
   const [imagePreviewUrl, setImagePreviewUrl] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
+  const [approvalTarget, setApprovalTarget] = useState<ManagedUser | null>(null)
+  const [approvalAction, setApprovalAction] = useState<"approve" | "reject">("approve")
+  const [isApprovalSubmitting, setIsApprovalSubmitting] = useState(false)
 
   const isEditing = editingUserId !== null
   const formTitle = useMemo(() => (isEditing ? "Edit user account" : "Create new user account"), [isEditing])
@@ -277,6 +287,63 @@ export default function AdminUsers() {
     }
   }
 
+  const openApprovalModal = (user: ManagedUser, action: "approve" | "reject") => {
+    setApprovalTarget(user)
+    setApprovalAction(action)
+    setServerMessage("")
+    setIsSuccess(false)
+  }
+
+  const closeApprovalModal = () => {
+    if (isApprovalSubmitting) {
+      return
+    }
+    setApprovalTarget(null)
+  }
+
+  const handleApproval = async () => {
+    if (!approvalTarget) {
+      return
+    }
+
+    setIsApprovalSubmitting(true)
+    setServerMessage("")
+    setIsSuccess(false)
+
+    try {
+      const response = await api("/api/admin-users.php", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: approvalAction,
+          id: approvalTarget.id,
+        }),
+      })
+      const result = (await response.json()) as UsersResponse
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message ?? "Unable to update user status.")
+      }
+
+      if (result.user) {
+        const updatedUser = result.user
+        setUsers((current) =>
+          current.map((entry) => (entry.id === updatedUser.id ? updatedUser : entry))
+        )
+      }
+
+      const label = approvalAction === "approve" ? "approved" : "rejected"
+      setServerMessage(`${getFullName(approvalTarget)} has been ${label}.`)
+      setIsSuccess(true)
+      setApprovalTarget(null)
+    } catch (error) {
+      setServerMessage(error instanceof Error ? error.message : "Unable to update user status.")
+      setIsSuccess(false)
+    } finally {
+      setIsApprovalSubmitting(false)
+    }
+  }
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setIsSubmitting(true)
@@ -429,6 +496,7 @@ export default function AdminUsers() {
                       <TableHead>Role</TableHead>
                       <TableHead>Username</TableHead>
                       <TableHead>Email</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </tr>
                   </thead>
@@ -464,8 +532,35 @@ export default function AdminUsers() {
                         </TableCell>
                         <TableCell>{user.username}</TableCell>
                         <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          {(user.role === "Faculty Staff" || user.role === "Property Custodian") ? (
+                            <StatusBadge status={user.approvalStatus} />
+                          ) : (
+                            <span className="text-xs text-brown-400">—</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            {(user.role === "Faculty Staff" || user.role === "Property Custodian") && user.approvalStatus === "pending" ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => openApprovalModal(user, "approve")}
+                                  className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
+                                >
+                                  <CheckCircleIcon className="h-4 w-4" />
+                                  Approve
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => openApprovalModal(user, "reject")}
+                                  className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
+                                >
+                                  <XCircleIcon className="h-4 w-4" />
+                                  Reject
+                                </button>
+                              </>
+                            ) : null}
                             <button
                               type="button"
                               onClick={() => handleEdit(user)}
@@ -699,6 +794,103 @@ export default function AdminUsers() {
         </ModalShell>
       ) : null}
 
+      {approvalTarget ? (
+        <ModalShell onClose={closeApprovalModal} maxWidthClassName="max-w-md">
+          <div className="flex items-start gap-4">
+            <div
+              className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl ${
+                approvalAction === "approve"
+                  ? "bg-emerald-50 text-emerald-600"
+                  : "bg-rose-50 text-rose-600"
+              }`}
+            >
+              {approvalAction === "approve" ? (
+                <CheckCircleIcon className="h-6 w-6" />
+              ) : (
+                <XCircleIcon className="h-6 w-6" />
+              )}
+            </div>
+            <div className="flex-1">
+              <p
+                className={`text-xs font-bold uppercase tracking-[0.24em] ${
+                  approvalAction === "approve" ? "text-emerald-500" : "text-rose-500"
+                }`}
+              >
+                {approvalAction === "approve" ? "Approve User" : "Reject User"}
+              </p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-brown-900">
+                {approvalAction === "approve" ? "Approve this account?" : "Reject this account?"}
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-brown-500">
+                You are about to{" "}
+                <span
+                  className={`font-semibold ${
+                    approvalAction === "approve" ? "text-emerald-700" : "text-rose-700"
+                  }`}
+                >
+                  {approvalAction === "approve" ? "approve" : "reject"}
+                </span>{" "}
+                the account of{" "}
+                <span className="font-semibold text-brown-900">
+                  {getFullName(approvalTarget)}
+                </span>
+                .
+              </p>
+              <div
+                className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${
+                  approvalAction === "approve"
+                    ? "border-emerald-100 bg-emerald-50 text-emerald-700"
+                    : "border-rose-100 bg-rose-50 text-rose-700"
+                }`}
+              >
+                Role: {approvalTarget.role}
+                <br />
+                Email: {approvalTarget.email}
+              </div>
+              {approvalAction === "approve" && (
+                <p className="mt-3 text-xs text-brown-500">
+                  An approval email will be sent to the user automatically.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={closeApprovalModal}
+              disabled={isApprovalSubmitting}
+              className="inline-flex items-center justify-center rounded-xl border border-brown-200 px-5 py-3 text-sm font-semibold text-brown-600 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleApproval()}
+              disabled={isApprovalSubmitting}
+              className={`inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                approvalAction === "approve"
+                  ? "bg-emerald-600 hover:bg-emerald-700"
+                  : "bg-rose-600 hover:bg-rose-700"
+              }`}
+            >
+              {approvalAction === "approve" ? (
+                <CheckCircleIcon className="h-5 w-5" />
+              ) : (
+                <XCircleIcon className="h-5 w-5" />
+              )}
+              {isApprovalSubmitting
+                ? approvalAction === "approve"
+                  ? "Approving..."
+                  : "Rejecting..."
+                : approvalAction === "approve"
+                ? "Approve Account"
+                : "Reject Account"}
+            </button>
+          </div>
+        </ModalShell>
+      ) : null}
+
       {deleteTarget ? (
         <ModalShell onClose={closeDeleteModal} maxWidthClassName="max-w-md">
           <div className="flex items-start gap-4">
@@ -797,6 +989,33 @@ function Avatar({ user }: { user: ManagedUser }) {
     <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brown-200 text-sm font-bold uppercase text-brown-600">
       {(user.firstname[0] ?? user.role[0] ?? "U").toUpperCase()}
     </div>
+  )
+}
+
+function StatusBadge({ status }: { status: ApprovalStatus }) {
+  if (status === "approved") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+        <CheckCircleIcon className="h-3.5 w-3.5" />
+        Approved
+      </span>
+    )
+  }
+
+  if (status === "rejected") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">
+        <XCircleIcon className="h-3.5 w-3.5" />
+        Rejected
+      </span>
+    )
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
+      <ClockIcon className="h-3.5 w-3.5" />
+      Pending
+    </span>
   )
 }
 

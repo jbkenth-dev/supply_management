@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/user_schema.php';
 require_once __DIR__ . '/config/cors.php';
+require_once __DIR__ . '/config/email.php';
 
 configureCors(['GET', 'POST', 'PUT', 'DELETE']);
 
@@ -21,7 +22,14 @@ try {
     }
 
     if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-        handleUpdateJson($pdo);
+        $jsonPayload = decodeJsonBody();
+        $action = trim((string) ($jsonPayload['action'] ?? ''));
+
+        if ($action === 'approve' || $action === 'reject') {
+            handleApprovalAction($pdo, $jsonPayload, $action);
+        }
+
+        handleUpdatePayload($pdo, $jsonPayload);
     }
 
     if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
@@ -47,11 +55,13 @@ try {
 
 function handleList(PDO $pdo): void
 {
+    ensureApprovalColumns($pdo);
+
     $query = $pdo->query(
-        "SELECT id, role, id_number, firstname, middlename, lastname, username, email, profile_image_path, created_at, updated_at
+        "SELECT id, role, id_number, firstname, middlename, lastname, username, email, profile_image_path, is_verified, approval_status, created_at, updated_at
          FROM users
          WHERE role IN ('Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President')
-         ORDER BY lastname ASC, firstname ASC, id ASC"
+         ORDER BY CASE WHEN approval_status = 'pending' THEN 0 ELSE 1 END, lastname ASC, firstname ASC, id ASC"
     );
 
     $users = array_map(static fn (array $user): array => serializeManagedUser($user), $query->fetchAll());
@@ -120,6 +130,106 @@ function handleCreatePayload(PDO $pdo, array $payload): void
         'success' => true,
         'message' => 'User account created successfully.',
         'user' => serializeManagedUser($user),
+    ]);
+}
+
+function handleApprovalAction(PDO $pdo, array $payload, string $action): void
+{
+    ensureApprovalColumns($pdo);
+
+    $id = filter_var($payload['id'] ?? null, FILTER_VALIDATE_INT);
+
+    if (!$id) {
+        jsonResponse(422, [
+            'success' => false,
+            'message' => 'A valid user ID is required.',
+        ]);
+    }
+
+    $user = findManagedUser($pdo, (int) $id);
+
+    if (!$user) {
+        jsonResponse(404, [
+            'success' => false,
+            'message' => 'User not found.',
+        ]);
+    }
+
+    if ((string) $user['role'] !== 'Faculty Staff' && (string) $user['role'] !== 'Property Custodian') {
+        jsonResponse(422, [
+            'success' => false,
+            'message' => 'Only Faculty Staff and Property Custodian accounts can be approved or rejected.',
+        ]);
+    }
+
+    $newStatus = $action === 'approve' ? 'approved' : 'rejected';
+
+    $update = $pdo->prepare(
+        'UPDATE users SET approval_status = :status WHERE id = :id'
+    );
+    $update->execute([
+        'status' => $newStatus,
+        'id' => (int) $id,
+    ]);
+
+    $updatedUser = findManagedUser($pdo, (int) $id);
+
+    $label = $action === 'approve' ? 'approved' : 'rejected';
+    $fullName = trim(implode(' ', array_filter([
+        (string) $user['firstname'],
+        $user['middlename'] !== null ? (string) $user['middlename'] : '',
+        (string) $user['lastname'],
+    ])));
+    $userName = trim($fullName) !== '' ? $fullName : (string) $user['username'];
+    $subject = $action === 'approve' ? 'Your Account Has Been Approved' : 'Your Account Application Was Not Approved';
+
+    $htmlBody = sprintf(
+        '<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background-color:#f5f0eb;font-family:\'Segoe UI\',Tahoma,sans-serif;">
+<table width="100%%" cellpadding="0" cellspacing="0" style="background-color:#f5f0eb;padding:40px 20px;">
+<tr><td align="center">
+<table width="480" cellpadding="0" cellspacing="0" style="background-color:#fff;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+<tr><td style="background:linear-gradient(135deg,#8B5E3C,#A0522D);padding:32px;text-align:center;">
+<h1 style="color:#fff;margin:0;font-size:22px;font-weight:900;">SFC-G Supply Management</h1>
+<p style="color:rgba(255,255,255,0.85);margin:8px 0 0;font-size:14px;">Account %s</p>
+</td></tr>
+<tr><td style="padding:40px 32px;text-align:center;">
+<p style="color:#5C4033;font-size:16px;margin:0 0 8px;">Hello %s,</p>
+<p style="color:#5C4033;font-size:14px;margin:0 0 24px;line-height:1.6;">%s</p>
+%s
+<p style="color:#999;font-size:12px;margin:24px 0 0;">If you have questions, please contact the administrator.</p>
+</td></tr>
+<tr><td style="background-color:#f5f0eb;padding:20px 32px;text-align:center;">
+<p style="color:#999;font-size:11px;margin:0;">&copy; %d SFC-G Supply Management System.</p>
+</td></tr>
+</table></td></tr></table>
+</body></html>',
+        htmlspecialchars(ucfirst($label)),
+        htmlspecialchars($userName),
+        $action === 'approve'
+            ? 'Your account has been <strong style="color:#059669;">approved</strong>! You can now log in and access the system.'
+            : 'We regret to inform you that your account application has <strong style="color:#DC2626;">not been approved</strong> at this time. Please contact the administrator for more details.',
+        $action === 'approve'
+            ? '<div style="background-color:#f0fdf4;border-radius:12px;padding:16px;margin:0 0 24px;"><p style="color:#059669;font-size:14px;margin:0;font-weight:700;">&#10003; Account Approved</p></div>'
+            : '<div style="background-color:#fef2f2;border-radius:12px;padding:16px;margin:0 0 24px;"><p style="color:#DC2626;font-size:14px;margin:0;font-weight:700;">&#10007; Account Not Approved</p></div>',
+        (int) date('Y')
+    );
+
+    $textBody = sprintf(
+        "Hello %s,\n\n%s\n\nIf you have questions, please contact the administrator.",
+        $userName,
+        $action === 'approve'
+            ? 'Your account has been approved! You can now log in and access the system.'
+            : 'We regret to inform you that your account application has not been approved at this time.'
+    );
+
+    sendSmtpMail((string) $user['email'], $userName, $subject, $htmlBody, $textBody);
+
+    jsonResponse(200, [
+        'success' => true,
+        'message' => 'User account ' . $label . ' successfully.',
+        'user' => serializeManagedUser($updatedUser),
     ]);
 }
 
@@ -372,7 +482,7 @@ function findDuplicateUserConflicts(PDO $pdo, string $idNumber, string $username
 function findManagedUser(PDO $pdo, int $id): ?array
 {
     $query = $pdo->prepare(
-        "SELECT id, role, id_number, firstname, middlename, lastname, username, email, profile_image_path, created_at, updated_at
+        "SELECT id, role, id_number, firstname, middlename, lastname, username, email, profile_image_path, is_verified, approval_status, created_at, updated_at
          FROM users
          WHERE id = :id AND role IN ('Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President')
          LIMIT 1"
@@ -398,6 +508,8 @@ function serializeManagedUser(array $user): array
         'username' => (string) $user['username'],
         'email' => (string) $user['email'],
         'profileImageUrl' => $user['profile_image_path'] !== null ? (string) $user['profile_image_path'] : null,
+        'isVerified' => isset($user['is_verified']) ? (int) $user['is_verified'] === 1 : true,
+        'approvalStatus' => isset($user['approval_status']) ? (string) $user['approval_status'] : 'approved',
         'createdAt' => (string) $user['created_at'],
         'updatedAt' => (string) $user['updated_at'],
     ];
