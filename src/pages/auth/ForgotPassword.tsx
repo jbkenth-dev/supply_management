@@ -29,6 +29,16 @@ function formatCountdown(totalSeconds: number): string {
   return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
 }
 
+function passwordMeetsAllRequirements(password: string): boolean {
+  return (
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+  )
+}
+
 function getPasswordStrength(password: string): { score: number; label: string; color: string } {
   let score = 0
   if (password.length >= 8) score++
@@ -130,6 +140,7 @@ export default function ForgotPassword() {
   const [newPasswordError, setNewPasswordError] = useState("")
   const [confirmPasswordError, setConfirmPasswordError] = useState("")
   const [isResetting, setIsResetting] = useState(false)
+  const [resetSuccess, setResetSuccess] = useState(false)
 
   // Global
   const [serverMessage, setServerMessage] = useState("")
@@ -466,13 +477,8 @@ export default function ForgotPassword() {
         return
       }
 
-      // Success — redirect to sign in
-      navigate("/auth/login", {
-        replace: true,
-        state: {
-          flashMessage: "Password updated successfully. Please sign in with your new password.",
-        },
-      })
+      // Success — show success modal
+      setResetSuccess(true)
     } catch {
       setServerMessage("Unable to connect to the server. Please try again later.")
       setModalType("error")
@@ -525,6 +531,60 @@ export default function ForgotPassword() {
             type={modalType}
             onClose={() => setShowModal(false)}
           />
+
+          {/* Password Reset Success Modal */}
+          <AnimatePresence>
+            {resetSuccess && (
+              <motion.div
+                className="fixed inset-0 z-[100] flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 12, scale: 0.96 }}
+                  transition={{ duration: 0.22 }}
+                  className="w-full max-w-md overflow-hidden rounded-[2rem] border border-brown-200 bg-white shadow-2xl"
+                  role="dialog"
+                  aria-modal="true"
+                >
+                  <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 p-6 text-white">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/20">
+                        <CheckCircleIcon className="h-7 w-7" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-100">
+                          Success
+                        </p>
+                        <h2 className="mt-2 text-xl font-black tracking-tight leading-tight">
+                          Password Updated
+                        </h2>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="rounded-2xl border border-emerald-200/20 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600">
+                      Password updated successfully. Please sign in with your new password.
+                    </div>
+
+                    <div className="mt-6 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => navigate("/auth/login", { replace: true })}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700"
+                      >
+                        Back to Login
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Animated Step Content */}
           <AnimatePresence mode="wait" custom={direction}>
@@ -924,7 +984,7 @@ export default function ForgotPassword() {
 
                   <button
                     type="submit"
-                    disabled={isResetting || !newPassword || !confirmPassword}
+                    disabled={isResetting || !passwordMeetsAllRequirements(newPassword) || newPassword !== confirmPassword}
                     className="w-full bg-primary-600 text-white py-4 rounded-xl font-bold text-sm shadow-xl shadow-primary-600/20 hover:bg-primary-700 hover:-translate-y-0.5 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2"
                   >
                     {isResetting ? (
