@@ -257,9 +257,9 @@ try {
     $emailSent = false;
     try {
         $fullName = trim(implode(' ', array_filter([$firstname, $middlename !== '' ? $middlename : null, $lastname])));
-        sendVerificationEmail($email, $fullName, $verificationCode);
-        $emailSent = true;
+        $emailSent = sendVerificationEmail($email, $fullName, $verificationCode);
     } catch (Throwable $mailException) {
+        $emailSent = false;
         @file_put_contents(
             dirname(__DIR__) . '/api/logs/signup-email-error.log',
             sprintf("[%s] %s in %s on line %d\n", date('Y-m-d H:i:s'), $mailException->getMessage(), $mailException->getFile(), $mailException->getLine()),
@@ -310,7 +310,7 @@ function jsonResponse(int $statusCode, array $body): void
     exit;
 }
 
-function sendVerificationEmail(string $toEmail, string $toName, string $code): void
+function sendVerificationEmail(string $toEmail, string $toName, string $code): bool
 {
     $subject = 'Verify Your SFC-G Supply Management Account';
 
@@ -358,6 +358,8 @@ function sendVerificationEmail(string $toEmail, string $toName, string $code): v
     @require_once __DIR__ . '/config/email.php';
 
     if (function_exists('sendSmtpMail')) {
-        sendSmtpMail($toEmail, $toName !== '' ? $toName : $toEmail, $subject, $htmlBody, $textBody);
+        return sendSmtpMail($toEmail, $toName !== '' ? $toName : $toEmail, $subject, $htmlBody, $textBody);
     }
+
+    return false;
 }

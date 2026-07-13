@@ -159,9 +159,14 @@ try {
                 (string) $existingUser['lastname'],
             ])));
 
-            sendVerificationEmail((string) $existingUser['email'], $fullName, $verificationCode);
+            $emailSent = sendVerificationEmail((string) $existingUser['email'], $fullName, $verificationCode);
 
-            jsonResponse(200, ['success' => true, 'message' => 'A new verification code has been sent to your email.']);
+            jsonResponse(200, [
+                'success' => true,
+                'message' => $emailSent
+                    ? 'A new verification code has been sent to your email.'
+                    : 'A new verification code was generated but the email could not be sent. Please try again.',
+            ]);
         }
 
         jsonResponse(404, ['success' => false, 'message' => 'User not found.']);
@@ -195,11 +200,13 @@ try {
         (string) $pending['lastname'],
     ])));
 
-    sendVerificationEmail((string) $pending['email'], $fullName, $verificationCode);
+    $emailSent = sendVerificationEmail((string) $pending['email'], $fullName, $verificationCode);
 
     jsonResponse(200, [
         'success' => true,
-        'message' => 'A new verification code has been sent to your email.',
+        'message' => $emailSent
+            ? 'A new verification code has been sent to your email.'
+            : 'A new verification code was generated but the email could not be sent. Please try again.',
     ]);
 } catch (PDOException $exception) {
     jsonResponse(500, [
@@ -213,7 +220,7 @@ try {
     ]);
 }
 
-function sendVerificationEmail(string $toEmail, string $toName, string $code): void
+function sendVerificationEmail(string $toEmail, string $toName, string $code): bool
 {
     $subject = 'Verify Your SFC-G Supply Management Account';
 
@@ -261,8 +268,10 @@ function sendVerificationEmail(string $toEmail, string $toName, string $code): v
     @require_once __DIR__ . '/config/email.php';
 
     if (function_exists('sendSmtpMail')) {
-        sendSmtpMail($toEmail, $toName !== '' ? $toName : $toEmail, $subject, $htmlBody, $textBody);
+        return sendSmtpMail($toEmail, $toName !== '' ? $toName : $toEmail, $subject, $htmlBody, $textBody);
     }
+
+    return false;
 }
 
 function jsonResponse(int $statusCode, array $body): void

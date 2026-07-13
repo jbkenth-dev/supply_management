@@ -28,6 +28,25 @@ function sendSmtpMail(string $toEmail, string $toName, string $subject, string $
     $config = getSmtpConfig();
     $smtpException = null;
 
+    // Try Brevo API first — it uses a simple API key and is more reliable
+    // than raw SMTP when credentials may be stale.
+    if ($config['api_key'] !== '') {
+        try {
+            return sendViaBrevoApi($config, $toEmail, $toName, $subject, $htmlBody, $textBody);
+        } catch (Throwable $exception) {
+            logEmailError(
+                $toEmail,
+                $subject,
+                $config,
+                $exception->getMessage(),
+                (int) $exception->getCode(),
+                $GLOBALS['__last_email_exception'] ?? null,
+                'brevo-api'
+            );
+        }
+    }
+
+    // Fall back to direct SMTP relay.
     if (hasUsableSmtpConfig($config)) {
         try {
             sendViaSmtpRelay($config, $toEmail, $toName, $subject, $htmlBody, $textBody);
@@ -47,24 +66,8 @@ function sendSmtpMail(string $toEmail, string $toName, string $subject, string $
         }
     }
 
-    if ($config['api_key'] !== '') {
-        try {
-            return sendViaBrevoApi($config, $toEmail, $toName, $subject, $htmlBody, $textBody);
-        } catch (Throwable $exception) {
-            logEmailError(
-                $toEmail,
-                $subject,
-                $config,
-                $exception->getMessage(),
-                (int) $exception->getCode(),
-                $GLOBALS['__last_email_exception'] ?? null,
-                'brevo-api'
-            );
-        }
-    }
-
-    if ($smtpException === null && !hasUsableSmtpConfig($config)) {
-        logEmailError($toEmail, $subject, $config, 'Missing email configuration.', 0, null, 'config');
+    if ($smtpException === null && !hasUsableSmtpConfig($config) && $config['api_key'] === '') {
+        logEmailError($toEmail, $subject, $config, 'Missing email configuration (no API key or SMTP credentials).', 0, null, 'config');
     }
 
     return false;
