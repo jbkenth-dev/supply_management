@@ -5,7 +5,6 @@ import {
   ShieldCheckIcon,
   ArrowRightIcon,
   ArrowPathIcon,
-  ExclamationCircleIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline"
 import { api } from "../../lib/api"
