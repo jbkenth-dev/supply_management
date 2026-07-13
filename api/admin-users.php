@@ -5,7 +5,6 @@ declare(strict_types=1);
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/user_schema.php';
 require_once __DIR__ . '/config/cors.php';
-require_once __DIR__ . '/config/email.php';
 
 configureCors(['GET', 'POST', 'PUT', 'DELETE']);
 
@@ -135,6 +134,7 @@ function handleCreatePayload(PDO $pdo, array $payload): void
 
 function handleApprovalAction(PDO $pdo, array $payload, string $action): void
 {
+    require_once __DIR__ . '/config/email.php';
     ensureApprovalColumns($pdo);
 
     $id = filter_var($payload['id'] ?? null, FILTER_VALIDATE_INT);
