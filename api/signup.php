@@ -171,30 +171,33 @@ try {
     ensureVerificationTables($pdo);
     ensurePendingRegistrationsTable($pdo);
 
-    // Check for duplicates in both users and pending_registrations
-    $duplicateCheck = $pdo->prepare(
-        '(SELECT id_number, username, email FROM users WHERE id_number = :id_number OR username = :username OR email = :email LIMIT 1)
-         UNION ALL
-         (SELECT id_number, username, email FROM pending_registrations WHERE id_number = :id_number OR username = :username OR email = :email LIMIT 1)'
+    // Check for duplicates in users table
+    $dupUser = $pdo->prepare(
+        'SELECT id_number, username, email FROM users WHERE id_number = :id_number OR username = :username OR email = :email LIMIT 1'
     );
-    $duplicateCheck->execute([
-        'id_number' => $idNumber,
-        'username' => $username,
-        'email' => $email,
-    ]);
-    $existingRows = $duplicateCheck->fetchAll();
+    $dupUser->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
+    $existingUser = $dupUser->fetch();
 
-    if ($existingRows !== []) {
+    // Check for duplicates in pending_registrations table
+    $dupPending = $pdo->prepare(
+        'SELECT id_number, username, email FROM pending_registrations WHERE id_number = :id_number OR username = :username OR email = :email LIMIT 1'
+    );
+    $dupPending->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
+    $existingPending = $dupPending->fetch();
+
+    $allExisting = array_filter([$existingUser, $existingPending]);
+
+    if ($allExisting !== []) {
         $duplicateErrors = [];
 
-        foreach ($existingRows as $existingUser) {
-            if (strcasecmp((string) ($existingUser['id_number'] ?? ''), $idNumber) === 0) {
+        foreach ($allExisting as $row) {
+            if (strcasecmp((string) ($row['id_number'] ?? ''), $idNumber) === 0) {
                 $duplicateErrors['idNumber'] = 'ID number is already registered.';
             }
-            if (strcasecmp((string) $existingUser['username'], $username) === 0) {
+            if (strcasecmp((string) ($row['username'] ?? ''), $username) === 0) {
                 $duplicateErrors['username'] = 'Username is already taken.';
             }
-            if (strcasecmp((string) $existingUser['email'], $email) === 0) {
+            if (strcasecmp((string) ($row['email'] ?? ''), $email) === 0) {
                 $duplicateErrors['email'] = 'Email is already registered.';
             }
         }
@@ -252,6 +255,16 @@ try {
     jsonResponse(500, [
         'success' => false,
         'message' => $message,
+    ]);
+} catch (Throwable $exception) {
+    @file_put_contents(
+        dirname(__DIR__) . '/api/logs/signup-error.log',
+        sprintf("[%s] %s in %s on line %d\n", date('Y-m-d H:i:s'), $exception->getMessage(), $exception->getFile(), $exception->getLine()),
+        FILE_APPEND
+    );
+    jsonResponse(500, [
+        'success' => false,
+        'message' => 'An unexpected error occurred during signup. Please try again.',
     ]);
 }
 
