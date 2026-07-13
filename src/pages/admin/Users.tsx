@@ -11,6 +11,7 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline"
 import { api } from "../../lib/api"
 import AppShell from "../../layout/AppShell"
@@ -91,6 +92,7 @@ export default function AdminUsers() {
   const [approvalTarget, setApprovalTarget] = useState<ManagedUser | null>(null)
   const [approvalAction, setApprovalAction] = useState<"approve" | "reject">("approve")
   const [isApprovalSubmitting, setIsApprovalSubmitting] = useState(false)
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null)
 
   const isEditing = editingUserId !== null
   const formTitle = useMemo(() => (isEditing ? "Edit user account" : "Create new user account"), [isEditing])
@@ -171,6 +173,20 @@ export default function AdminUsers() {
 
     return () => URL.revokeObjectURL(objectUrl)
   }, [selectedImage])
+
+  useEffect(() => {
+    if (openDropdownId === null) return
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('[data-dropdown]')) {
+        setOpenDropdownId(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [openDropdownId])
 
   const resetForm = () => {
     setFormData(initialForm)
@@ -540,43 +556,51 @@ export default function AdminUsers() {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            {(user.role === "Faculty Staff" || user.role === "Property Custodian") && user.approvalStatus === "pending" ? (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => openApprovalModal(user, "approve")}
-                                  className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 px-3 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
-                                >
-                                  <CheckCircleIcon className="h-4 w-4" />
-                                  Approve
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => openApprovalModal(user, "reject")}
-                                  className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
-                                >
-                                  <XCircleIcon className="h-4 w-4" />
-                                  Reject
-                                </button>
-                              </>
-                            ) : null}
-                            <button
-                              type="button"
-                              onClick={() => handleEdit(user)}
-                              className="inline-flex items-center gap-2 rounded-xl border border-brown-200 px-3 py-2 text-sm font-semibold text-brown-600 transition hover:bg-brown-100"
-                            >
-                              <PencilSquareIcon className="h-4 w-4" />
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => openDeleteModal(user)}
-                              className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                              Delete
-                            </button>
+                          <div className="flex justify-end" data-dropdown>
+                            <div className="relative">
+                              <button
+                                type="button"
+                                onClick={() => setOpenDropdownId(openDropdownId === user.id ? null : user.id)}
+                                className="inline-flex items-center gap-1.5 rounded-xl border border-brown-200 px-3 py-2 text-sm font-semibold text-brown-600 transition hover:bg-brown-100"
+                              >
+                                Actions
+                                <ChevronDownIcon className={`h-4 w-4 transition-transform ${openDropdownId === user.id ? 'rotate-180' : ''}`} />
+                              </button>
+
+                              {openDropdownId === user.id && (
+                                <div className="absolute right-0 z-30 mt-1 w-48 rounded-xl border border-brown-200 bg-white py-1 shadow-xl">
+                                  {(user.role === "Faculty Staff" || user.role === "Property Custodian") && user.approvalStatus === "pending" && (
+                                    <>
+                                      <DropdownItem
+                                        icon={CheckCircleIcon}
+                                        label="Approve"
+                                        className="text-emerald-700 hover:bg-emerald-50"
+                                        onClick={() => { openApprovalModal(user, "approve"); setOpenDropdownId(null) }}
+                                      />
+                                      <DropdownItem
+                                        icon={XCircleIcon}
+                                        label="Reject"
+                                        className="text-rose-600 hover:bg-rose-50"
+                                        onClick={() => { openApprovalModal(user, "reject"); setOpenDropdownId(null) }}
+                                      />
+                                      <div className="my-1 border-t border-brown-100" />
+                                    </>
+                                  )}
+                                  <DropdownItem
+                                    icon={PencilSquareIcon}
+                                    label="Edit"
+                                    className="text-brown-600 hover:bg-brown-50"
+                                    onClick={() => { handleEdit(user); setOpenDropdownId(null) }}
+                                  />
+                                  <DropdownItem
+                                    icon={TrashIcon}
+                                    label="Delete"
+                                    className="text-rose-600 hover:bg-rose-50"
+                                    onClick={() => { openDeleteModal(user); setOpenDropdownId(null) }}
+                                  />
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </TableCell>
                       </tr>
@@ -989,6 +1013,29 @@ function Avatar({ user }: { user: ManagedUser }) {
     <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brown-200 text-sm font-bold uppercase text-brown-600">
       {(user.firstname[0] ?? user.role[0] ?? "U").toUpperCase()}
     </div>
+  )
+}
+
+function DropdownItem({
+  icon: Icon,
+  label,
+  className,
+  onClick,
+}: {
+  icon: typeof CheckCircleIcon
+  label: string
+  className: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold transition-colors ${className}`}
+    >
+      <Icon className="h-4 w-4" />
+      {label}
+    </button>
   )
 }
 
