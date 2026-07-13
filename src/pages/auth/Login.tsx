@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
+import { useNavigate, useLocation, Link } from "react-router-dom"
 import ReCAPTCHA from "react-google-recaptcha"
 import { motion } from "framer-motion"
 import {
@@ -29,6 +29,8 @@ const formatCountdown = (totalSeconds: number) => {
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const flashMessage = (location.state as { flashMessage?: string } | null)?.flashMessage ?? ""
   const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
   const [errors, setErrors] = useState<LoginErrors>({})
@@ -39,8 +41,18 @@ export default function Login() {
   const [captcha, setCaptcha] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [showModal, setShowModal] = useState(false)
+  const [modalType, setModalType] = useState<"success" | "error">("error")
 
   const isLocked = lockoutSeconds > 0
+
+  // Show success flash message from password reset (or other flows)
+  useEffect(() => {
+    if (flashMessage) {
+      setModalType("success")
+      setServerMessage(flashMessage)
+      window.history.replaceState({}, "")
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (serverMessage) {
@@ -137,6 +149,7 @@ export default function Login() {
 
       if (!response.ok) {
         setErrors(result.errors ?? {})
+        setModalType("error")
         setServerMessage(result.message ?? "Unable to log in.")
         setAttemptsRemaining(typeof result.attemptsRemaining === "number" ? result.attemptsRemaining : null)
         setLockoutSeconds(typeof result.retryAfterSeconds === "number" ? result.retryAfterSeconds : 0)
@@ -188,6 +201,7 @@ export default function Login() {
         }
       })
     } catch {
+      setModalType("error")
       setServerMessage("Unable to connect to the login service. Please try again later.")
     } finally {
       setIsLoading(false)
@@ -215,15 +229,17 @@ export default function Login() {
 
           <MessageModal
             open={showModal}
-            title="Sign In Error"
+            title={modalType === "success" ? "Success" : "Sign In Error"}
             message={
-              serverMessage +
-              (attemptsRemaining !== null && attemptsRemaining > 0
-                ? ` (Attempts remaining: ${attemptsRemaining} of 5)`
-                : "") +
-              (isLocked ? ` Try again in ${formatCountdown(lockoutSeconds)}.` : "")
+              modalType === "success"
+                ? serverMessage
+                : serverMessage +
+                  (attemptsRemaining !== null && attemptsRemaining > 0
+                    ? ` (Attempts remaining: ${attemptsRemaining} of 5)`
+                    : "") +
+                  (isLocked ? ` Try again in ${formatCountdown(lockoutSeconds)}.` : "")
             }
-            type="error"
+            type={modalType}
             onClose={() => setShowModal(false)}
           />
 
