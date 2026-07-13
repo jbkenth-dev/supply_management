@@ -28,7 +28,6 @@ export default function VerificationCode() {
   const state = location.state as { userId?: number; email?: string; role?: AuthRole } | null
   const userId = state?.userId
   const email = state?.email
-  const role = state?.role
 
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(""))
   const [error, setError] = useState("")
