@@ -25,11 +25,12 @@ export default function VerificationCode() {
   const location = useLocation()
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
-  const state = location.state as { pendingId?: number; userId?: number; email?: string; role?: AuthRole } | null
+  const state = location.state as { pendingId?: number; userId?: number; email?: string; role?: AuthRole; signupFormData?: Record<string, string> } | null
   const pendingId = state?.pendingId ?? null
   const userId = state?.userId ?? null
   const regId = pendingId ?? userId
   const email = state?.email
+  const signupFormData = state?.signupFormData ?? null
 
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(""))
   const [error, setError] = useState("")
@@ -406,11 +407,25 @@ export default function VerificationCode() {
             </p>
           </div>
 
-          {/* Back to signup */}
+          {/* Change email */}
           <div className="mt-8 text-center">
+            <p className="text-sm text-brown-500 font-medium">
+              Wrong email?{" "}
+              <Link
+                to="/auth/signup"
+                state={{ prefill: signupFormData ? { ...signupFormData, email: email ?? '' } : undefined }}
+                className="text-primary-600 font-bold hover:underline"
+              >
+                Change Email
+              </Link>
+            </p>
+          </div>
+
+          {/* Back to signup */}
+          <div className="mt-4 text-center">
             <Link
               to="/auth/signup"
-              className="text-sm text-brown-500 font-medium hover:text-primary-600 transition-colors"
+              className="text-xs text-brown-400 font-medium hover:text-primary-600 transition-colors"
             >
               Back to Sign Up
             </Link>

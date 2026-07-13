@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { motion } from 'framer-motion';
 import {
@@ -19,14 +19,19 @@ const shouldUseRecaptcha = Boolean(recaptchaSiteKey);
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Accept pre-fill data from "Change Email" round-trip on the verification page
+  const prefill = (location.state as { prefill?: Record<string, string> } | null)?.prefill;
+
   const [formData, setFormData] = useState({
-    role: 'Faculty Staff',
-    idNumber: '',
-    firstname: '',
-    middlename: '',
-    lastname: '',
-    username: '',
-    email: '',
+    role: prefill?.role ?? 'Faculty Staff',
+    idNumber: prefill?.idNumber ?? '',
+    firstname: prefill?.firstname ?? '',
+    middlename: prefill?.middlename ?? '',
+    lastname: prefill?.lastname ?? '',
+    username: prefill?.username ?? '',
+    email: prefill?.email ?? '',
     password: '',
     confirmPassword: '',
   });
@@ -106,6 +111,15 @@ const SignUp = () => {
             pendingId: result.pendingId,
             email: result.email,
             role: formData.role,
+            // Pass full form data so "Change Email" can pre-fill the signup form
+            signupFormData: {
+              role: formData.role,
+              idNumber: formData.idNumber,
+              firstname: formData.firstname,
+              middlename: formData.middlename,
+              lastname: formData.lastname,
+              username: formData.username,
+            },
           },
         });
       }, 1500);
@@ -151,7 +165,7 @@ const SignUp = () => {
 
           <MessageModal
             open={showModal}
-            title={isSuccess ? "Account Created" : "Account Creation Error"}
+            title={isSuccess ? "Verification Code Sent" : "Account Creation Error"}
             message={serverMessage}
             type={isSuccess ? "success" : "error"}
             onClose={() => setShowModal(false)}
@@ -345,7 +359,7 @@ const SignUp = () => {
                 disabled={isSubmitting || (shouldUseRecaptcha && !captcha)}
                 className="w-full bg-primary-600 text-white py-4 rounded-xl font-bold text-sm shadow-xl shadow-primary-600/20 hover:bg-primary-700 hover:-translate-y-0.5 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
               >
-                {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                {isSubmitting ? 'Sending Code...' : 'Create Account'}
                 {!isSubmitting && <ArrowRightIcon className="w-4 h-4" />}
               </button>
             </div>
