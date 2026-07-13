@@ -560,7 +560,7 @@ export default function ForgotPassword() {
                           Success
                         </p>
                         <h2 className="mt-2 text-xl font-black tracking-tight leading-tight">
-                          Password Updated
+                          Password Reset Successful
                         </h2>
                       </div>
                     </div>
@@ -568,7 +568,7 @@ export default function ForgotPassword() {
 
                   <div className="p-6">
                     <div className="rounded-2xl border border-emerald-200/20 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600">
-                      Password updated successfully. Please sign in with your new password.
+                      Your password has been updated successfully. You can now sign in using your new password.
                     </div>
 
                     <div className="mt-6 flex justify-end">
