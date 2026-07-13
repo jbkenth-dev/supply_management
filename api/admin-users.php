@@ -289,11 +289,15 @@ function handleApprovalAction(PDO $pdo, array $payload, string $action): void
             : 'We regret to inform you that your account application has not been approved at this time.'
     );
 
+    // Wrap email sending in output buffering so any PHP warnings
+    // (e.g. SMTP connection refused with display_errors ON) are
+    // captured and discarded instead of corrupting the JSON response.
+    ob_start();
     @require_once __DIR__ . '/config/email.php';
-
     if (function_exists('sendSmtpMail')) {
         sendSmtpMail((string) $user['email'], $userName, $subject, $htmlBody, $textBody);
     }
+    ob_end_clean();
 
     jsonResponse(200, [
         'success' => true,

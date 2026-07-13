@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
@@ -13,7 +13,8 @@ import {
   MapPinIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline"
-import { clearStoredAuthUser, getStoredAuthUser, getUserDisplayName, type AuthUser } from "../../lib/auth"
+import { clearStoredAuthUser, getStoredAuthUser, getUserDisplayName, setStoredAuthUser, type AuthUser } from "../../lib/auth"
+import { api } from "../../lib/api"
 
 /* ─── Status configuration ─── */
 
@@ -57,13 +58,37 @@ const statusConfig = {
 
 export default function AccountStatus() {
   const navigate = useNavigate()
-  const user = getStoredAuthUser()
+  const [user, setUser] = useState<AuthUser | null>(() => getStoredAuthUser())
 
   useEffect(() => {
     if (!user) {
       navigate("/auth/login", { replace: true })
     }
   }, [user, navigate])
+
+  // Fetch the latest approval status from the server so the page
+  // always reflects the current database state (not just the stale
+  // localStorage snapshot from login time).
+  useEffect(() => {
+    if (!user) return
+
+    const fetchLatestStatus = async () => {
+      try {
+        const response = await api(`/api/account-status.php?userId=${user.id}`)
+        const result = await response.json() as { success: boolean; user?: Partial<AuthUser> }
+
+        if (result.success && result.user) {
+          const updatedUser = { ...user, ...result.user } as AuthUser
+          setStoredAuthUser(updatedUser)
+          setUser(updatedUser)
+        }
+      } catch {
+        // Silently fall back to the cached localStorage data.
+      }
+    }
+
+    void fetchLatestStatus()
+  }, [])
 
   const handleLogout = () => {
     clearStoredAuthUser()
