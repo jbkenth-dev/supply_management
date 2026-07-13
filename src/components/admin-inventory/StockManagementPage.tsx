@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } 
 import { ArrowDownTrayIcon, ArrowPathIcon, MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
 import { api } from "../../lib/api"
+import { formatDateTime as manilaFormatDateTime, toTimestamp } from "../../lib/date"
 import { MessageModal } from "../ui/MessageModal"
 import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
 import type { StockEntry, SupplyItem } from "../../types/adminInventory"
@@ -400,7 +401,7 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
                         const supplyEntries = entries.filter((e) => e.supplyId === supply.id)
                         const latestEntry = supplyEntries.length > 0
                           ? supplyEntries.reduce((latest, entry) =>
-                              new Date(entry.createdAt) > new Date(latest.createdAt) ? entry : latest
+                              toTimestamp(entry.createdAt) > toTimestamp(latest.createdAt) ? entry : latest
                             )
                           : null
                         const unitCost = latestEntry?.unitCost ?? 0
@@ -536,13 +537,7 @@ function BodyCell({
 }
 
 function formatDateTime(value: string) {
-  const date = new Date(value.replace(" ", "T"))
-
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return date.toLocaleString()
+  return manilaFormatDateTime(value)
 }
 
 function PaginationBar({

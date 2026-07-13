@@ -1,5 +1,5 @@
-import dayjs from "dayjs"
 import { useEffect, useMemo, useState } from "react"
+import { formatDateTime, formatDateTimeShort, formatDateShort, formatDateLong, toTimestamp } from "../lib/date"
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -117,7 +117,7 @@ export default function ApprovalDashboard() {
   }, [authUser?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const filteredRequests = useMemo(() => {
-    return [...requests].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    return [...requests].sort((a, b) => toTimestamp(a.createdAt) - toTimestamp(b.createdAt))
   }, [requests])
 
   const totalPages = Math.max(1, Math.ceil(filteredRequests.length / REQUESTS_PER_PAGE))
@@ -237,7 +237,7 @@ export default function ApprovalDashboard() {
                           <StatusBadge status={request.status} />
                         </div>
                         <p className="mt-2 text-sm text-brown-500">
-                          Submitted {dayjs(request.createdAt).format("MMMM D, YYYY h:mm A")} by{" "}
+                          Submitted {formatDateTime(request.createdAt)} by{" "}
                           <span className="font-semibold text-brown-700">{request.requestedByName}</span>
                         </p>
                       </div>
@@ -326,7 +326,7 @@ export default function ApprovalDashboard() {
                       >
                         {log.action}
                       </span>
-                      <p className="mt-1 text-xs text-brown-400">{dayjs(log.createdAt).format("MMM D, YYYY")}</p>
+                      <p className="mt-1 text-xs text-brown-400">{formatDateShort(log.createdAt)}</p>
                     </div>
                   </div>
                 </div>
@@ -371,7 +371,7 @@ export default function ApprovalDashboard() {
               {selectedRequest.dateNeeded ? (
                 <div className="rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Date Needed</p>
-                  <p className="mt-1.5 text-sm font-semibold text-brown-700">{dayjs(selectedRequest.dateNeeded).format("MMMM D, YYYY")}</p>
+                  <p className="mt-1.5 text-sm font-semibold text-brown-700">{formatDateLong(selectedRequest.dateNeeded)}</p>
                 </div>
               ) : null}
               <div className="rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3">
@@ -427,7 +427,7 @@ export default function ApprovalDashboard() {
                           {log.approverName} ({log.approverRole}) — <span className={log.action === "approved" ? "text-emerald-600" : "text-rose-600"}>{log.action}</span>
                         </p>
                         {log.remarks ? <p className="mt-0.5 text-sm text-brown-500">"{log.remarks}"</p> : null}
-                        <p className="mt-0.5 text-xs text-brown-400">{dayjs(log.createdAt).format("MMM D, YYYY h:mm A")}</p>
+                        <p className="mt-0.5 text-xs text-brown-400">{formatDateTimeShort(log.createdAt)}</p>
                       </div>
                     </div>
                   ))}

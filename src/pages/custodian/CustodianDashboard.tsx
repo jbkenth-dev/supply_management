@@ -13,6 +13,7 @@ import { motion } from "framer-motion"
 import AppShell from "../../layout/AppShell"
 import { MessageModal } from "../../components/ui/MessageModal"
 import { api } from "../../lib/api"
+import { formatDateTime as manilaFormatDateTime } from "../../lib/date"
 import { StaggerContainer, StaggerItem } from "../../components/ui/animations"
 
 type DashboardStats = {
@@ -511,13 +512,7 @@ function PaginationControls({
 }
 
 function formatDateTime(value: string) {
-  const date = new Date(value.replace(" ", "T"))
-
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return date.toLocaleString()
+  return manilaFormatDateTime(value)
 }
 
 function formatRequestDate(request: DashboardRequest) {

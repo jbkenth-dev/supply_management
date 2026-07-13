@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import type { ReactNode } from "react"
-import dayjs from "dayjs"
+import { formatDateTime as manilaFormatDateTime } from "../../lib/date"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import {
@@ -964,7 +964,7 @@ function RequesterAvatar({
 }
 
 function formatDateTime(value: string) {
-  return dayjs(value).isValid() ? dayjs(value).format("MMMM D, YYYY h:mm A") : value
+  return manilaFormatDateTime(value)
 }
 
 function getActionTitle(action: ActionKind) {
@@ -1005,7 +1005,7 @@ function createPdfDocument(title: string, subtitle: string) {
   doc.setFont("helvetica", "normal")
   doc.setFontSize(10)
   doc.text(subtitle, 14, 34)
-  doc.text(`Generated ${dayjs().format("MMMM D, YYYY h:mm A")}`, 196, 34, { align: "right" })
+  doc.text(`Generated ${manilaFormatDateTime(new Date().toISOString())}`, 196, 34, { align: "right" })
 
   return doc
 }

@@ -82,7 +82,7 @@ function buildHtml(displayName, code, isResend) {
   const bodyText = isResend
     ? 'Here is your new verification code.'
     : 'Use the verification code below to complete your account registration.';
-  const year = new Date().getFullYear();
+  const year = parseInt(new Intl.DateTimeFormat('en', { timeZone: 'Asia/Manila', year: 'numeric' }).format(new Date()), 10);
 
   return `<!DOCTYPE html>
 <html>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import type { ReactNode } from "react"
+import { formatDateTime as manilaFormatDateTime } from "../../lib/date"
 import {
   BuildingOfficeIcon,
   ExclamationTriangleIcon,
@@ -580,11 +581,5 @@ function TableCell({
 }
 
 function formatDate(value: string) {
-  const date = new Date(value.replace(" ", "T"))
-
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return date.toLocaleString()
+  return manilaFormatDateTime(value)
 }

@@ -1,5 +1,5 @@
-import dayjs from "dayjs"
 import { useEffect, useMemo, useState } from "react"
+import { formatDateShort, currentManilaYear } from "../lib/date"
 import {
   BanknotesIcon,
   ClipboardDocumentCheckIcon,
@@ -43,7 +43,7 @@ export default function Reports() {
     const load = async () => {
       setLoading(true)
       try {
-        const now = new Date().getFullYear()
+        const now = currentManilaYear()
         const [budgetRes, requestRes] = await Promise.all([
           api(`/api/budget-management.php?userId=${authUser.id}&role=${authUser.role}&fiscalYear=${now}`),
           api(`/api/admin-request-issuance.php?userId=${authUser.id}&role=${authUser.role}`),
@@ -200,7 +200,7 @@ export default function Reports() {
                             "bg-blue-100 text-blue-700"
                           }`}>{r.status}</span>
                         </td>
-                        <td className="py-3 pr-4 text-xs text-brown-400">{dayjs(r.createdAt).format("MMM D, YYYY")}</td>
+                        <td className="py-3 pr-4 text-xs text-brown-400">{formatDateShort(r.createdAt)}</td>
                       </tr>
                     ))}
                     {requests.length === 0 ? <tr><td colSpan={7} className="py-8 text-center text-brown-400">No request data.</td></tr> : null}

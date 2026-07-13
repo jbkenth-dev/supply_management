@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import AppShell from "../layout/AppShell"
 import { transactions } from "../data/transactions"
-import dayjs from "dayjs"
+import { toTimestamp } from "../lib/date"
 
 export default function Transactions() {
   const [from, setFrom] = useState<string>("")
@@ -11,8 +11,8 @@ export default function Transactions() {
   const filtered = useMemo(() => {
     return transactions.filter((t) => {
       const inRange =
-        (!from || !dayjs(t.date).isBefore(dayjs(from))) &&
-        (!to || !dayjs(t.date).isAfter(dayjs(to)))
+        (!from || toTimestamp(t.date) >= toTimestamp(from)) &&
+        (!to || toTimestamp(t.date) <= toTimestamp(to))
       const matchesType = type === "All" || t.type === type
       return inRange && matchesType
     })

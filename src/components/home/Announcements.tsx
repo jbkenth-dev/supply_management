@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import dayjs from "dayjs"
+import { formatDateShort } from "../../lib/date"
 import { motion, AnimatePresence } from "framer-motion"
 import { Calendar, Bell, ArrowRight, Sparkles, AlertCircle, Info } from "lucide-react"
 import { Card } from "../ui/Card"
@@ -144,7 +144,7 @@ export default function Announcements() {
                       </span>
                       <div className="flex items-center text-[10px] font-bold text-brown-400">
                         <Calendar className="mr-1 h-3 w-3" />
-                        {dayjs(announcement.publishedAt).format("MMM D, YYYY")}
+                        {formatDateShort(announcement.publishedAt)}
                       </div>
                     </div>
                     <h3 className="mb-1 line-clamp-1 text-base font-bold text-brown-900 transition-colors group-hover:text-primary-600">

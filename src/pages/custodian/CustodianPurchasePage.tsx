@@ -1,5 +1,5 @@
-import dayjs from "dayjs"
 import { useEffect, useState } from "react"
+import { formatDateTime, formatDateShort } from "../../lib/date"
 import {
   ShoppingCartIcon,
   CheckCircleIcon,
@@ -292,7 +292,7 @@ export default function CustodianPurchasePage() {
               {selectedRequest.dateNeeded ? (
                 <div className="rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Date Needed</p>
-                  <p className="mt-1.5 text-sm font-semibold text-brown-700">{dayjs(selectedRequest.dateNeeded).format("MMM D, YYYY")}</p>
+                  <p className="mt-1.5 text-sm font-semibold text-brown-700">{formatDateShort(selectedRequest.dateNeeded)}</p>
                 </div>
               ) : null}
               <div className="rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3">
@@ -342,9 +342,9 @@ export default function CustodianPurchasePage() {
 
             {/* Time Stamps */}
             <div className="mt-4 grid gap-3 sm:grid-cols-3 text-xs text-brown-400">
-              {selectedRequest.purchaseDate ? <div>Purchased: {dayjs(selectedRequest.purchaseDate).format("MMM D, YYYY h:mm A")}</div> : null}
-              {selectedRequest.releaseDate ? <div>Released: {dayjs(selectedRequest.releaseDate).format("MMM D, YYYY h:mm A")}</div> : null}
-              {selectedRequest.completionDate ? <div>Completed: {dayjs(selectedRequest.completionDate).format("MMM D, YYYY h:mm A")}</div> : null}
+              {selectedRequest.purchaseDate ? <div>Purchased: {formatDateTime(selectedRequest.purchaseDate)}</div> : null}
+              {selectedRequest.releaseDate ? <div>Released: {formatDateTime(selectedRequest.releaseDate)}</div> : null}
+              {selectedRequest.completionDate ? <div>Completed: {formatDateTime(selectedRequest.completionDate)}</div> : null}
             </div>
 
             {/* Action Area */}

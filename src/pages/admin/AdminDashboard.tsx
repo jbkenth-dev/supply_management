@@ -14,6 +14,7 @@ import AppShell from "../../layout/AppShell"
 import { MessageModal } from "../../components/ui/MessageModal"
 import { StaggerContainer, StaggerItem } from "../../components/ui/animations"
 import { api } from "../../lib/api"
+import { formatDateTime as manilaFormatDateTime } from "../../lib/date"
 import type { StockEntry } from "../../types/adminInventory"
 
 type DashboardStats = {
@@ -355,13 +356,7 @@ function ProgressRow({
 }
 
 function formatDateTime(value: string) {
-  const date = new Date(value.replace(" ", "T"))
-
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return date.toLocaleString()
+  return manilaFormatDateTime(value)
 }
 
 function DashboardSkeleton() {

@@ -1,5 +1,4 @@
 import { AnimatePresence, motion } from "framer-motion"
-import dayjs from "dayjs"
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import {
@@ -18,6 +17,7 @@ import AppShell from "../layout/AppShell"
 import { LoadingState } from "../components/ui/LoadingStates"
 import { StaggerContainer, StaggerItem } from "../components/ui/animations"
 import { api } from "../lib/api"
+import { formatDateTimeShort, formatRelativeDate as manilaFormatRelativeDate, toTimestamp as manilaToTimestamp } from "../lib/date"
 import { MessageModal } from "../components/ui/MessageModal"
 import { getMessagesPath, getStoredAuthUser } from "../lib/auth"
 import type { FacultyRequest, FacultyRequestSummary } from "../types/requests"
@@ -550,7 +550,7 @@ export default function Dashboard() {
                           {request.notes ? ` • ${request.notes}` : ""}
                         </p>
                         <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary-600">
-                          {dayjs(request.createdAt).format("MMM D, YYYY h:mm A")}
+                          {formatDateTimeShort(request.createdAt)}
                         </p>
                       </div>
                       <div className={getStatusClass(request.status)}>
@@ -745,40 +745,9 @@ function getRequestNotificationType(status: string): Notification["type"] {
 }
 
 function formatRelativeDate(value: string | null) {
-  if (!value) {
-    return "No timestamp"
-  }
-
-  const parsed = dayjs(value)
-
-  if (!parsed.isValid()) {
-    return value
-  }
-
-  const diffMinutes = Math.abs(dayjs().diff(parsed, "minute"))
-
-  if (diffMinutes < 1) {
-    return "Just now"
-  }
-
-  if (diffMinutes < 60) {
-    return `${diffMinutes} min${diffMinutes === 1 ? "" : "s"} ago`
-  }
-
-  const diffHours = Math.abs(dayjs().diff(parsed, "hour"))
-
-  if (diffHours < 24) {
-    return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`
-  }
-
-  return parsed.format("MMM D, YYYY h:mm A")
+  return manilaFormatRelativeDate(value)
 }
 
 function toTimestamp(value: string | null) {
-  if (!value) {
-    return 0
-  }
-
-  const parsed = dayjs(value)
-  return parsed.isValid() ? parsed.valueOf() : 0
+  return manilaToTimestamp(value)
 }

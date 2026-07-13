@@ -15,6 +15,7 @@ import AppShell from "../../layout/AppShell"
 import type { AuthRole } from "../../lib/auth"
 import { MessageModal } from "../ui/MessageModal"
 import { api } from "../../lib/api"
+import { formatDateTime as manilaFormatDateTime } from "../../lib/date"
 import type { SupplyCategory, SupplyItem } from "../../types/adminInventory"
 
 type CategoryForm = {
@@ -934,13 +935,7 @@ function formatDateTime(value: string | null) {
     return "just now"
   }
 
-  const date = new Date(value.replace(" ", "T"))
-
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return date.toLocaleString()
+  return manilaFormatDateTime(value)
 }
 
 function DeleteConfirmModal({

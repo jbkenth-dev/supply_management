@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import dayjs from "dayjs"
+import { formatDateTime } from "../../lib/date"
 import { MegaphoneIcon, SparklesIcon, WrenchScrewdriverIcon, InformationCircleIcon } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
 import { MessageModal } from "../../components/ui/MessageModal"
@@ -242,7 +242,7 @@ export default function AdminAnnouncements() {
                           </div>
                           <p className="mt-2 text-sm leading-6 text-brown-500">{announcement.description}</p>
                           <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary-600">
-                            Published {dayjs(announcement.publishedAt).format("MMMM D, YYYY h:mm A")}
+                            Published {formatDateTime(announcement.publishedAt)}
                           </p>
                         </div>
                       </div>

@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
 import { api } from "../../lib/api"
+import { formatContactTime as manilaFormatContactTime, formatMessageDate as manilaFormatMessageDate } from "../../lib/date"
 import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
 
 type MessageContact = {
@@ -579,35 +580,9 @@ function Avatar({ contact }: { contact: Pick<MessageContact, "name" | "profileIm
 }
 
 function formatContactTime(value: string | null) {
-  if (!value) {
-    return ""
-  }
-
-  const date = new Date(value.replace(" ", "T"))
-
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  const now = new Date()
-  const isSameDay = now.toDateString() === date.toDateString()
-
-  return isSameDay
-    ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-    : date.toLocaleDateString([], { month: "short", day: "numeric" })
+  return manilaFormatContactTime(value)
 }
 
 function formatMessageDate(value: string) {
-  const date = new Date(value.replace(" ", "T"))
-
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return date.toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
+  return manilaFormatMessageDate(value)
 }

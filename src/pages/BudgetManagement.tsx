@@ -11,6 +11,7 @@ import {
 } from "@heroicons/react/24/outline"
 import AppShell from "../layout/AppShell"
 import { api } from "../lib/api"
+import { currentManilaYear } from "../lib/date"
 import { getStoredAuthUser } from "../lib/auth"
 
 type BudgetRecord = {
@@ -178,7 +179,7 @@ export default function BudgetManagement() {
         <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">{new Date().getFullYear()} Budget</p>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">{currentManilaYear()} Budget</p>
               <h2 className="mt-2 text-2xl font-black tracking-tight text-brown-900">Department Allocations</h2>
             </div>
           </div>

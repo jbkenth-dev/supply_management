@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import dayjs from "dayjs"
+import { formatDateTime as manilaFormatDateTime } from "../../lib/date"
 import { useNavigate } from "react-router-dom"
 import {
   BellIcon,
@@ -253,5 +253,5 @@ function NotificationIcon({ type }: { type: string }) {
 }
 
 function formatDateTime(value: string) {
-  return dayjs(value).isValid() ? dayjs(value).format("MMMM D, YYYY h:mm A") : value
+  return manilaFormatDateTime(value)
 }

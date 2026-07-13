@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import dayjs from "dayjs"
+import { formatDateTime, formatDateTimeShort, formatDateLong } from "../lib/date"
 import {
   ArrowPathIcon,
   ExclamationTriangleIcon,
@@ -284,12 +284,12 @@ export default function MyRequests() {
                         {request.totalItems} item{request.totalItems === 1 ? "" : "s"} requested
                       </h2>
                       <p className="mt-2 text-sm text-brown-500">
-                        Submitted {dayjs(request.createdAt).format("MMMM D, YYYY h:mm A")} with {request.totalQuantity} total {request.totalQuantity === 1 ? "quantity" : "quantities"}.
+                        Submitted {formatDateTime(request.createdAt)} with {request.totalQuantity} total {request.totalQuantity === 1 ? "quantity" : "quantities"}.
                       </p>
                     </div>
                     <div className="flex flex-col items-start gap-3 lg:items-end">
                       <div className="text-sm text-brown-500">
-                        Last updated {dayjs(request.updatedAt).format("MMM D, YYYY h:mm A")}
+                        Last updated {formatDateTimeShort(request.updatedAt)}
                       </div>
                       {request.status === "Pending Immediate Head" ? (
                         <button
@@ -331,7 +331,7 @@ export default function MyRequests() {
                     {request.dateNeeded ? (
                       <div className="rounded-2xl border border-brown-200 bg-white px-4 py-3">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Date Needed</p>
-                        <p className="mt-1.5 text-sm font-semibold text-brown-700">{dayjs(request.dateNeeded).format("MMMM D, YYYY")}</p>
+                        <p className="mt-1.5 text-sm font-semibold text-brown-700">{formatDateLong(request.dateNeeded)}</p>
                       </div>
                     ) : null}
                     {request.grandTotal > 0 ? (

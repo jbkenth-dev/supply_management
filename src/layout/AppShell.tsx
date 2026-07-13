@@ -24,6 +24,7 @@ import {
   CurrencyDollarIcon
 } from "@heroicons/react/24/outline"
 import { api } from "../lib/api"
+import { formatNotificationTime as manilaFormatNotificationTime } from "../lib/date"
 import { clearStoredAuthUser, getDashboardPath, getMessagesPath, getMyAccountPath, getNotificationPath, getStoredAuthUser, getUserDisplayName, type AuthRole, type AuthUser } from "../lib/auth"
 import type { AppNotification, NotificationsResponse } from "../types/notifications"
 
@@ -628,11 +629,5 @@ function getNotificationToneClass(type: string) {
 }
 
 function formatNotificationTime(value: string) {
-  const date = new Date(value.replace(" ", "T"))
-
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return date.toLocaleString()
+  return manilaFormatNotificationTime(value)
 }
