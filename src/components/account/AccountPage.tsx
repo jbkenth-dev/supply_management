@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react"
 import { useNavigate } from "react-router-dom"
 import { AnimatePresence, motion } from "framer-motion"
 import { MessageModal } from "../ui/MessageModal"
 import {
+  ArrowPathIcon,
   CameraIcon,
   CheckCircleIcon,
   EnvelopeIcon,
@@ -11,6 +12,7 @@ import {
   IdentificationIcon,
   KeyIcon,
   LockClosedIcon,
+  ShieldCheckIcon,
   UserCircleIcon,
   UserIcon,
 } from "@heroicons/react/24/outline"
@@ -29,7 +31,7 @@ type AccountForm = {
   profileImageUrl: string
 }
 
-type AccountErrors = Partial<Record<"firstname" | "lastname" | "profileImage", string>>
+type AccountErrors = Partial<Record<"firstname" | "lastname" | "email" | "profileImage", string>>
 type EditableErrorField = Exclude<keyof AccountErrors, "profileImage">
 type PasswordForm = {
   currentPassword: string
@@ -37,6 +39,12 @@ type PasswordForm = {
   confirmPassword: string
 }
 type PasswordErrors = Partial<Record<keyof PasswordForm, string>>
+
+function formatCountdown(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+}
 
 const initialForm: AccountForm = {
   idNumber: "",
@@ -98,6 +106,19 @@ export default function AccountPage({ role }: { role: AuthRole }) {
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [showPasswordMsgModal, setShowPasswordMsgModal] = useState(false)
 
+  // ─── Email change verification state ──────────────────────
+  const [originalEmail, setOriginalEmail] = useState("")
+  const [showEmailVerifyModal, setShowEmailVerifyModal] = useState(false)
+  const [emailVerifyDigits, setEmailVerifyDigits] = useState<string[]>(Array(6).fill(""))
+  const [emailVerifyError, setEmailVerifyError] = useState("")
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false)
+  const [isResendingEmailCode, setIsResendingEmailCode] = useState(false)
+  const [emailVerifyRemainingSeconds, setEmailVerifyRemainingSeconds] = useState(10 * 60)
+  const [emailVerifyExpired, setEmailVerifyExpired] = useState(false)
+  const [pendingEmailChange, setPendingEmailChange] = useState("")
+  const [emailVerifySuccess, setEmailVerifySuccess] = useState(false)
+  const emailVerifyInputRefs = useRef<(HTMLInputElement | null)[]>([])
+
   useEffect(() => {
     if (!serverMessage) return
 
@@ -121,6 +142,26 @@ export default function AccountPage({ role }: { role: AuthRole }) {
     }, 3000)
     return () => window.clearTimeout(timer)
   }, [passwordMessage, showPasswordChangeModal])
+
+  // ─── Email verification countdown timer ───────────────────
+  useEffect(() => {
+    if (!showEmailVerifyModal || emailVerifyRemainingSeconds <= 0) {
+      if (emailVerifyRemainingSeconds <= 0) setEmailVerifyExpired(true)
+      return
+    }
+
+    const timer = window.setInterval(() => {
+      setEmailVerifyRemainingSeconds((prev) => {
+        if (prev <= 1) {
+          setEmailVerifyExpired(true)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => window.clearInterval(timer)
+  }, [showEmailVerifyModal, emailVerifyRemainingSeconds])
 
   useEffect(() => {
     const storedUser = getStoredAuthUser()
@@ -161,6 +202,7 @@ export default function AccountPage({ role }: { role: AuthRole }) {
           role: user.role ?? "",
           profileImageUrl: user.profileImageUrl ?? "",
         })
+        setOriginalEmail(user.email ?? "")
         setPreviewUrl(user.profileImageUrl ?? "")
         setAuthUser(user)
         setStoredAuthUser(user)
@@ -197,6 +239,9 @@ export default function AccountPage({ role }: { role: AuthRole }) {
     if (field === "firstname" || field === "lastname") {
       const errorField = field as EditableErrorField
       setErrors((current) => ({ ...current, [errorField]: undefined }))
+    }
+    if (field === "email") {
+      setErrors((current) => ({ ...current, email: undefined }))
     }
     setServerMessage("")
     setIsSuccess(false)
@@ -242,6 +287,8 @@ export default function AccountPage({ role }: { role: AuthRole }) {
     const nextErrors: AccountErrors = {}
     if (!formData.firstname.trim()) nextErrors.firstname = "First name is required."
     if (!formData.lastname.trim()) nextErrors.lastname = "Last name is required."
+    if (!formData.email.trim()) nextErrors.email = "Email address is required."
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) nextErrors.email = "Please enter a valid email address."
     setErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
   }
@@ -253,25 +300,29 @@ export default function AccountPage({ role }: { role: AuthRole }) {
     if (!authUser?.id || !validateForm()) return
     setIsSaving(true)
 
+    const emailChanged = formData.email.trim().toLowerCase() !== originalEmail.toLowerCase()
+
     try {
-      const payload = new FormData()
-      payload.append("id", String(authUser.id))
-      payload.append("role", role)
-      payload.append("firstname", formData.firstname.trim())
-      payload.append("middlename", formData.middlename.trim())
-      payload.append("lastname", formData.lastname.trim())
-      if (selectedImage) payload.append("profileImage", selectedImage)
+      // Step 1: Always save profile fields (name, image) first
+      const profilePayload = new FormData()
+      profilePayload.append("id", String(authUser.id))
+      profilePayload.append("role", role)
+      profilePayload.append("firstname", formData.firstname.trim())
+      profilePayload.append("middlename", formData.middlename.trim())
+      profilePayload.append("lastname", formData.lastname.trim())
+      if (selectedImage) profilePayload.append("profileImage", selectedImage)
 
-      const response = await api("/api/my-account.php", { method: "POST", body: payload })
-      const result = await response.json()
+      const profileResponse = await api("/api/my-account.php", { method: "POST", body: profilePayload })
+      const profileResult = await profileResponse.json()
 
-      if (!response.ok) {
-        setErrors((current) => ({ ...current, ...(result.errors ?? {}) }))
-        setServerMessage(result.message ?? "Unable to save account changes.")
+      if (!profileResponse.ok) {
+        setErrors((current) => ({ ...current, ...(profileResult.errors ?? {}) }))
+        setServerMessage(profileResult.message ?? "Unable to save account changes.")
         return
       }
 
-      const updatedUser = result.user as AuthUser
+      // Update local state with saved profile data
+      const updatedUser = profileResult.user as AuthUser
       setAuthUser(updatedUser)
       setStoredAuthUser(updatedUser)
       setFormData({
@@ -284,10 +335,73 @@ export default function AccountPage({ role }: { role: AuthRole }) {
         role: updatedUser.role ?? "",
         profileImageUrl: updatedUser.profileImageUrl ?? "",
       })
+      setOriginalEmail(updatedUser.email ?? "")
       setPreviewUrl(updatedUser.profileImageUrl ?? "")
       setSelectedImage(null)
       setErrors({})
-      setServerMessage(result.message ?? getSuccessMessage(role))
+
+      // Step 2: If email was changed, initiate email change verification
+      if (emailChanged) {
+        const newEmail = formData.email.trim().toLowerCase()
+
+        const emailResponse = await api("/api/email-change-request.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: authUser.id,
+            role,
+            newEmail,
+          }),
+        })
+
+        let emailResult: any
+        try {
+          emailResult = await emailResponse.json()
+        } catch {
+          setServerMessage("Server error while requesting email change. Please try again.")
+          return
+        }
+
+        if (!emailResponse.ok) {
+          setErrors((current) => ({ ...current, ...(emailResult.errors ?? {}) }))
+          setServerMessage(emailResult.message ?? "Unable to process email change request.")
+          return
+        }
+
+        // Send email via Vercel serverless function (Awardspace blocks outbound)
+        if (emailResult.code) {
+          api("/api/send-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: emailResult.email ?? newEmail,
+              name: emailResult.name ?? "",
+              code: emailResult.code,
+              type: "email-change",
+              expiryMinutes: 10,
+            }),
+          }).catch(() => {
+            // Email failure is non-fatal — the code was saved on the server
+          })
+        }
+
+        // Show the OTP verification modal
+        setPendingEmailChange(newEmail)
+        setEmailVerifyDigits(Array(6).fill(""))
+        setEmailVerifyError("")
+        setEmailVerifyExpired(false)
+        setEmailVerifyRemainingSeconds(10 * 60)
+        setEmailVerifySuccess(false)
+        setShowEmailVerifyModal(true)
+        setServerMessage("")
+
+        // Focus the first input after modal opens
+        setTimeout(() => emailVerifyInputRefs.current[0]?.focus(), 100)
+        return
+      }
+
+      // Email not changed — show success
+      setServerMessage(profileResult.message ?? getSuccessMessage(role))
       setIsSuccess(true)
     } catch {
       setServerMessage("Unable to connect to the PHP account service. Make sure Apache and MySQL are running in XAMPP.")
@@ -345,6 +459,199 @@ export default function AccountPage({ role }: { role: AuthRole }) {
     } finally {
       setIsChangingPassword(false)
     }
+  }
+
+  // ─── Email Verification Handlers ─────────────────────────
+
+  const getFullEmailVerifyCode = useCallback(() => emailVerifyDigits.join(""), [emailVerifyDigits])
+
+  const handleEmailVerifyDigitChange = (index: number, value: string) => {
+    if (value.length > 1) value = value.slice(-1)
+    if (value !== "" && !/^\d$/.test(value)) return
+
+    const newDigits = [...emailVerifyDigits]
+    newDigits[index] = value
+    setEmailVerifyDigits(newDigits)
+    setEmailVerifyError("")
+
+    if (value !== "" && index < 5) {
+      emailVerifyInputRefs.current[index + 1]?.focus()
+    }
+
+    if (value !== "" && index === 5) {
+      const fullCode = newDigits.join("")
+      if (fullCode.length === 6) {
+        handleEmailVerify(fullCode)
+      }
+    }
+  }
+
+  const handleEmailVerifyKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace") {
+      if (emailVerifyDigits[index] === "" && index > 0) {
+        const newDigits = [...emailVerifyDigits]
+        newDigits[index - 1] = ""
+        setEmailVerifyDigits(newDigits)
+        emailVerifyInputRefs.current[index - 1]?.focus()
+      }
+    } else if (e.key === "ArrowLeft" && index > 0) {
+      emailVerifyInputRefs.current[index - 1]?.focus()
+    } else if (e.key === "ArrowRight" && index < 5) {
+      emailVerifyInputRefs.current[index + 1]?.focus()
+    }
+  }
+
+  const handleEmailVerifyPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault()
+    const pastedText = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6)
+    if (pastedText.length === 0) return
+
+    const newDigits = [...emailVerifyDigits]
+    for (let i = 0; i < 6; i++) {
+      newDigits[i] = pastedText[i] ?? ""
+    }
+    setEmailVerifyDigits(newDigits)
+    setEmailVerifyError("")
+
+    const focusIndex = Math.min(pastedText.length, 5)
+    emailVerifyInputRefs.current[focusIndex]?.focus()
+
+    if (pastedText.length === 6) {
+      handleEmailVerify(pastedText)
+    }
+  }
+
+  const handleEmailVerify = async (code?: string) => {
+    const fullCode = code ?? getFullEmailVerifyCode()
+
+    if (fullCode.length !== 6) {
+      setEmailVerifyError("Please enter all 6 digits.")
+      return
+    }
+
+    if (emailVerifyExpired) {
+      setEmailVerifyError("Verification code has expired. Please request a new one.")
+      return
+    }
+
+    setIsVerifyingEmail(true)
+    setEmailVerifyError("")
+
+    try {
+      const response = await api("/api/email-change-verify.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: authUser?.id,
+          role,
+          code: fullCode,
+          newEmail: pendingEmailChange,
+        }),
+      })
+
+      let result: any
+      try {
+        result = await response.json()
+      } catch {
+        setEmailVerifyError("Server error. Please try again.")
+        return
+      }
+
+      if (!response.ok) {
+        setEmailVerifyError(result.message ?? "Invalid verification code. Please try again.")
+        setEmailVerifyDigits(Array(6).fill(""))
+        emailVerifyInputRefs.current[0]?.focus()
+        return
+      }
+
+      // Success — update local state
+      const updatedUser = result.user as AuthUser
+      setAuthUser(updatedUser)
+      setStoredAuthUser(updatedUser)
+      setOriginalEmail(updatedUser.email ?? "")
+      setFormData((current) => ({ ...current, email: updatedUser.email ?? "" }))
+      setEmailVerifySuccess(true)
+
+      // Close modal after a short delay
+      setTimeout(() => {
+        setShowEmailVerifyModal(false)
+        setEmailVerifySuccess(false)
+        setPendingEmailChange("")
+        setServerMessage("Email address updated successfully.")
+        setIsSuccess(true)
+      }, 1500)
+    } catch {
+      setEmailVerifyError("Unable to connect to the verification service. Please try again.")
+    } finally {
+      setIsVerifyingEmail(false)
+    }
+  }
+
+  const handleResendEmailCode = async () => {
+    setIsResendingEmailCode(true)
+    setEmailVerifyError("")
+
+    try {
+      const response = await api("/api/email-change-request.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: authUser?.id,
+          role,
+          newEmail: pendingEmailChange,
+        }),
+      })
+
+      let result: any
+      try {
+        result = await response.json()
+      } catch {
+        setEmailVerifyError("Server error. Please try again.")
+        return
+      }
+
+      if (!response.ok) {
+        setEmailVerifyError(result.message ?? "Unable to resend verification code.")
+        return
+      }
+
+      // Send email via Vercel serverless function
+      if (result.code) {
+        api("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: result.email ?? pendingEmailChange,
+            name: result.name ?? "",
+            code: result.code,
+            type: "email-change",
+            expiryMinutes: 10,
+          }),
+        }).catch(() => {
+          // Email failure is non-fatal
+        })
+      }
+
+      // Reset the timer and code
+      setEmailVerifyRemainingSeconds(10 * 60)
+      setEmailVerifyExpired(false)
+      setEmailVerifyDigits(Array(6).fill(""))
+      emailVerifyInputRefs.current[0]?.focus()
+    } catch {
+      setEmailVerifyError("Unable to connect to the verification service. Please try again.")
+    } finally {
+      setIsResendingEmailCode(false)
+    }
+  }
+
+  const handleCancelEmailVerify = () => {
+    setShowEmailVerifyModal(false)
+    setPendingEmailChange("")
+    setEmailVerifyDigits(Array(6).fill(""))
+    setEmailVerifyError("")
+    setEmailVerifySuccess(false)
+    // Revert the email in the form back to the original
+    setFormData((current) => ({ ...current, email: originalEmail }))
   }
 
   const handleReLogin = () => {
@@ -440,7 +747,7 @@ export default function AccountPage({ role }: { role: AuthRole }) {
                 <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-800">
                   <div className="flex items-start gap-3">
                     <CheckCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0" />
-                    <p>Username and email stay protected as read-only values. Personal information and your profile picture can be updated here.</p>
+                    <p>Username is a read-only identifier. Email changes require verification via a code sent to the new email address.</p>
                   </div>
                 </div>
 
@@ -454,7 +761,7 @@ export default function AccountPage({ role }: { role: AuthRole }) {
                   <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Profile Information</p>
                   <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Edit personal information</h2>
                   <p className="mt-2 text-sm leading-6 text-brown-500">
-                    Keep your {roleNoun} account details complete. Email and username are displayed for reference and cannot be changed here.
+                    Keep your {roleNoun} account details complete. Username is a read-only identifier. Changing your email will require verification.
                   </p>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -531,10 +838,11 @@ export default function AccountPage({ role }: { role: AuthRole }) {
                         <input
                           type="email"
                           value={formData.email}
-                          className="w-full cursor-not-allowed rounded-xl border border-brown-200 bg-brown-100 py-3.5 pl-11 pr-4 text-sm text-brown-500"
-                          readOnly
+                          onChange={(event) => handleChange("email", event.target.value)}
+                          className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3.5 pl-11 pr-4 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                         />
                       </div>
+                      {errors.email ? <p className="mt-2 text-xs font-semibold text-rose-600">{errors.email}</p> : null}
                     </div>
                   </div>
 
@@ -701,6 +1009,176 @@ export default function AccountPage({ role }: { role: AuthRole }) {
                   Login Again
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      {/* ─── Email Change Verification Modal ───────────────── */}
+      <AnimatePresence>
+        {showEmailVerifyModal ? (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 18, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.96 }}
+              transition={{ duration: 0.22 }}
+              className="w-full max-w-md rounded-[2rem] border border-brown-200 bg-white p-7 shadow-2xl"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="email-verify-title"
+            >
+              {/* Success State */}
+              {emailVerifySuccess ? (
+                <>
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                    <CheckCircleIcon className="h-8 w-8" />
+                  </div>
+                  <h3 id="email-verify-title" className="mt-5 text-2xl font-black tracking-tight text-brown-900">
+                    Email address updated successfully
+                  </h3>
+                  <p className="mt-3 text-sm leading-6 text-brown-500">
+                    Your email address has been changed to <span className="font-semibold text-brown-900">{pendingEmailChange}</span>. All future communications will be sent to this address.
+                  </p>
+                </>
+              ) : (
+                <>
+                  {/* Verification Header */}
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-600">
+                    <ShieldCheckIcon className="h-8 w-8" />
+                  </div>
+                  <h3 id="email-verify-title" className="mt-5 text-2xl font-black tracking-tight text-brown-900">
+                    Verify Email Change
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-brown-500">
+                    We sent a 6-digit verification code to
+                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <EnvelopeIcon className="h-4 w-4 text-primary-500" />
+                    <span className="text-sm font-bold text-primary-600">{pendingEmailChange}</span>
+                  </div>
+
+                  {/* Error */}
+                  {emailVerifyError ? (
+                    <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
+                      {emailVerifyError}
+                    </div>
+                  ) : null}
+
+                  {/* Code Input */}
+                  <div className="mt-6">
+                    <div className="flex justify-center gap-3">
+                      {emailVerifyDigits.map((digit, index) => (
+                        <input
+                          key={index}
+                          ref={(el) => { emailVerifyInputRefs.current[index] = el }}
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="one-time-code"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleEmailVerifyDigitChange(index, e.target.value)}
+                          onKeyDown={(e) => handleEmailVerifyKeyDown(index, e)}
+                          onPaste={handleEmailVerifyPaste}
+                          disabled={isVerifyingEmail || emailVerifyExpired}
+                          className={`w-12 h-14 text-center text-xl font-black rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 ${
+                            digit
+                              ? "border-primary-500 bg-primary-50 text-primary-700"
+                              : "border-brown-200 bg-brown-50 text-brown-900"
+                          } ${isVerifyingEmail ? "opacity-60" : ""} ${
+                            emailVerifyExpired ? "border-rose-300 bg-rose-50" : ""
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Timer */}
+                  <div className="mt-4 text-center">
+                    {emailVerifyExpired ? (
+                      <p className="text-sm font-bold text-rose-600">
+                        Code expired. Please request a new one.
+                      </p>
+                    ) : (
+                      <p className="text-sm text-brown-500">
+                        Code expires in{" "}
+                        <span
+                          className={`font-bold tabular-nums ${
+                            emailVerifyRemainingSeconds <= 60 ? "text-rose-600" : "text-primary-600"
+                          }`}
+                        >
+                          {formatCountdown(emailVerifyRemainingSeconds)}
+                        </span>
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Verify Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleEmailVerify()}
+                    disabled={isVerifyingEmail || getFullEmailVerifyCode().length !== 6 || emailVerifyExpired}
+                    className="mt-4 w-full inline-flex items-center justify-center rounded-xl bg-brown-900 px-5 py-3.5 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isVerifyingEmail ? (
+                      <>
+                        <div className="mr-2 h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Verifying...
+                      </>
+                    ) : (
+                      "Verify Code"
+                    )}
+                  </button>
+
+                  {/* Resend */}
+                  <div className="mt-4 text-center">
+                    <p className="text-sm text-brown-500">
+                      Didn't receive the code?{" "}
+                      {emailVerifyExpired ? (
+                        <button
+                          type="button"
+                          onClick={handleResendEmailCode}
+                          disabled={isResendingEmailCode}
+                          className="text-primary-600 font-bold hover:underline disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1"
+                        >
+                          {isResendingEmailCode ? (
+                            <>
+                              <div className="h-3 w-3 border-2 border-primary-300 border-t-primary-600 rounded-full animate-spin" />
+                              Sending...
+                            </>
+                          ) : (
+                            <>
+                              <ArrowPathIcon className="h-3.5 w-3.5" />
+                              Resend Code
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <span className="text-brown-400">
+                          Resend available in {formatCountdown(emailVerifyRemainingSeconds)}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Cancel */}
+                  <div className="mt-5 text-center">
+                    <button
+                      type="button"
+                      onClick={handleCancelEmailVerify}
+                      disabled={isVerifyingEmail}
+                      className="text-sm text-brown-400 font-medium hover:text-brown-600 transition-colors disabled:opacity-50"
+                    >
+                      Cancel and keep current email
+                    </button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         ) : null}
