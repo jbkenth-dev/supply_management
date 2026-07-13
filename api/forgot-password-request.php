@@ -55,16 +55,11 @@ try {
     $userQuery->execute(['email' => $email]);
     $user = $userQuery->fetch();
 
-    // Always return success to prevent email enumeration
-    $genericSuccess = [
-        'success' => true,
-        'message' => 'If an account with that email exists, a verification code has been sent.',
-    ];
-
     if (!$user) {
-        // Delay slightly to prevent timing attacks
-        usleep(100000); // 100ms
-        jsonResponse(200, $genericSuccess);
+        jsonResponse(404, [
+            'success' => false,
+            'message' => 'No account found with this email address.',
+        ]);
     }
 
     $userId = (int) $user['id'];

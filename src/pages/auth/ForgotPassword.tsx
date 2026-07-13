@@ -215,8 +215,7 @@ export default function ForgotPassword() {
       }
 
       if (!response.ok) {
-        setServerMessage(result.message ?? "Unable to process your request.")
-        setModalType("error")
+        setEmailError(result.message ?? "Unable to process your request.")
         return
       }
 
