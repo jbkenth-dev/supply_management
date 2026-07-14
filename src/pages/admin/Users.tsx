@@ -125,7 +125,6 @@ export default function AdminUsers() {
   const [otpIsExpired, setOtpIsExpired] = useState(false)
   const [otpIsVerifying, setOtpIsVerifying] = useState(false)
   const [otpIsResending, setOtpIsResending] = useState(false)
-  const [otpPendingFormData, setOtpPendingFormData] = useState<UserFormState | null>(null)
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   const isEditing = editingUserId !== null
@@ -460,7 +459,6 @@ export default function AdminUsers() {
     setOtpIsExpired(false)
     setOtpIsVerifying(false)
     setOtpIsResending(false)
-    setOtpPendingFormData(null)
   }
 
   const closeOtpModal = () => {
@@ -728,7 +726,6 @@ export default function AdminUsers() {
       setErrors({})
       setOtpPendingId(result.pendingId)
       setOtpEmail(result.email)
-      setOtpPendingFormData({ ...formData })
       setOtpRemainingSeconds(OTP_EXPIRY_SECONDS)
       setOtpIsExpired(false)
       setOtpDigits(Array(OTP_CODE_LENGTH).fill(""))
