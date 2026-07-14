@@ -192,18 +192,14 @@ if ($errors === []) {
         // --- Duplicate check against existing users (managed roles only) ---
         // Only check the roles visible on the /admin/users page so the
         // validation is consistent with what the admin can actually see.
-        $managedRoles = ['Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
-        $placeholders = implode(',', array_fill(0, count($managedRoles), '?'));
+        // Role values are hardcoded constants — safe to interpolate directly.
         $dupQuery = $pdo->prepare(
             "SELECT id, id_number, username, email
              FROM users
-             WHERE role IN ($placeholders)
+             WHERE role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President')
                AND (LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email))
              LIMIT 20"
         );
-        foreach ($managedRoles as $i => $mr) {
-            $dupQuery->bindValue($i + 1, $mr);
-        }
         $dupQuery->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
 
         foreach ($dupQuery->fetchAll() as $existing) {

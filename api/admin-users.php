@@ -522,21 +522,16 @@ function findDuplicateUserConflicts(PDO $pdo, string $idNumber, string $username
 {
     // Only check managed roles — the same set displayed on /admin/users —
     // so the validation is consistent with what the admin can actually see.
-    $managedRoles = ['Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
-    $placeholders = implode(',', array_fill(0, count($managedRoles), '?'));
-
+    // Role values are hardcoded constants — safe to interpolate directly.
     $query = $pdo->prepare(
         "SELECT id, id_number, username, email
          FROM users
-         WHERE role IN ($placeholders)
+         WHERE role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President')
            AND (LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email))
            AND (:exclude_id IS NULL OR id <> :exclude_id)
          LIMIT 20"
     );
 
-    foreach ($managedRoles as $i => $mr) {
-        $query->bindValue($i + 1, $mr);
-    }
     $query->bindValue(':id_number', $idNumber);
     $query->bindValue(':username', $username);
     $query->bindValue(':email', $email);
