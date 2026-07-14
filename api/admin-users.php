@@ -144,6 +144,7 @@ function handlePost(PDO $pdo): void
 
     if ($action === 'update') {
         handleUpdatePayload($pdo, $payload);
+        return; // handleUpdatePayload calls jsonResponse() + exit, but guard against fall-through.
     }
 
     handleCreatePayload($pdo, $payload);
@@ -520,36 +521,43 @@ function validateUserPayload(PDO $pdo, array $payload, bool $isCreate, ?int $exc
 
 function findDuplicateUserConflicts(PDO $pdo, string $idNumber, string $username, string $email, ?int $excludeId): array
 {
-    // Only check managed roles — the same set displayed on /admin/users —
-    // so the validation is consistent with what the admin can actually see.
-    // Role values are hardcoded constants — safe to interpolate directly.
-    $query = $pdo->prepare(
-        "SELECT id, id_number, username, email
-         FROM users
-         WHERE role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President')
-           AND (LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email))
-           AND (:exclude_id IS NULL OR id <> :exclude_id)
-         LIMIT 20"
-    );
-
-    $query->bindValue(':id_number', $idNumber);
-    $query->bindValue(':username', $username);
-    $query->bindValue(':email', $email);
-    $query->bindValue(':exclude_id', $excludeId, $excludeId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
-    $query->execute();
-
+    // Check each field individually against the users table to avoid
+    // false positives from a single OR query combining matches across
+    // unrelated rows.  Use case-insensitive comparison via PHP (the
+    // database collation is utf8mb4_general_ci, but explicit PHP
+    // comparison eliminates any ambiguity).
     $errors = [];
+    $excludeCondition = $excludeId !== null ? ' AND id <> :exclude_id' : '';
 
-    foreach ($query->fetchAll() as $existingUser) {
-        if (strcasecmp((string) ($existingUser['id_number'] ?? ''), $idNumber) === 0) {
+    // Check ID number
+    if ($idNumber !== '') {
+        $idQuery = $pdo->prepare(
+            "SELECT 1 FROM users WHERE id_number = :id_number{$excludeCondition} LIMIT 1"
+        );
+        $idQuery->execute(array_merge(['id_number' => $idNumber], $excludeId !== null ? ['exclude_id' => $excludeId] : []));
+        if ($idQuery->fetch()) {
             $errors['idNumber'] = 'ID number is already registered.';
         }
+    }
 
-        if (strcasecmp((string) $existingUser['username'], $username) === 0) {
+    // Check username
+    if ($username !== '') {
+        $usernameQuery = $pdo->prepare(
+            "SELECT 1 FROM users WHERE username = :username{$excludeCondition} LIMIT 1"
+        );
+        $usernameQuery->execute(array_merge(['username' => $username], $excludeId !== null ? ['exclude_id' => $excludeId] : []));
+        if ($usernameQuery->fetch()) {
             $errors['username'] = 'Username is already taken.';
         }
+    }
 
-        if (strcasecmp((string) $existingUser['email'], $email) === 0) {
+    // Check email
+    if ($email !== '') {
+        $emailQuery = $pdo->prepare(
+            "SELECT 1 FROM users WHERE email = :email{$excludeCondition} LIMIT 1"
+        );
+        $emailQuery->execute(array_merge(['email' => $email], $excludeId !== null ? ['exclude_id' => $excludeId] : []));
+        if ($emailQuery->fetch()) {
             $errors['email'] = 'Email is already registered.';
         }
     }

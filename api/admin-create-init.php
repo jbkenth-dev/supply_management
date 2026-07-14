@@ -184,35 +184,60 @@ if ($errors === []) {
 
         // Remove stale pending registrations FIRST so a previous abandoned/
         // unverified attempt never blocks a retry (mirrors signup.php flow).
+        // Use case-insensitive comparison to match the duplicate check below.
         $removeStale = $pdo->prepare(
-            'DELETE FROM pending_registrations WHERE id_number = :id_number OR username = :username OR email = :email'
+            'DELETE FROM pending_registrations
+             WHERE LOWER(id_number) = LOWER(:id_number)
+                OR LOWER(username) = LOWER(:username)
+                OR LOWER(email) = LOWER(:email)'
         );
         $removeStale->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
 
         // --- Duplicate check against existing users ---
-        // Check ALL roles — usernames and emails must be unique system-wide.
-        $dupQuery = $pdo->prepare(
-            'SELECT id, id_number, username, email
-             FROM users
-             WHERE LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email)
-             LIMIT 20'
-        );
-        $dupQuery->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
+        // Query only the specific values the admin submitted and compare
+        // each field individually with case-insensitive PHP comparison.
+        // This avoids false positives from the SQL OR combining matches
+        // across unrelated rows.
+        $hasDuplicate = false;
 
-        foreach ($dupQuery->fetchAll() as $existing) {
-            if (strcasecmp((string) ($existing['id_number'] ?? ''), $idNumber) === 0) {
+        // Check ID number
+        if ($idNumber !== '') {
+            $idCheck = $pdo->prepare(
+                'SELECT 1 FROM users WHERE id_number = :id_number LIMIT 1'
+            );
+            $idCheck->execute(['id_number' => $idNumber]);
+            if ($idCheck->fetch()) {
                 $errors['idNumber'] = 'ID number is already registered.';
+                $hasDuplicate = true;
             }
-            if (strcasecmp((string) $existing['username'], $username) === 0) {
+        }
+
+        // Check username
+        if ($username !== '') {
+            $usernameCheck = $pdo->prepare(
+                'SELECT 1 FROM users WHERE username = :username LIMIT 1'
+            );
+            $usernameCheck->execute(['username' => $username]);
+            if ($usernameCheck->fetch()) {
                 $errors['username'] = 'Username is already taken.';
+                $hasDuplicate = true;
             }
-            if (strcasecmp((string) $existing['email'], $email) === 0) {
+        }
+
+        // Check email
+        if ($email !== '') {
+            $emailCheck = $pdo->prepare(
+                'SELECT 1 FROM users WHERE email = :email LIMIT 1'
+            );
+            $emailCheck->execute(['email' => $email]);
+            if ($emailCheck->fetch()) {
                 $errors['email'] = 'Email is already registered.';
+                $hasDuplicate = true;
             }
         }
 
         // --- Role uniqueness for restricted roles ---
-        if ($errors === []) {
+        if (!$hasDuplicate) {
             $restrictedRoles = ['Resource Planning Officer', 'Vice President for Finance', 'College President'];
             if (in_array($role, $restrictedRoles, true)) {
                 $roleCheck = $pdo->prepare('SELECT COUNT(*) FROM users WHERE role = :role');
