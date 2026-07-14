@@ -182,11 +182,18 @@ try {
     }
 
     // --- Also check for duplicate user that appeared between init & verify ---
+    // Only check managed roles — consistent with the /admin/users page.
+    $managedRoles = ['Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
+    $rolePlaceholders = implode(',', array_fill(0, count($managedRoles), '?'));
     $dupCheck = $pdo->prepare(
-        'SELECT id FROM users
-         WHERE LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email)
-         LIMIT 1'
+        "SELECT id FROM users
+         WHERE role IN ($rolePlaceholders)
+           AND (LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email))
+         LIMIT 1"
     );
+    foreach ($managedRoles as $i => $mr) {
+        $dupCheck->bindValue($i + 1, $mr);
+    }
     $dupCheck->execute([
         'id_number' => (string) $pending['id_number'],
         'username'  => (string) $pending['username'],

@@ -182,13 +182,28 @@ if ($errors === []) {
         ensureUserProfileColumns($pdo);
         ensurePendingRegistrationsTable($pdo);
 
-        // --- Duplicate check against existing users ---
-        $dupQuery = $pdo->prepare(
-            'SELECT id, id_number, username, email
-             FROM users
-             WHERE LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email)
-             LIMIT 20'
+        // Remove stale pending registrations FIRST so a previous abandoned/
+        // unverified attempt never blocks a retry (mirrors signup.php flow).
+        $removeStale = $pdo->prepare(
+            'DELETE FROM pending_registrations WHERE id_number = :id_number OR username = :username OR email = :email'
         );
+        $removeStale->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
+
+        // --- Duplicate check against existing users (managed roles only) ---
+        // Only check the roles visible on the /admin/users page so the
+        // validation is consistent with what the admin can actually see.
+        $managedRoles = ['Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
+        $placeholders = implode(',', array_fill(0, count($managedRoles), '?'));
+        $dupQuery = $pdo->prepare(
+            "SELECT id, id_number, username, email
+             FROM users
+             WHERE role IN ($placeholders)
+               AND (LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email))
+             LIMIT 20"
+        );
+        foreach ($managedRoles as $i => $mr) {
+            $dupQuery->bindValue($i + 1, $mr);
+        }
         $dupQuery->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
 
         foreach ($dupQuery->fetchAll() as $existing) {
@@ -200,23 +215,6 @@ if ($errors === []) {
             }
             if (strcasecmp((string) $existing['email'], $email) === 0) {
                 $errors['email'] = 'Email is already registered.';
-            }
-        }
-
-        // --- Duplicate check against pending registrations ---
-        if ($errors === []) {
-            $pendingDup = $pdo->prepare(
-                'SELECT id FROM pending_registrations
-                 WHERE LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email)
-                 LIMIT 5'
-            );
-            $pendingDup->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
-            if ($pendingDup->fetch()) {
-                // Stale pending registration exists — clean it up so this attempt can proceed.
-                $removeStale = $pdo->prepare(
-                    'DELETE FROM pending_registrations WHERE LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email)'
-                );
-                $removeStale->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
             }
         }
 
