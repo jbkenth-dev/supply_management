@@ -9,6 +9,10 @@ declare(strict_types=1);
  * data in pending_registrations (reusing the existing signup table), and
  * sends a 6-digit verification code to the entered email address.
  *
+ * Accepts JSON (Content-Type: application/json) — the same transport
+ * used by /api/signup.php which is proven to work through the
+ * Vercel → Awardspace rewrite proxy.
+ *
  * No user record is inserted into the `users` table until the OTP is
  * successfully verified via admin-create-verify.php.
  */
@@ -77,13 +81,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // ---------------------------------------------------------------------------
-// Parse input (FormData multipart or JSON)
+// Parse JSON input (same as signup.php)
 // ---------------------------------------------------------------------------
 
-$payload = $_POST !== [] ? $_POST : (function () {
-    $raw = file_get_contents('php://input');
-    return json_decode($raw ?: '', true) ?? [];
-})();
+$rawInput = file_get_contents('php://input');
+$payload = json_decode($rawInput ?: '', true);
 
 if (!is_array($payload)) {
     jsonResponse(400, ['success' => false, 'message' => 'Invalid request payload.']);
@@ -150,22 +152,6 @@ if ($confirmPassword === '') {
     $errors['confirmPassword'] = 'Please confirm your password.';
 } elseif ($password !== $confirmPassword) {
     $errors['confirmPassword'] = 'Passwords do not match.';
-}
-
-// ---------------------------------------------------------------------------
-// Profile image validation (optional)
-// ---------------------------------------------------------------------------
-
-$tempImagePath = null;
-
-if (isset($_FILES['profileImage'])
-    && is_array($_FILES['profileImage'])
-    && (int) $_FILES['profileImage']['error'] !== UPLOAD_ERR_NO_FILE
-) {
-    $imgError = validateAdminProfileImage($_FILES['profileImage']);
-    if ($imgError !== null) {
-        $errors['profileImage'] = $imgError;
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -248,19 +234,6 @@ if ($errors !== []) {
 }
 
 // ---------------------------------------------------------------------------
-// Persist profile image temporarily (if uploaded)
-// ---------------------------------------------------------------------------
-
-$imageSaved = false;
-if (isset($_FILES['profileImage'])
-    && is_array($_FILES['profileImage'])
-    && (int) $_FILES['profileImage']['error'] === UPLOAD_ERR_OK
-) {
-    // We'll store the image after we know the pendingId.
-    $imageSaved = true;
-}
-
-// ---------------------------------------------------------------------------
 // Store pending registration & send OTP
 // ---------------------------------------------------------------------------
 
@@ -297,11 +270,6 @@ try {
     ]);
 
     $pendingId = (int) $pdo->lastInsertId();
-
-    // --- Save profile image to temp location ---
-    if ($imageSaved && isset($_FILES['profileImage'])) {
-        $tempImagePath = storeAdminPendingProfileImage($_FILES['profileImage'], $pendingId);
-    }
 
     $fullName = trim(implode(' ', array_filter([$firstname, $middlename !== '' ? $middlename : null, $lastname])));
 
@@ -355,64 +323,6 @@ function jsonResponse(int $statusCode, array $body): void
     http_response_code($statusCode);
     echo json_encode($body, JSON_UNESCAPED_SLASHES);
     exit;
-}
-
-/**
- * Validate the uploaded profile image (same rules as admin-users.php).
- */
-function validateAdminProfileImage(array $file): ?string
-{
-    if ((int) $file['error'] !== UPLOAD_ERR_OK) {
-        return 'Please upload the image again.';
-    }
-
-    if ((int) $file['size'] > 2 * 1024 * 1024) {
-        return 'Profile picture must be 2MB or smaller.';
-    }
-
-    $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $mimeType = $finfo->file((string) $file['tmp_name']);
-    $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
-
-    if (!in_array($mimeType, $allowedMimeTypes, true)) {
-        return 'Please upload a JPG, PNG, or WEBP image only.';
-    }
-
-    return null;
-}
-
-/**
- * Store profile image to a temp location keyed by pendingId.
- * Returns the temp image path relative to the project root.
- */
-function storeAdminPendingProfileImage(array $file, int $pendingId): ?string
-{
-    $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $mimeType = $finfo->file((string) $file['tmp_name']);
-    $extensions = [
-        'image/jpeg' => 'jpg',
-        'image/png'  => 'png',
-        'image/webp' => 'webp',
-    ];
-
-    if (!isset($extensions[$mimeType])) {
-        return null;
-    }
-
-    $uploadDirectory = dirname(__DIR__) . '/public/uploads/profile-pictures';
-
-    if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0777, true) && !is_dir($uploadDirectory)) {
-        return null;
-    }
-
-    $filename = sprintf('admin-pending-%d.%s', $pendingId, $extensions[$mimeType]);
-    $destination = $uploadDirectory . '/' . $filename;
-
-    if (!move_uploaded_file((string) $file['tmp_name'], $destination)) {
-        return null;
-    }
-
-    return '/uploads/profile-pictures/' . $filename;
 }
 
 /**

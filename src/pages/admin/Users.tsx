@@ -687,23 +687,22 @@ export default function AdminUsers() {
       }
 
       // --- Creating: Step 1 — validate, create pending registration, send OTP ---
-      const payload = new FormData()
-      payload.append("role", formData.role)
-      payload.append("idNumber", formData.idNumber)
-      payload.append("firstname", formData.firstname)
-      payload.append("middlename", formData.middlename)
-      payload.append("lastname", formData.lastname)
-      payload.append("username", formData.username)
-      payload.append("email", formData.email)
-      payload.append("password", formData.password)
-      payload.append("confirmPassword", formData.confirmPassword)
-      if (selectedImage) {
-        payload.append("profileImage", selectedImage)
-      }
-
+      // Send JSON (same transport as /api/signup.php) so the Vercel → Awardspace
+      // rewrite proxy forwards the body correctly.
       const response = await api("/api/admin-create-init.php", {
         method: "POST",
-        body: payload,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: formData.role,
+          idNumber: formData.idNumber,
+          firstname: formData.firstname,
+          middlename: formData.middlename,
+          lastname: formData.lastname,
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+          confirmPassword: formData.confirmPassword,
+        }),
       })
 
       let result: any
