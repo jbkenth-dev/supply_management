@@ -81,13 +81,31 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // ---------------------------------------------------------------------------
-// Parse JSON input (same as signup.php)
+// Parse input — accept JSON body OR URL-encoded form data ( $_POST ).
+//
+// The Vercel → Awardspace rewrite proxy sometimes strips the raw body on
+// POST requests, leaving php://input empty.  URL-encoded form data
+// (application/x-www-form-urlencoded) always arrives via $_POST, so we
+// check that first and fall back to a JSON decode of the raw body.
 // ---------------------------------------------------------------------------
 
-$rawInput = file_get_contents('php://input');
-$payload = json_decode($rawInput ?: '', true);
+$payload = null;
 
-if (!is_array($payload)) {
+// 1) Try $_POST first (URL-encoded / FormData)
+if (!empty($_POST) && is_array($_POST)) {
+    $payload = $_POST;
+}
+
+// 2) Fall back to raw JSON body
+if ($payload === null) {
+    $rawInput = file_get_contents('php://input');
+    $decoded = json_decode($rawInput ?: '', true);
+    if (is_array($decoded)) {
+        $payload = $decoded;
+    }
+}
+
+if (!is_array($payload) || $payload === []) {
     jsonResponse(400, ['success' => false, 'message' => 'Invalid request payload.']);
 }
 

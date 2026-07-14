@@ -687,22 +687,25 @@ export default function AdminUsers() {
       }
 
       // --- Creating: Step 1 — validate, create pending registration, send OTP ---
-      // Send JSON (same transport as /api/signup.php) so the Vercel → Awardspace
-      // rewrite proxy forwards the body correctly.
+      // Send as URL-encoded form data (application/x-www-form-urlencoded) so
+      // the body always arrives via $_POST on the Awardspace PHP server,
+      // even when proxied through Vercel rewrites.
+      const formBody = new URLSearchParams({
+        role: formData.role,
+        idNumber: formData.idNumber,
+        firstname: formData.firstname,
+        middlename: formData.middlename,
+        lastname: formData.lastname,
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+      })
+
       const response = await api("/api/admin-create-init.php", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          role: formData.role,
-          idNumber: formData.idNumber,
-          firstname: formData.firstname,
-          middlename: formData.middlename,
-          lastname: formData.lastname,
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-          confirmPassword: formData.confirmPassword,
-        }),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formBody.toString(),
       })
 
       let result: any
