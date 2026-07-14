@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { ReactNode } from "react"
 import { formatDateTime as manilaFormatDateTime } from "../../lib/date"
 import {
@@ -13,6 +13,9 @@ import {
   XCircleIcon,
   ClockIcon,
   ChevronDownIcon,
+  ShieldCheckIcon,
+  ArrowPathIcon,
+  EnvelopeIcon,
 } from "@heroicons/react/24/outline"
 import { api } from "../../lib/api"
 import AppShell from "../../layout/AppShell"
@@ -75,6 +78,21 @@ const initialForm: UserFormState = {
 
 const USERS_PER_PAGE = 8
 
+const OTP_CODE_LENGTH = 6
+const OTP_EXPIRY_SECONDS = 5 * 60 // 5 minutes
+
+const RESTRICTED_ROLES: readonly ManagedRole[] = [
+  "Resource Planning Officer",
+  "Vice President for Finance",
+  "College President",
+]
+
+function formatOtpCountdown(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+}
+
 export default function AdminUsers() {
   const [users, setUsers] = useState<ManagedUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -96,6 +114,19 @@ export default function AdminUsers() {
   const [isApprovalSubmitting, setIsApprovalSubmitting] = useState(false)
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null)
   const [showMessageModal, setShowMessageModal] = useState(false)
+
+  // OTP verification state
+  const [otpModalOpen, setOtpModalOpen] = useState(false)
+  const [otpDigits, setOtpDigits] = useState<string[]>(Array(OTP_CODE_LENGTH).fill(""))
+  const [otpPendingId, setOtpPendingId] = useState<number | null>(null)
+  const [otpEmail, setOtpEmail] = useState("")
+  const [otpError, setOtpError] = useState("")
+  const [otpRemainingSeconds, setOtpRemainingSeconds] = useState(OTP_EXPIRY_SECONDS)
+  const [otpIsExpired, setOtpIsExpired] = useState(false)
+  const [otpIsVerifying, setOtpIsVerifying] = useState(false)
+  const [otpIsResending, setOtpIsResending] = useState(false)
+  const [otpPendingFormData, setOtpPendingFormData] = useState<UserFormState | null>(null)
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   const isEditing = editingUserId !== null
   const formTitle = useMemo(() => (isEditing ? "Edit user account" : "Create new user account"), [isEditing])
@@ -197,6 +228,33 @@ export default function AdminUsers() {
     }
   }, [serverMessage])
 
+  // OTP countdown timer
+  useEffect(() => {
+    if (!otpModalOpen || otpRemainingSeconds <= 0) {
+      if (otpRemainingSeconds <= 0) setOtpIsExpired(true)
+      return
+    }
+
+    const timer = window.setInterval(() => {
+      setOtpRemainingSeconds((prev) => {
+        if (prev <= 1) {
+          setOtpIsExpired(true)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => window.clearInterval(timer)
+  }, [otpModalOpen, otpRemainingSeconds])
+
+  // Auto-focus first OTP input when modal opens
+  useEffect(() => {
+    if (otpModalOpen) {
+      setTimeout(() => otpInputRefs.current[0]?.focus(), 100)
+    }
+  }, [otpModalOpen])
+
   const resetForm = () => {
     setFormData(initialForm)
     setErrors({})
@@ -208,6 +266,7 @@ export default function AdminUsers() {
   const closeFormModal = () => {
     setIsFormModalOpen(false)
     resetForm()
+    resetOtpState()
   }
 
   const openCreateModal = () => {
@@ -222,6 +281,20 @@ export default function AdminUsers() {
     setErrors((current) => ({ ...current, [field]: undefined }))
     setServerMessage("")
     setIsSuccess(false)
+
+    // Client-side role uniqueness check for restricted roles
+    if (field === "role" && !isEditing) {
+      const selectedRole = value as ManagedRole
+      if (
+        (RESTRICTED_ROLES as readonly string[]).includes(selectedRole) &&
+        users.some((u) => u.role === selectedRole)
+      ) {
+        setErrors((current) => ({
+          ...current,
+          role: `The role "${selectedRole}" can only have one account.`,
+        }))
+      }
+    }
   }
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -375,6 +448,196 @@ export default function AdminUsers() {
     }
   }
 
+  // ---- OTP Handlers (admin create flow) ----
+
+  const resetOtpState = () => {
+    setOtpModalOpen(false)
+    setOtpDigits(Array(OTP_CODE_LENGTH).fill(""))
+    setOtpPendingId(null)
+    setOtpEmail("")
+    setOtpError("")
+    setOtpRemainingSeconds(OTP_EXPIRY_SECONDS)
+    setOtpIsExpired(false)
+    setOtpIsVerifying(false)
+    setOtpIsResending(false)
+    setOtpPendingFormData(null)
+  }
+
+  const closeOtpModal = () => {
+    if (otpIsVerifying || otpIsResending) return
+    resetOtpState()
+  }
+
+  const getFullOtpCode = useCallback(() => otpDigits.join(""), [otpDigits])
+
+  const handleOtpDigitChange = (index: number, value: string) => {
+    if (value.length > 1) value = value.slice(-1)
+    if (value !== "" && !/^\d$/.test(value)) return
+
+    const newDigits = [...otpDigits]
+    newDigits[index] = value
+    setOtpDigits(newDigits)
+    setOtpError("")
+
+    if (value !== "" && index < OTP_CODE_LENGTH - 1) {
+      otpInputRefs.current[index + 1]?.focus()
+    }
+
+    // Auto-submit when all digits are filled
+    if (value !== "" && index === OTP_CODE_LENGTH - 1) {
+      const fullCode = newDigits.join("")
+      if (fullCode.length === OTP_CODE_LENGTH) {
+        handleOtpVerify(fullCode)
+      }
+    }
+  }
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace") {
+      if (otpDigits[index] === "" && index > 0) {
+        const newDigits = [...otpDigits]
+        newDigits[index - 1] = ""
+        setOtpDigits(newDigits)
+        otpInputRefs.current[index - 1]?.focus()
+      }
+    } else if (e.key === "ArrowLeft" && index > 0) {
+      otpInputRefs.current[index - 1]?.focus()
+    } else if (e.key === "ArrowRight" && index < OTP_CODE_LENGTH - 1) {
+      otpInputRefs.current[index + 1]?.focus()
+    }
+  }
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault()
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_CODE_LENGTH)
+    if (pasted.length === 0) return
+
+    const newDigits = [...otpDigits]
+    for (let i = 0; i < OTP_CODE_LENGTH; i++) {
+      newDigits[i] = pasted[i] ?? ""
+    }
+    setOtpDigits(newDigits)
+    setOtpError("")
+
+    const focusIndex = Math.min(pasted.length, OTP_CODE_LENGTH - 1)
+    otpInputRefs.current[focusIndex]?.focus()
+
+    if (pasted.length === OTP_CODE_LENGTH) {
+      handleOtpVerify(pasted)
+    }
+  }
+
+  const handleOtpVerify = async (code?: string) => {
+    const fullCode = code ?? getFullOtpCode()
+
+    if (fullCode.length !== OTP_CODE_LENGTH) {
+      setOtpError("Please enter all 6 digits.")
+      return
+    }
+
+    if (otpIsExpired) {
+      setOtpError("Verification code has expired. Please request a new one.")
+      return
+    }
+
+    if (!otpPendingId) return
+
+    setOtpIsVerifying(true)
+    setOtpError("")
+
+    try {
+      const response = await api("/api/admin-create-verify.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pendingId: otpPendingId, code: fullCode }),
+      })
+
+      let result: any
+      try {
+        result = await response.json()
+      } catch {
+        setOtpError("Server error. Please try again.")
+        return
+      }
+
+      if (!response.ok) {
+        setOtpError(result.message ?? "Invalid verification code. Please try again.")
+        setOtpDigits(Array(OTP_CODE_LENGTH).fill(""))
+        otpInputRefs.current[0]?.focus()
+        return
+      }
+
+      // Success — add user to list and close everything
+      if (result.user) {
+        setUsers((current) => [result.user, ...current])
+      }
+
+      resetOtpState()
+      closeFormModal()
+      setServerMessage(result.message ?? "User account created successfully.")
+      setIsSuccess(true)
+    } catch {
+      setOtpError("Unable to connect to the verification service. Please try again.")
+    } finally {
+      setOtpIsVerifying(false)
+    }
+  }
+
+  const handleOtpResend = async () => {
+    if (!otpPendingId) return
+
+    setOtpIsResending(true)
+    setOtpError("")
+
+    try {
+      const response = await api("/api/resend-verification.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pendingId: otpPendingId }),
+      })
+
+      let result: any
+      try {
+        result = await response.json()
+      } catch {
+        setOtpError("Server error. Please try again.")
+        return
+      }
+
+      if (!response.ok) {
+        setOtpError(result.message ?? "Unable to resend verification code.")
+        return
+      }
+
+      // Send verification email via Vercel serverless function
+      if (result.code) {
+        api("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: result.email ?? otpEmail,
+            name: result.name ?? "",
+            code: result.code,
+            type: "resend",
+          }),
+        }).catch(() => {
+          // Email failure is non-fatal — the code was regenerated
+        })
+      }
+
+      setOtpRemainingSeconds(OTP_EXPIRY_SECONDS)
+      setOtpIsExpired(false)
+      setOtpDigits(Array(OTP_CODE_LENGTH).fill(""))
+      otpInputRefs.current[0]?.focus()
+    } catch {
+      setOtpError("Unable to connect to the verification service. Please try again.")
+    } finally {
+      setOtpIsResending(false)
+    }
+  }
+
+  // ---- Main form submit handler ----
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setIsSubmitting(true)
@@ -382,11 +645,51 @@ export default function AdminUsers() {
     setIsSuccess(false)
 
     try {
-      const payload = new FormData()
-      payload.append("action", isEditing ? "update" : "create")
-      if (isEditing && editingUserId !== null) {
-        payload.append("id", String(editingUserId))
+      // --- Editing: direct save (no OTP required) ---
+      if (isEditing) {
+        const payload = new FormData()
+        payload.append("action", "update")
+        if (editingUserId !== null) {
+          payload.append("id", String(editingUserId))
+        }
+        payload.append("role", formData.role)
+        payload.append("idNumber", formData.idNumber)
+        payload.append("firstname", formData.firstname)
+        payload.append("middlename", formData.middlename)
+        payload.append("lastname", formData.lastname)
+        payload.append("username", formData.username)
+        payload.append("email", formData.email)
+        payload.append("password", formData.password)
+        payload.append("confirmPassword", formData.confirmPassword)
+        if (selectedImage) {
+          payload.append("profileImage", selectedImage)
+        }
+
+        const response = await api("/api/admin-users.php", {
+          method: "POST",
+          body: payload,
+        })
+        const result = (await response.json()) as UsersResponse
+
+        if (!response.ok || !result.success) {
+          setErrors(result.errors ?? {})
+          setServerMessage(result.message ?? "Unable to save user.")
+          return
+        }
+
+        if (result.user) {
+          const savedUser = result.user
+          setUsers((current) => current.map((entry) => (entry.id === savedUser.id ? savedUser : entry)))
+        }
+
+        setServerMessage(result.message ?? "User account updated successfully.")
+        setIsSuccess(true)
+        closeFormModal()
+        return
       }
+
+      // --- Creating: Step 1 — validate, create pending registration, send OTP ---
+      const payload = new FormData()
       payload.append("role", formData.role)
       payload.append("idNumber", formData.idNumber)
       payload.append("firstname", formData.firstname)
@@ -400,32 +703,53 @@ export default function AdminUsers() {
         payload.append("profileImage", selectedImage)
       }
 
-      const response = await api("/api/admin-users.php", {
+      const response = await api("/api/admin-create-init.php", {
         method: "POST",
         body: payload,
       })
-      const result = (await response.json()) as UsersResponse
 
-      if (!response.ok || !result.success) {
-        setErrors(result.errors ?? {})
-        setServerMessage(result.message ?? "Unable to save user.")
+      let result: any
+      try {
+        result = await response.json()
+      } catch {
+        setServerMessage("Server error. Please try again.")
+        setIsSuccess(false)
         return
       }
 
-      if (result.user) {
-        const savedUser = result.user
-        setUsers((current) => {
-          if (isEditing) {
-            return current.map((entry) => (entry.id === savedUser.id ? savedUser : entry))
-          }
-
-          return [savedUser, ...current]
-        })
+      if (!response.ok || !result.success) {
+        setErrors(result.errors ?? {})
+        setServerMessage(result.message ?? "Unable to initiate user creation.")
+        setIsSuccess(false)
+        return
       }
 
-      setServerMessage(result.message ?? (isEditing ? "User account updated successfully." : "User account created successfully."))
-      setIsSuccess(true)
-      closeFormModal()
+      // Step 1 succeeded — open OTP verification modal
+      setErrors({})
+      setOtpPendingId(result.pendingId)
+      setOtpEmail(result.email)
+      setOtpPendingFormData({ ...formData })
+      setOtpRemainingSeconds(OTP_EXPIRY_SECONDS)
+      setOtpIsExpired(false)
+      setOtpDigits(Array(OTP_CODE_LENGTH).fill(""))
+      setOtpError("")
+      setOtpModalOpen(true)
+
+      // Send email via Vercel serverless function (same as signup flow)
+      if (result.code) {
+        api("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: result.email,
+            name: result.name,
+            code: result.code,
+            type: "verification",
+          }),
+        }).catch(() => {
+          // Email failure is non-fatal — user can use Resend Code
+        })
+      }
     } catch {
       setServerMessage("Unable to connect to the PHP user management service. Make sure Apache and MySQL are running in XAMPP.")
       setIsSuccess(false)
@@ -828,6 +1152,148 @@ export default function AdminUsers() {
               </button>
             </div>
           </form>
+        </ModalShell>
+      ) : null}
+
+      {otpModalOpen ? (
+        <ModalShell onClose={closeOtpModal} maxWidthClassName="max-w-lg">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-100">
+                  <ShieldCheckIcon className="h-6 w-6 text-primary-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Email Verification</p>
+                  <h2 className="mt-1 text-2xl font-black tracking-tight text-brown-900">Verify Email</h2>
+                </div>
+              </div>
+              <p className="mt-4 text-sm leading-6 text-brown-500">
+                We sent a 6-digit verification code to
+              </p>
+              <div className="mt-2 flex items-center gap-2">
+                <EnvelopeIcon className="h-4 w-4 text-primary-500" />
+                <span className="text-sm font-bold text-primary-600">{otpEmail}</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={closeOtpModal}
+              disabled={otpIsVerifying || otpIsResending}
+              className="rounded-xl border border-brown-200 p-2 text-brown-500 transition hover:bg-brown-50 disabled:opacity-60"
+              aria-label="Close verification"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Error display */}
+          {otpError ? (
+            <div className="mt-6 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+              {otpError}
+            </div>
+          ) : null}
+
+          {/* OTP Code Input */}
+          <div className="mt-6">
+            <div className="flex justify-center gap-3">
+              {otpDigits.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => { otpInputRefs.current[index] = el }}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpDigitChange(index, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                  onPaste={handleOtpPaste}
+                  disabled={otpIsVerifying || otpIsExpired}
+                  className={`w-12 h-14 text-center text-xl font-black rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 ${
+                    digit
+                      ? "border-primary-500 bg-primary-50 text-primary-700"
+                      : "border-brown-200 bg-brown-50 text-brown-900"
+                  } ${otpIsVerifying ? "opacity-60" : ""} ${
+                    otpIsExpired ? "border-rose-300 bg-rose-50" : ""
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Timer */}
+          <div className="mt-5 text-center">
+            {otpIsExpired ? (
+              <p className="text-sm font-bold text-rose-600">
+                Code expired. Please request a new one.
+              </p>
+            ) : (
+              <p className="text-sm text-brown-500">
+                Code expires in{" "}
+                <span
+                  className={`font-bold tabular-nums ${
+                    otpRemainingSeconds <= 60 ? "text-rose-600" : "text-primary-600"
+                  }`}
+                >
+                  {formatOtpCountdown(otpRemainingSeconds)}
+                </span>
+              </p>
+            )}
+          </div>
+
+          {/* Verify Button */}
+          <div className="mt-6 flex flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => handleOtpVerify()}
+              disabled={otpIsVerifying || getFullOtpCode().length !== OTP_CODE_LENGTH || otpIsExpired}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-brown-900 px-5 py-3.5 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {otpIsVerifying ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Verifying...
+                </>
+              ) : (
+                <>
+                  Verify Code
+                  <CheckCircleIcon className="h-5 w-5" />
+                </>
+              )}
+            </button>
+
+            {/* Resend */}
+            <div className="text-center">
+              <p className="text-sm text-brown-500 font-medium">
+                Didn't receive the code?{" "}
+                {otpIsExpired ? (
+                  <button
+                    type="button"
+                    onClick={() => void handleOtpResend()}
+                    disabled={otpIsResending}
+                    className="inline-flex items-center gap-1 text-primary-600 font-bold hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {otpIsResending ? (
+                      <>
+                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary-300 border-t-primary-600" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <ArrowPathIcon className="h-3.5 w-3.5" />
+                        Resend Code
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <span className="text-brown-400">
+                    Resend available in {formatOtpCountdown(otpRemainingSeconds)}
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
         </ModalShell>
       ) : null}
 
