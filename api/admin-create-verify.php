@@ -182,13 +182,13 @@ try {
     }
 
     // --- Also check for duplicate user that appeared between init & verify ---
-    // Only check managed roles — consistent with the /admin/users page.
-    // Role values are hardcoded constants — safe to interpolate directly.
+    // Check ALL roles (not just managed) because the INSERT targets the full
+    // users table and a unique constraint would reject duplicates regardless
+    // of role.
     $dupCheck = $pdo->prepare(
-        "SELECT id FROM users
-         WHERE role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President')
-           AND (LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email))
-         LIMIT 1"
+        'SELECT id FROM users
+         WHERE LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email)
+         LIMIT 1'
     );
     $dupCheck->execute([
         'id_number' => (string) $pending['id_number'],
@@ -289,6 +289,12 @@ try {
     if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
+
+    @file_put_contents(
+        dirname(__DIR__) . '/api/logs/admin-create-verify-error.log',
+        sprintf("[%s] PDOError %s in %s on line %d\n", date('Y-m-d H:i:s'), $exception->getMessage(), $exception->getFile(), $exception->getLine()),
+        FILE_APPEND
+    );
 
     jsonResponse(500, [
         'success' => false,

@@ -189,16 +189,13 @@ if ($errors === []) {
         );
         $removeStale->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
 
-        // --- Duplicate check against existing users (managed roles only) ---
-        // Only check the roles visible on the /admin/users page so the
-        // validation is consistent with what the admin can actually see.
-        // Role values are hardcoded constants — safe to interpolate directly.
+        // --- Duplicate check against existing users ---
+        // Check ALL roles — usernames and emails must be unique system-wide.
         $dupQuery = $pdo->prepare(
-            "SELECT id, id_number, username, email
+            'SELECT id, id_number, username, email
              FROM users
-             WHERE role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President')
-               AND (LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email))
-             LIMIT 20"
+             WHERE LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email)
+             LIMIT 20'
         );
         $dupQuery->execute(['id_number' => $idNumber, 'username' => $username, 'email' => $email]);
 
@@ -306,6 +303,11 @@ try {
         'name'     => $fullName,
     ]);
 } catch (PDOException $exception) {
+    @file_put_contents(
+        dirname(__DIR__) . '/api/logs/admin-create-init-error.log',
+        sprintf("[%s] PDOError %s in %s on line %d\n", date('Y-m-d H:i:s'), $exception->getMessage(), $exception->getFile(), $exception->getLine()),
+        FILE_APPEND
+    );
     jsonResponse(500, [
         'success' => false,
         'message' => 'Unable to create the pending registration right now.',
