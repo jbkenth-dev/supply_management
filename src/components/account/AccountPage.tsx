@@ -57,22 +57,28 @@ const initialForm: AccountForm = {
   profileImageUrl: "",
 }
 
+const isApprovalPersonnelRole = (role: AuthRole) =>
+  role === "Resource Planning Officer" || role === "Vice President for Finance" || role === "College President"
+
 const getRoleNoun = (role: AuthRole) => {
   if (role === "Administrator") return "administrator"
   if (role === "Property Custodian") return "property custodian"
-  return "faculty"
+  if (role === "Faculty Staff") return "faculty"
+  return "approval personnel"
 }
 
 const getFallbackName = (role: AuthRole) => {
   if (role === "Administrator") return "Administrator"
   if (role === "Property Custodian") return "Property Custodian"
-  return "Faculty Staff"
+  if (role === "Faculty Staff") return "Faculty Staff"
+  return role
 }
 
 const getSuccessMessage = (role: AuthRole) => {
   if (role === "Administrator") return "Administrator account details saved successfully."
   if (role === "Property Custodian") return "Property custodian account details saved successfully."
-  return "Faculty account details saved successfully."
+  if (role === "Faculty Staff") return "Faculty account details saved successfully."
+  return `${role} account details saved successfully.`
 }
 
 export default function AccountPage({ role, shell: CustomShell }: { role: AuthRole; shell?: ComponentType<{ children: React.ReactNode; role?: AuthRole }> }) {
