@@ -203,23 +203,16 @@ if ($errors === []) {
         // the admin users page) so that non-managed accounts (e.g.
         // Administrator) do not cause false-positive "already registered"
         // errors for administrators who cannot see those accounts.
-        $managedRoles = ['Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
-        $roleNamedParams = [];
-        $rolePlaceholders = [];
-        foreach ($managedRoles as $ri => $rv) {
-            $pn = ':mgr_role_' . $ri;
-            $roleNamedParams[$pn] = $rv;
-            $rolePlaceholders[] = $pn;
-        }
-        $roleInClause = implode(',', $rolePlaceholders);
+        // Role values are trusted application constants — interpolated
+        // directly to avoid PDO named-parameter issues on shared hosting.
         $hasDuplicate = false;
 
         // Check ID number
         if ($idNumber !== '') {
             $idCheck = $pdo->prepare(
-                "SELECT 1 FROM users WHERE id_number = :id_number AND role IN ($roleInClause) LIMIT 1"
+                "SELECT 1 FROM users WHERE id_number = :id_number AND role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President') LIMIT 1"
             );
-            $idCheck->execute(array_merge(['id_number' => $idNumber], $roleNamedParams));
+            $idCheck->execute(['id_number' => $idNumber]);
             if ($idCheck->fetch()) {
                 $errors['idNumber'] = 'ID number is already registered.';
                 $hasDuplicate = true;
@@ -229,9 +222,9 @@ if ($errors === []) {
         // Check username
         if ($username !== '') {
             $usernameCheck = $pdo->prepare(
-                "SELECT 1 FROM users WHERE username = :username AND role IN ($roleInClause) LIMIT 1"
+                "SELECT 1 FROM users WHERE username = :username AND role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President') LIMIT 1"
             );
-            $usernameCheck->execute(array_merge(['username' => $username], $roleNamedParams));
+            $usernameCheck->execute(['username' => $username]);
             if ($usernameCheck->fetch()) {
                 $errors['username'] = 'Username is already taken.';
                 $hasDuplicate = true;
@@ -241,9 +234,9 @@ if ($errors === []) {
         // Check email
         if ($email !== '') {
             $emailCheck = $pdo->prepare(
-                "SELECT 1 FROM users WHERE email = :email AND role IN ($roleInClause) LIMIT 1"
+                "SELECT 1 FROM users WHERE email = :email AND role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President') LIMIT 1"
             );
-            $emailCheck->execute(array_merge(['email' => $email], $roleNamedParams));
+            $emailCheck->execute(['email' => $email]);
             if ($emailCheck->fetch()) {
                 $errors['email'] = 'Email is already registered.';
                 $hasDuplicate = true;
