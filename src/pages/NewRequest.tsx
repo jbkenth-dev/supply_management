@@ -588,9 +588,11 @@ export default function NewRequest() {
                           <div className="mx-auto mb-2 h-px w-3/4 border-t border-brown-300" />
                           <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Signature</p>
                           <p className="mt-3 text-[10px] sm:text-xs">{printedName}</p>
-                          <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Printed Name</p>
+                          <div className="mx-auto mt-1 h-px w-full border-t border-brown-300" />
+                          <p className="mt-1 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Printed Name</p>
                           <p className="mt-2 text-[10px] sm:text-xs">{position}</p>
-                          <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Position / Designation</p>
+                          <div className="mx-auto mt-1 h-px w-full border-t border-brown-300" />
+                          <p className="mt-1 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Position / Designation</p>
                         </td>
                       )
                     })}
