@@ -567,10 +567,10 @@ export default function NewRequest() {
                 <tbody>
                   <tr>
                     {(["Requested", "Recommended", "Checked", "Noted", "Approved"] as const).map((label) => {
-                      const signatureName = label === "Requested"
+                      const signatureName = ""
+                      const printedName = label === "Requested"
                         ? (authUser ? getUserDisplayName(authUser, "Faculty Staff") : "")
-                        : ""
-                      const printedName = label === "Checked"
+                        : label === "Checked"
                         ? (approvalPersonnel["Resource Planning Officer"] ?? "")
                         : label === "Noted"
                           ? (approvalPersonnel["Vice President for Finance"] ?? "")
@@ -591,14 +591,12 @@ export default function NewRequest() {
                           <p className="mt-3 border-b border-brown-300 pb-0.5 text-[10px] font-semibold text-brown-800 sm:text-xs">
                             {signatureName}
                           </p>
-                          <p className="mt-2 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Printed Name</p>
-                          <p className="border-b border-brown-300 pb-0.5 text-[10px] sm:text-xs">
-                            {printedName}
-                          </p>
-                          <p className="mt-2 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Position / Designation</p>
-                          <p className="border-b border-brown-300 pb-0.5 text-[10px] sm:text-xs">
-                            {position}
-                          </p>
+                          <p className="mt-3 text-[10px] sm:text-xs">{printedName}</p>
+                          <p className="border-b border-brown-300 pb-0.5" />
+                          <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Printed Name</p>
+                          <p className="mt-2 text-[10px] sm:text-xs">{position}</p>
+                          <p className="border-b border-brown-300 pb-0.5" />
+                          <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Position / Designation</p>
                         </td>
                       )
                     })}
