@@ -18,6 +18,16 @@ type CatalogResponse = {
   message?: string
 }
 
+type ApprovalPersonnelItem = {
+  role: string
+  fullName: string
+}
+
+type ApprovalPersonnelResponse = {
+  success: boolean
+  personnel: ApprovalPersonnelItem[]
+}
+
 type CartItem = {
   supplyId: number | null
   name: string
@@ -73,6 +83,7 @@ export default function NewRequest() {
   const [modalTitle, setModalTitle] = useState("")
   const [modalMessage, setModalMessage] = useState("")
   const [modalType, setModalType] = useState<"success" | "error">("error")
+  const [approvalPersonnel, setApprovalPersonnel] = useState<Record<string, string>>({})
 
   const pushMessage = (title: string, message: string, type: "success" | "error") => {
     setModalTitle(title)
@@ -106,6 +117,33 @@ export default function NewRequest() {
     }
 
     void loadSupplies()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadApprovalPersonnel = async () => {
+      try {
+        const roles = "Resource Planning Officer,Vice President for Finance,College President"
+        const response = await api(`/api/approval-personnel-info.php?roles=${encodeURIComponent(roles)}`)
+        const result = (await response.json()) as ApprovalPersonnelResponse
+        if (!response.ok || !result.success) return
+        if (cancelled) return
+
+        const map: Record<string, string> = {}
+        for (const p of result.personnel ?? []) {
+          map[p.role] = p.fullName
+        }
+        setApprovalPersonnel(map)
+      } catch {
+        // Non-fatal — signatures will show empty
+      }
+    }
+
+    void loadApprovalPersonnel()
     return () => {
       cancelled = true
     }
@@ -528,18 +566,42 @@ export default function NewRequest() {
                 </thead>
                 <tbody>
                   <tr>
-                    {["Requested", "Recommended", "Checked", "Noted", "Approved"].map((label) => (
-                      <td key={label} className="border-r border-brown-200 px-2 py-4 text-center last:border-r-0">
-                        <div className="mx-auto mb-2 h-px w-3/4 border-t border-brown-300" />
-                        <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Signature</p>
-                        <p className="mt-3 border-b border-brown-300 pb-0.5 text-[10px] font-semibold text-brown-800 sm:text-xs">
-                          {authUser && label === "Requested" ? getUserDisplayName(authUser, "Faculty Staff") : ""}
-                        </p>
-                        <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Printed Name</p>
-                        <p className="mt-2 border-b border-brown-300 pb-0.5 text-[10px] sm:text-xs">&nbsp;</p>
-                        <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Position / Designation</p>
-                      </td>
-                    ))}
+                    {(["Requested", "Recommended", "Checked", "Noted", "Approved"] as const).map((label) => {
+                      const signatureName = label === "Requested"
+                        ? (authUser ? getUserDisplayName(authUser, "Faculty Staff") : "")
+                        : ""
+                      const printedName = label === "Checked"
+                        ? (approvalPersonnel["Resource Planning Officer"] ?? "")
+                        : label === "Noted"
+                          ? (approvalPersonnel["Vice President for Finance"] ?? "")
+                          : label === "Approved"
+                            ? (approvalPersonnel["College President"] ?? "")
+                            : ""
+                      const position = label === "Checked"
+                        ? "Resource Planning Officer"
+                        : label === "Noted"
+                          ? "Vice President for Finance"
+                          : label === "Approved"
+                            ? "College President"
+                            : ""
+                      return (
+                        <td key={label} className="border-r border-brown-200 px-2 py-4 text-center last:border-r-0">
+                          <div className="mx-auto mb-2 h-px w-3/4 border-t border-brown-300" />
+                          <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Signature</p>
+                          <p className="mt-3 border-b border-brown-300 pb-0.5 text-[10px] font-semibold text-brown-800 sm:text-xs">
+                            {signatureName}
+                          </p>
+                          <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Printed Name</p>
+                          <p className="mt-2 border-b border-brown-300 pb-0.5 text-[10px] sm:text-xs">
+                            {printedName}
+                          </p>
+                          <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Position / Designation</p>
+                          <p className="mt-2 border-b border-brown-300 pb-0.5 text-[10px] sm:text-xs">
+                            {position}
+                          </p>
+                        </td>
+                      )
+                    })}
                   </tr>
                 </tbody>
               </table>
