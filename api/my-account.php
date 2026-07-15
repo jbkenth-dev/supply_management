@@ -313,7 +313,7 @@ function storeProfileImage(array $file, int $userId, string $role): string
 function getValidatedRole(mixed $value): string
 {
     $role = trim((string) $value);
-    $allowedRoles = ['Administrator', 'Faculty Staff', 'Property Custodian'];
+    $allowedRoles = ['Administrator', 'Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
 
     if (!in_array($role, $allowedRoles, true)) {
         jsonResponse(422, [
@@ -335,6 +335,10 @@ function getRoleUploadPrefix(string $role): string
         return 'custodian';
     }
 
+    if (in_array($role, ['Resource Planning Officer', 'Vice President for Finance', 'College President'], true)) {
+        return 'approval';
+    }
+
     return 'faculty';
 }
 
@@ -346,6 +350,10 @@ function getAccountNotFoundMessage(string $role): string
 
     if ($role === 'Property Custodian') {
         return 'Property custodian account not found.';
+    }
+
+    if (in_array($role, ['Resource Planning Officer', 'Vice President for Finance', 'College President'], true)) {
+        return $role . ' account not found.';
     }
 
     return 'Faculty account not found.';

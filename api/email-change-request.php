@@ -72,7 +72,7 @@ $newEmail = strtolower(trim((string) ($payload['newEmail'] ?? '')));
 
 /* ── Validation ───────────────────────────────────────────── */
 
-$allowedRoles = ['Administrator', 'Faculty Staff', 'Property Custodian'];
+$allowedRoles = ['Administrator', 'Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
 $errors = [];
 
 if ($userId <= 0) {
