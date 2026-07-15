@@ -925,11 +925,7 @@ export default function AdminUsers() {
                         <TableCell>{user.username}</TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>
-                          {(user.role === "Faculty Staff" || user.role === "Property Custodian") ? (
-                            <StatusBadge status={user.approvalStatus} />
-                          ) : (
-                            <span className="text-xs text-brown-400">—</span>
-                          )}
+                          <StatusBadge status={user.approvalStatus} />
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end" data-dropdown>
