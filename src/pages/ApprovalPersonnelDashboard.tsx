@@ -7,14 +7,13 @@ import {
   ClockIcon,
   XCircleIcon,
   ClipboardDocumentCheckIcon,
-  CurrencyDollarIcon,
 } from "@heroicons/react/24/outline"
 import ApprovalPersonnelShell from "../layout/ApprovalPersonnelShell"
 import { MessageModal } from "../components/ui/MessageModal"
 import { StaggerContainer, StaggerItem } from "../components/ui/animations"
 import { api } from "../lib/api"
 import { formatDateTimeShort, formatDateShort } from "../lib/date"
-import { getStoredAuthUser, type AuthRole } from "../lib/auth"
+import { getStoredAuthUser } from "../lib/auth"
 import type { RequestStatus } from "../types/requests"
 
 type ApprovalRequestItem = {
