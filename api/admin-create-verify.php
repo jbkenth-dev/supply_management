@@ -182,19 +182,29 @@ try {
     }
 
     // --- Also check for duplicate user that appeared between init & verify ---
-    // Check ALL roles (not just managed) because the INSERT targets the full
-    // users table and a unique constraint would reject duplicates regardless
-    // of role.
+    // Only check against managed-role users so that non-managed accounts
+    // (e.g. Administrator) do not cause false-positive rejection of a
+    // legitimate new managed-user creation.
+    $managedRoles = ['Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
+    $roleNamedParams = [];
+    $rolePlaceholders = [];
+    foreach ($managedRoles as $ri => $rv) {
+        $pn = ':mgr_role_' . $ri;
+        $roleNamedParams[$pn] = $rv;
+        $rolePlaceholders[] = $pn;
+    }
+    $roleInClause = implode(',', $rolePlaceholders);
     $dupCheck = $pdo->prepare(
-        'SELECT id FROM users
-         WHERE LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email)
-         LIMIT 1'
+        "SELECT id FROM users
+         WHERE (LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email))
+         AND role IN ($roleInClause)
+         LIMIT 1"
     );
-    $dupCheck->execute([
+    $dupCheck->execute(array_merge([
         'id_number' => (string) $pending['id_number'],
         'username'  => (string) $pending['username'],
         'email'     => (string) $pending['email'],
-    ]);
+    ], $roleNamedParams));
     if ($dupCheck->fetch()) {
         $pdo->prepare('DELETE FROM pending_registrations WHERE id = :id')->execute(['id' => $pendingId]);
         jsonResponse(409, [

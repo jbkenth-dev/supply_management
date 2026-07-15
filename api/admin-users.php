@@ -526,15 +526,29 @@ function findDuplicateUserConflicts(PDO $pdo, string $idNumber, string $username
     // unrelated rows.  Use case-insensitive comparison via PHP (the
     // database collation is utf8mb4_general_ci, but explicit PHP
     // comparison eliminates any ambiguity).
+    //
+    // Only check against managed-role users (the same roles shown on
+    // the admin users page) so that non-managed accounts (e.g.
+    // Administrator) do not cause false-positive "already registered"
+    // errors for administrators who cannot see those accounts.
+    $managedRoles = ['Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
+    $roleNamedParams = [];
+    $rolePlaceholders = [];
+    foreach ($managedRoles as $ri => $rv) {
+        $pn = ':mgr_role_' . $ri;
+        $roleNamedParams[$pn] = $rv;
+        $rolePlaceholders[] = $pn;
+    }
+    $roleInClause = implode(',', $rolePlaceholders);
     $errors = [];
     $excludeCondition = $excludeId !== null ? ' AND id <> :exclude_id' : '';
 
     // Check ID number
     if ($idNumber !== '') {
         $idQuery = $pdo->prepare(
-            "SELECT 1 FROM users WHERE id_number = :id_number{$excludeCondition} LIMIT 1"
+            "SELECT 1 FROM users WHERE id_number = :id_number AND role IN ($roleInClause){$excludeCondition} LIMIT 1"
         );
-        $idQuery->execute(array_merge(['id_number' => $idNumber], $excludeId !== null ? ['exclude_id' => $excludeId] : []));
+        $idQuery->execute(array_merge(['id_number' => $idNumber], $roleNamedParams, $excludeId !== null ? ['exclude_id' => $excludeId] : []));
         if ($idQuery->fetch()) {
             $errors['idNumber'] = 'ID number is already registered.';
         }
@@ -543,9 +557,9 @@ function findDuplicateUserConflicts(PDO $pdo, string $idNumber, string $username
     // Check username
     if ($username !== '') {
         $usernameQuery = $pdo->prepare(
-            "SELECT 1 FROM users WHERE username = :username{$excludeCondition} LIMIT 1"
+            "SELECT 1 FROM users WHERE username = :username AND role IN ($roleInClause){$excludeCondition} LIMIT 1"
         );
-        $usernameQuery->execute(array_merge(['username' => $username], $excludeId !== null ? ['exclude_id' => $excludeId] : []));
+        $usernameQuery->execute(array_merge(['username' => $username], $roleNamedParams, $excludeId !== null ? ['exclude_id' => $excludeId] : []));
         if ($usernameQuery->fetch()) {
             $errors['username'] = 'Username is already taken.';
         }
@@ -554,9 +568,9 @@ function findDuplicateUserConflicts(PDO $pdo, string $idNumber, string $username
     // Check email
     if ($email !== '') {
         $emailQuery = $pdo->prepare(
-            "SELECT 1 FROM users WHERE email = :email{$excludeCondition} LIMIT 1"
+            "SELECT 1 FROM users WHERE email = :email AND role IN ($roleInClause){$excludeCondition} LIMIT 1"
         );
-        $emailQuery->execute(array_merge(['email' => $email], $excludeId !== null ? ['exclude_id' => $excludeId] : []));
+        $emailQuery->execute(array_merge(['email' => $email], $roleNamedParams, $excludeId !== null ? ['exclude_id' => $excludeId] : []));
         if ($emailQuery->fetch()) {
             $errors['email'] = 'Email is already registered.';
         }
