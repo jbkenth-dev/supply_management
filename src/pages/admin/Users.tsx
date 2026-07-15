@@ -577,6 +577,9 @@ export default function AdminUsers() {
 
     if (!otpPendingId) return
 
+    // Guard against double-submission (auto-submit + button click race)
+    if (otpIsVerifying) return
+
     setOtpIsVerifying(true)
     setOtpError("")
 

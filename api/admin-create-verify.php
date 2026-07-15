@@ -182,23 +182,33 @@ try {
     }
 
     // --- Also check for duplicate user that appeared between init & verify ---
-    // Only check against managed-role users so that non-managed accounts
-    // (e.g. Administrator) do not cause false-positive rejection of a
-    // legitimate new managed-user creation.
-    // Role values are trusted application constants — interpolated directly
-    // to avoid PDO named-parameter issues on shared hosting.
-    $dupCheck = $pdo->prepare(
-        "SELECT id FROM users
-         WHERE (LOWER(id_number) = LOWER(:id_number) OR LOWER(username) = LOWER(:username) OR LOWER(email) = LOWER(:email))
-         AND role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President')
-         LIMIT 1"
-    );
-    $dupCheck->execute([
-        'id_number' => (string) $pending['id_number'],
-        'username'  => (string) $pending['username'],
-        'email'     => (string) $pending['email'],
-    ]);
-    if ($dupCheck->fetch()) {
+    // Check each field individually (same pattern as admin-create-init.php)
+    // to avoid LOWER()+OR issues on shared-hosting MySQL.
+    // Only check managed-role users so non-managed accounts (e.g.
+    // Administrator) do not cause false-positive rejections.
+    $hasDup = false;
+    $pendingIdNumber = (string) $pending['id_number'];
+    $pendingUsername  = (string) $pending['username'];
+    $pendingEmail    = (string) $pending['email'];
+    $managedRoleFilter = "AND role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President')";
+
+    if ($pendingIdNumber !== '') {
+        $chk = $pdo->prepare("SELECT 1 FROM users WHERE id_number = :id_number {$managedRoleFilter} LIMIT 1");
+        $chk->execute(['id_number' => $pendingIdNumber]);
+        if ($chk->fetch()) { $hasDup = true; }
+    }
+    if (!$hasDup && $pendingUsername !== '') {
+        $chk = $pdo->prepare("SELECT 1 FROM users WHERE username = :username {$managedRoleFilter} LIMIT 1");
+        $chk->execute(['username' => $pendingUsername]);
+        if ($chk->fetch()) { $hasDup = true; }
+    }
+    if (!$hasDup && $pendingEmail !== '') {
+        $chk = $pdo->prepare("SELECT 1 FROM users WHERE email = :email {$managedRoleFilter} LIMIT 1");
+        $chk->execute(['email' => $pendingEmail]);
+        if ($chk->fetch()) { $hasDup = true; }
+    }
+
+    if ($hasDup) {
         $pdo->prepare('DELETE FROM pending_registrations WHERE id = :id')->execute(['id' => $pendingId]);
         jsonResponse(409, [
             'success' => false,
