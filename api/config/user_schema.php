@@ -27,7 +27,7 @@ function ensureApprovalColumns(PDO $pdo): void
 {
     $columns = [
         'is_verified' => "ALTER TABLE users ADD COLUMN is_verified TINYINT(1) NOT NULL DEFAULT 0 AFTER profile_image_path",
-        'approval_status' => "ALTER TABLE users ADD COLUMN approval_status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending' AFTER is_verified",
+        'approval_status' => "ALTER TABLE users ADD COLUMN approval_status ENUM('pending','approved','rejected','deactivated') NOT NULL DEFAULT 'pending' AFTER is_verified",
     ];
 
     foreach ($columns as $columnName => $statement) {
@@ -39,6 +39,14 @@ function ensureApprovalColumns(PDO $pdo): void
         if (!$checkColumn->fetch()) {
             $pdo->exec($statement);
         }
+    }
+
+    // Ensure 'deactivated' is in the ENUM for existing installations
+    $chk = $pdo->prepare("SHOW COLUMNS FROM users LIKE 'approval_status'");
+    $chk->execute();
+    $col = $chk->fetch();
+    if ($col && strpos($col['Type'], 'deactivated') === false) {
+        $pdo->exec("ALTER TABLE users MODIFY COLUMN approval_status ENUM('pending','approved','rejected','deactivated') NOT NULL DEFAULT 'pending'");
     }
 }
 

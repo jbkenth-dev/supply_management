@@ -18,9 +18,17 @@ if (!function_exists('ensureApprovalColumns')) {
                 if ($col === 'is_verified') {
                     $pdo->exec("ALTER TABLE users ADD COLUMN is_verified TINYINT(1) NOT NULL DEFAULT 0 AFTER profile_image_path");
                 } else {
-                    $pdo->exec("ALTER TABLE users ADD COLUMN approval_status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending' AFTER is_verified");
+                    $pdo->exec("ALTER TABLE users ADD COLUMN approval_status ENUM('pending','approved','rejected','deactivated') NOT NULL DEFAULT 'pending' AFTER is_verified");
                 }
             }
+        }
+
+        // Ensure 'deactivated' is in the ENUM for existing installations
+        $chk = $pdo->prepare("SHOW COLUMNS FROM users LIKE 'approval_status'");
+        $chk->execute();
+        $col = $chk->fetch();
+        if ($col && strpos($col['Type'], 'deactivated') === false) {
+            $pdo->exec("ALTER TABLE users MODIFY COLUMN approval_status ENUM('pending','approved','rejected','deactivated') NOT NULL DEFAULT 'pending'");
         }
     }
 }
@@ -80,7 +88,7 @@ try {
         $jsonPayload = decodeJsonBody();
         $action = trim((string) ($jsonPayload['action'] ?? ''));
 
-        if ($action === 'approve' || $action === 'reject') {
+        if (in_array($action, ['approve', 'reject', 'deactivate', 'activate'], true)) {
             handleApprovalAction($pdo, $jsonPayload, $action);
         }
 
@@ -221,14 +229,31 @@ function handleApprovalAction(PDO $pdo, array $payload, string $action): void
         ]);
     }
 
-    if ((string) $user['role'] !== 'Faculty Staff' && (string) $user['role'] !== 'Property Custodian') {
+    // For approve/reject actions, only allow Faculty Staff and Property Custodian
+    if (($action === 'approve' || $action === 'reject') &&
+        (string) $user['role'] !== 'Faculty Staff' && (string) $user['role'] !== 'Property Custodian') {
         jsonResponse(422, [
             'success' => false,
             'message' => 'Only Faculty Staff and Property Custodian accounts can be approved or rejected.',
         ]);
     }
 
-    $newStatus = $action === 'approve' ? 'approved' : 'rejected';
+    // Map action to new status
+    $statusMap = [
+        'approve' => 'approved',
+        'reject' => 'rejected',
+        'deactivate' => 'deactivated',
+        'activate' => 'approved',
+    ];
+
+    if (!isset($statusMap[$action])) {
+        jsonResponse(422, [
+            'success' => false,
+            'message' => 'Invalid action.',
+        ]);
+    }
+
+    $newStatus = $statusMap[$action];
 
     $update = $pdo->prepare(
         'UPDATE users SET approval_status = :status WHERE id = :id'
@@ -240,14 +265,24 @@ function handleApprovalAction(PDO $pdo, array $payload, string $action): void
 
     $updatedUser = findManagedUser($pdo, (int) $id);
 
-    $label = $action === 'approve' ? 'approved' : 'rejected';
+    $label = $action === 'approve' ? 'approved'
+        : ($action === 'reject' ? 'rejected'
+        : ($action === 'deactivate' ? 'deactivated' : 'activated'));
+
     $fullName = trim(implode(' ', array_filter([
         (string) $user['firstname'],
         $user['middlename'] !== null ? (string) $user['middlename'] : '',
         (string) $user['lastname'],
     ])));
     $userName = trim($fullName) !== '' ? $fullName : (string) $user['username'];
-    $subject = $action === 'approve' ? 'Your Account Has Been Approved' : 'Your Account Application Was Not Approved';
+
+    $subjectMap = [
+        'approve' => 'Your Account Has Been Approved',
+        'reject' => 'Your Account Application Was Not Approved',
+        'deactivate' => 'Your Account Has Been Deactivated',
+        'activate' => 'Your Account Has Been Activated',
+    ];
+    $subject = $subjectMap[$action];
 
     $htmlBody = sprintf(
         '<!DOCTYPE html>
@@ -275,19 +310,32 @@ function handleApprovalAction(PDO $pdo, array $payload, string $action): void
         htmlspecialchars($userName),
         $action === 'approve'
             ? 'Your account has been <strong style="color:#059669;">approved</strong>! You can now log in and access the system.'
-            : 'We regret to inform you that your account application has <strong style="color:#DC2626;">not been approved</strong> at this time. Please contact the administrator for more details.',
+            : ($action === 'activate'
+                ? 'Your account has been <strong style="color:#059669;">activated</strong>! You can now log in and access the system again.'
+                : ($action === 'deactivate'
+                    ? 'Your account has been <strong style="color:#D97706;">deactivated</strong>. You will not be able to log in until your account is reactivated by an administrator.'
+                    : 'We regret to inform you that your account application has <strong style="color:#DC2626;">not been approved</strong> at this time. Please contact the administrator for more details.')),
         $action === 'approve'
             ? '<div style="background-color:#f0fdf4;border-radius:12px;padding:16px;margin:0 0 24px;"><p style="color:#059669;font-size:14px;margin:0;font-weight:700;">&#10003; Account Approved</p></div>'
-            : '<div style="background-color:#fef2f2;border-radius:12px;padding:16px;margin:0 0 24px;"><p style="color:#DC2626;font-size:14px;margin:0;font-weight:700;">&#10007; Account Not Approved</p></div>',
+            : ($action === 'activate'
+                ? '<div style="background-color:#f0fdf4;border-radius:12px;padding:16px;margin:0 0 24px;"><p style="color:#059669;font-size:14px;margin:0;font-weight:700;">&#10003; Account Activated</p></div>'
+                : ($action === 'deactivate'
+                    ? '<div style="background-color:#fef3c7;border-radius:12px;padding:16px;margin:0 0 24px;"><p style="color:#D97706;font-size:14px;margin:0;font-weight:700;">&#9888; Account Deactivated</p></div>'
+                    : '<div style="background-color:#fef2f2;border-radius:12px;padding:16px;margin:0 0 24px;"><p style="color:#DC2626;font-size:14px;margin:0;font-weight:700;">&#10007; Account Not Approved</p></div>')),
         (int) date('Y')
     );
+
+    $textBodyMap = [
+        'approve' => 'Your account has been approved! You can now log in and access the system.',
+        'activate' => 'Your account has been activated! You can now log in and access the system again.',
+        'deactivate' => 'Your account has been deactivated. You will not be able to log in until your account is reactivated by an administrator.',
+        'reject' => 'We regret to inform you that your account application has not been approved at this time.',
+    ];
 
     $textBody = sprintf(
         "Hello %s,\n\n%s\n\nIf you have questions, please contact the administrator.",
         $userName,
-        $action === 'approve'
-            ? 'Your account has been approved! You can now log in and access the system.'
-            : 'We regret to inform you that your account application has not been approved at this time.'
+        $textBodyMap[$action]
     );
 
     // Wrap email sending in output buffering so any PHP warnings

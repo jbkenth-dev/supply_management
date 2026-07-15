@@ -16,6 +16,7 @@ import {
   ShieldCheckIcon,
   ArrowPathIcon,
   EnvelopeIcon,
+  NoSymbolIcon,
 } from "@heroicons/react/24/outline"
 import { api } from "../../lib/api"
 import AppShell from "../../layout/AppShell"
@@ -23,7 +24,7 @@ import { MessageModal } from "../../components/ui/MessageModal"
 
 type ManagedRole = "Faculty Staff" | "Property Custodian" | "Resource Planning Officer" | "Vice President for Finance" | "College President"
 
-type ApprovalStatus = "pending" | "approved" | "rejected"
+type ApprovalStatus = "pending" | "approved" | "rejected" | "deactivated"
 
 type ManagedUser = {
   id: number
@@ -112,6 +113,10 @@ export default function AdminUsers() {
   const [approvalTarget, setApprovalTarget] = useState<ManagedUser | null>(null)
   const [approvalAction, setApprovalAction] = useState<"approve" | "reject">("approve")
   const [isApprovalSubmitting, setIsApprovalSubmitting] = useState(false)
+  const [deactivateTarget, setDeactivateTarget] = useState<ManagedUser | null>(null)
+  const [isDeactivateSubmitting, setIsDeactivateSubmitting] = useState(false)
+  const [activateTarget, setActivateTarget] = useState<ManagedUser | null>(null)
+  const [isActivateSubmitting, setIsActivateSubmitting] = useState(false)
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null)
   const [showMessageModal, setShowMessageModal] = useState(false)
 
@@ -481,6 +486,118 @@ export default function AdminUsers() {
       setIsSuccess(false)
     } finally {
       setIsApprovalSubmitting(false)
+    }
+  }
+
+  // ---- Deactivate Handler ----
+
+  const openDeactivateModal = (user: ManagedUser) => {
+    setDeactivateTarget(user)
+    setServerMessage("")
+    setIsSuccess(false)
+  }
+
+  const closeDeactivateModal = () => {
+    if (isDeactivateSubmitting) return
+    setDeactivateTarget(null)
+  }
+
+  const handleDeactivate = async () => {
+    if (!deactivateTarget) return
+
+    setIsDeactivateSubmitting(true)
+    setServerMessage("")
+    setIsSuccess(false)
+
+    try {
+      const response = await api("/api/admin-users.php", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "deactivate", id: deactivateTarget.id }),
+      })
+
+      let result: UsersResponse
+      try {
+        result = (await response.json()) as UsersResponse
+      } catch {
+        throw new Error("Server error. Please try again.")
+      }
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message ?? "Unable to deactivate user.")
+      }
+
+      if (result.user) {
+        const updatedUser = result.user
+        setUsers((current) =>
+          current.map((entry) => (entry.id === updatedUser.id ? updatedUser : entry))
+        )
+      }
+
+      setServerMessage(`${getFullName(deactivateTarget)} has been deactivated.`)
+      setIsSuccess(true)
+      setDeactivateTarget(null)
+    } catch (error) {
+      setServerMessage(error instanceof Error ? error.message : "Unable to deactivate user.")
+      setIsSuccess(false)
+    } finally {
+      setIsDeactivateSubmitting(false)
+    }
+  }
+
+  // ---- Activate Handler ----
+
+  const openActivateModal = (user: ManagedUser) => {
+    setActivateTarget(user)
+    setServerMessage("")
+    setIsSuccess(false)
+  }
+
+  const closeActivateModal = () => {
+    if (isActivateSubmitting) return
+    setActivateTarget(null)
+  }
+
+  const handleActivate = async () => {
+    if (!activateTarget) return
+
+    setIsActivateSubmitting(true)
+    setServerMessage("")
+    setIsSuccess(false)
+
+    try {
+      const response = await api("/api/admin-users.php", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "activate", id: activateTarget.id }),
+      })
+
+      let result: UsersResponse
+      try {
+        result = (await response.json()) as UsersResponse
+      } catch {
+        throw new Error("Server error. Please try again.")
+      }
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message ?? "Unable to activate user.")
+      }
+
+      if (result.user) {
+        const updatedUser = result.user
+        setUsers((current) =>
+          current.map((entry) => (entry.id === updatedUser.id ? updatedUser : entry))
+        )
+      }
+
+      setServerMessage(`${getFullName(activateTarget)} has been activated.`)
+      setIsSuccess(true)
+      setActivateTarget(null)
+    } catch (error) {
+      setServerMessage(error instanceof Error ? error.message : "Unable to activate user.")
+      setIsSuccess(false)
+    } finally {
+      setIsActivateSubmitting(false)
     }
   }
 
@@ -954,6 +1071,28 @@ export default function AdminUsers() {
                                         label="Reject"
                                         className="text-rose-600 hover:bg-rose-50"
                                         onClick={() => { openApprovalModal(user, "reject"); setOpenDropdownId(null) }}
+                                      />
+                                      <div className="my-1 border-t border-brown-100" />
+                                    </>
+                                  )}
+                                  {user.approvalStatus === "approved" && (
+                                    <>
+                                      <DropdownItem
+                                        icon={NoSymbolIcon}
+                                        label="Deactivate"
+                                        className="text-amber-600 hover:bg-amber-50"
+                                        onClick={() => { openDeactivateModal(user); setOpenDropdownId(null) }}
+                                      />
+                                      <div className="my-1 border-t border-brown-100" />
+                                    </>
+                                  )}
+                                  {user.approvalStatus === "deactivated" && (
+                                    <>
+                                      <DropdownItem
+                                        icon={CheckCircleIcon}
+                                        label="Activate"
+                                        className="text-emerald-700 hover:bg-emerald-50"
+                                        onClick={() => { openActivateModal(user); setOpenDropdownId(null) }}
                                       />
                                       <div className="my-1 border-t border-brown-100" />
                                     </>
@@ -1471,6 +1610,94 @@ export default function AdminUsers() {
           </div>
         </ModalShell>
       ) : null}
+
+      {deactivateTarget ? (
+        <ModalShell onClose={closeDeactivateModal} maxWidthClassName="max-w-md">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+              <NoSymbolIcon className="h-6 w-6" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-amber-600">Deactivate User</p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-brown-900">Deactivate this account?</h2>
+              <p className="mt-3 text-sm leading-6 text-brown-500">
+                You are about to deactivate{" "}
+                <span className="font-semibold text-brown-900">{getFullName(deactivateTarget)}</span>.
+                The user will no longer be able to log in until reactivated.
+              </p>
+              <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                Role: {deactivateTarget.role}
+                <br />
+                Email: {deactivateTarget.email}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={closeDeactivateModal}
+              disabled={isDeactivateSubmitting}
+              className="inline-flex items-center justify-center rounded-xl border border-brown-200 px-5 py-3 text-sm font-semibold text-brown-600 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleDeactivate()}
+              disabled={isDeactivateSubmitting}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <NoSymbolIcon className="h-5 w-5" />
+              {isDeactivateSubmitting ? "Deactivating..." : "Deactivate Account"}
+            </button>
+          </div>
+        </ModalShell>
+      ) : null}
+
+      {activateTarget ? (
+        <ModalShell onClose={closeActivateModal} maxWidthClassName="max-w-md">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+              <CheckCircleIcon className="h-6 w-6" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-500">Activate User</p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-brown-900">Activate this account?</h2>
+              <p className="mt-3 text-sm leading-6 text-brown-500">
+                You are about to activate{" "}
+                <span className="font-semibold text-brown-900">{getFullName(activateTarget)}</span>.
+                The user will be able to log in again with full access.
+              </p>
+              <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                Role: {activateTarget.role}
+                <br />
+                Email: {activateTarget.email}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={closeActivateModal}
+              disabled={isActivateSubmitting}
+              className="inline-flex items-center justify-center rounded-xl border border-brown-200 px-5 py-3 text-sm font-semibold text-brown-600 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleActivate()}
+              disabled={isActivateSubmitting}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <CheckCircleIcon className="h-5 w-5" />
+              {isActivateSubmitting ? "Activating..." : "Activate Account"}
+            </button>
+          </div>
+        </ModalShell>
+      ) : null}
     </AppShell>
   )
 }
@@ -1568,6 +1795,15 @@ function StatusBadge({ status }: { status: ApprovalStatus }) {
       <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">
         <XCircleIcon className="h-3.5 w-3.5" />
         Rejected
+      </span>
+    )
+  }
+
+  if (status === "deactivated") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
+        <NoSymbolIcon className="h-3.5 w-3.5" />
+        Deactivated
       </span>
     )
   }
