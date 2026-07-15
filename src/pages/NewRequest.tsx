@@ -591,17 +591,13 @@ export default function NewRequest() {
                           <p className="mt-3 border-b border-brown-300 pb-0.5 text-[10px] font-semibold text-brown-800 sm:text-xs">
                             {signatureName}
                           </p>
-                          <p className="mt-2 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">
-                            Printed Name
-                            <span className="mt-1 block border-b border-brown-300 pb-0.5 text-[10px] normal-case tracking-normal text-brown-800 sm:text-xs">
-                              {printedName}
-                            </span>
+                          <p className="mt-2 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Printed Name</p>
+                          <p className="border-b border-brown-300 pb-0.5 text-[10px] sm:text-xs">
+                            {printedName}
                           </p>
-                          <p className="mt-2 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">
-                            Position / Designation
-                            <span className="mt-1 block border-b border-brown-300 pb-0.5 text-[10px] normal-case tracking-normal text-brown-800 sm:text-xs">
-                              {position}
-                            </span>
+                          <p className="mt-2 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Position / Designation</p>
+                          <p className="border-b border-brown-300 pb-0.5 text-[10px] sm:text-xs">
+                            {position}
                           </p>
                         </td>
                       )
