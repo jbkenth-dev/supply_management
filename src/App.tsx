@@ -13,6 +13,7 @@ import AccountStatus from "./pages/auth/AccountStatus";
 import ApprovalDashboard from "./pages/ApprovalDashboard"
 import ApprovalPersonnelDashboard from "./pages/ApprovalPersonnelDashboard"
 import ApprovalPersonnelRequests from "./pages/ApprovalPersonnelRequests"
+import ApprovalPersonnelMyAccount from "./pages/ApprovalPersonnelMyAccount"
 import BudgetManagement from "./pages/BudgetManagement"
 import AdminCreate from "./pages/admin/AdminCreate";
 import CustodianDashboard from "./pages/custodian/CustodianDashboard";
@@ -61,6 +62,7 @@ export default function App() {
       <Route path="/approval" element={<ApprovalDashboard />} />
       <Route path="/approval-personnel" element={<ApprovalPersonnelDashboard />} />
       <Route path="/approval-personnel/all-request" element={<ApprovalPersonnelRequests />} />
+      <Route path="/approval-personnel/my-account" element={<ApprovalPersonnelMyAccount />} />
       <Route path="/notification" element={<Notification />} />
       <Route path="/custodian/account-status" element={<AccountStatus />} />
       <Route path="/account-status" element={<AccountStatus />} />
