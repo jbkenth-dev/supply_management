@@ -9,7 +9,7 @@ import {
   EyeSlashIcon
 } from "@heroicons/react/24/outline"
 import { api } from "../../lib/api"
-import { getDashboardPath, getStoredAuthUser, setStoredAuthUser, getAccountStatusPath, getVerificationPath, type AuthUser } from "../../lib/auth"
+import { getDashboardPath, getStoredAuthUser, setStoredAuthUser, getAccountStatusPath, getVerificationPath, isApprovalRole, type AuthUser } from "../../lib/auth"
 import { MessageModal } from "../../components/ui/MessageModal"
 
 const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY?.trim() ?? ""
@@ -84,6 +84,11 @@ export default function Login() {
 
     if (storedUser.approvalStatus !== "approved") {
       navigate(getAccountStatusPath(storedUser.role), { replace: true })
+      return
+    }
+
+    if (isApprovalRole(storedUser.role)) {
+      navigate("/approval-personnel", { replace: true })
       return
     }
 
@@ -188,6 +193,17 @@ export default function Login() {
 
       if (user.approvalStatus !== "approved") {
         navigate(getAccountStatusPath(user.role), { replace: true })
+        return
+      }
+
+      if (isApprovalRole(user.role)) {
+        navigate("/approval-personnel", {
+          replace: true,
+          state: {
+            role: user.role,
+            user
+          }
+        })
         return
       }
 
