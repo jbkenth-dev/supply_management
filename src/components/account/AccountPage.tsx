@@ -57,9 +57,6 @@ const initialForm: AccountForm = {
   profileImageUrl: "",
 }
 
-const isApprovalPersonnelRole = (role: AuthRole) =>
-  role === "Resource Planning Officer" || role === "Vice President for Finance" || role === "College President"
-
 const getRoleNoun = (role: AuthRole) => {
   if (role === "Administrator") return "administrator"
   if (role === "Property Custodian") return "property custodian"
