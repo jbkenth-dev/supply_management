@@ -255,24 +255,24 @@ try {
     verifyLog("Step 6: Role uniqueness OK");
 
     // --- Check for duplicate user that appeared between init & verify ---
+    // Check across ALL roles since username/email/id_number have unique constraints
     $hasDup = false;
     $pIdNum  = (string) $pending['id_number'];
     $pUser   = (string) $pending['username'];
     $pEmail  = (string) $pending['email'];
-    $roleSQL = "AND role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President')";
 
     if ($pIdNum !== '') {
-        $q = $pdo->prepare("SELECT 1 FROM users WHERE id_number = :v $roleSQL LIMIT 1");
+        $q = $pdo->prepare("SELECT 1 FROM users WHERE id_number = :v LIMIT 1");
         $q->execute(['v' => $pIdNum]);
         if ($q->fetch()) { $hasDup = true; }
     }
     if (!$hasDup && $pUser !== '') {
-        $q = $pdo->prepare("SELECT 1 FROM users WHERE username = :v $roleSQL LIMIT 1");
+        $q = $pdo->prepare("SELECT 1 FROM users WHERE username = :v LIMIT 1");
         $q->execute(['v' => $pUser]);
         if ($q->fetch()) { $hasDup = true; }
     }
     if (!$hasDup && $pEmail !== '') {
-        $q = $pdo->prepare("SELECT 1 FROM users WHERE email = :v $roleSQL LIMIT 1");
+        $q = $pdo->prepare("SELECT 1 FROM users WHERE email = :v LIMIT 1");
         $q->execute(['v' => $pEmail]);
         if ($q->fetch()) { $hasDup = true; }
     }
