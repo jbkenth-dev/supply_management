@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type ComponentType } from "react"
 import { useNavigate } from "react-router-dom"
 import { AnimatePresence, motion } from "framer-motion"
 import { MessageModal } from "../ui/MessageModal"
@@ -75,8 +75,9 @@ const getSuccessMessage = (role: AuthRole) => {
   return "Faculty account details saved successfully."
 }
 
-export default function AccountPage({ role }: { role: AuthRole }) {
+export default function AccountPage({ role, shell: CustomShell }: { role: AuthRole; shell?: ComponentType<{ children: React.ReactNode; role?: AuthRole }> }) {
   const navigate = useNavigate()
+  const ShellComponent = CustomShell ?? AppShell
   const roleNoun = getRoleNoun(role)
   const fallbackName = getFallbackName(role)
   const [authUser, setAuthUser] = useState<AuthUser | null>(() => getStoredAuthUser())
@@ -662,7 +663,7 @@ export default function AccountPage({ role }: { role: AuthRole }) {
   }
 
   return (
-    <AppShell role={role}>
+    <ShellComponent role={role}>
       <div className="space-y-8">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-black tracking-tight text-brown-900">My Account</h1>
@@ -1183,6 +1184,6 @@ export default function AccountPage({ role }: { role: AuthRole }) {
           </motion.div>
         ) : null}
       </AnimatePresence>
-    </AppShell>
+    </ShellComponent>
   )
 }
