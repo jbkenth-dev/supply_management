@@ -294,6 +294,43 @@ export default function AdminUsers() {
         }))
       }
     }
+
+    // Client-side duplicate checks against existing users
+    if (!isEditing && field === "idNumber" && value.trim() !== "") {
+      const duplicate = users.find(
+        (u) => u.idNumber != null && u.idNumber.toLowerCase() === value.trim().toLowerCase()
+      )
+      if (duplicate) {
+        setErrors((current) => ({
+          ...current,
+          idNumber: "ID number is already registered.",
+        }))
+      }
+    }
+
+    if (!isEditing && field === "username" && value.trim() !== "") {
+      const duplicate = users.find(
+        (u) => u.username.toLowerCase() === value.trim().toLowerCase()
+      )
+      if (duplicate) {
+        setErrors((current) => ({
+          ...current,
+          username: "Username is already taken.",
+        }))
+      }
+    }
+
+    if (!isEditing && field === "email" && value.trim() !== "") {
+      const duplicate = users.find(
+        (u) => u.email.toLowerCase() === value.trim().toLowerCase()
+      )
+      if (duplicate) {
+        setErrors((current) => ({
+          ...current,
+          email: "Email is already registered.",
+        }))
+      }
+    }
   }
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
