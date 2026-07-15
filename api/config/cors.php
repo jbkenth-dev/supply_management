@@ -24,10 +24,12 @@ function configureCors(array $allowedMethods): void
     }
 
     // Default localhost origins for development
+    // Production fallback: include Vercel frontend URL for Awardspace backend
     if ($allowedOrigins === []) {
         $allowedOrigins = [
             'http://127.0.0.1:5173',
             'http://localhost:5173',
+            'https://sfcg-supply.jbkenth.dev',
         ];
     }
 
