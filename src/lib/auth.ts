@@ -154,3 +154,6 @@ const APPROVAL_ROLES: readonly AuthRole[] = [
 
 export const isApprovalRole = (role: AuthRole): boolean =>
   (APPROVAL_ROLES as readonly string[]).includes(role)
+
+export const getApprovalPersonnelAccountPath = () => "/approval-personnel/my-account"
+export const getApprovalPersonnelNotificationPath = () => "/approval-personnel/notification"
