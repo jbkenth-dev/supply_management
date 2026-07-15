@@ -233,16 +233,6 @@ export default function NewRequest() {
     )
   }
 
-  const updateQuantity = (index: number, quantity: number) => {
-    if (quantity < 1) return
-    setQtyInputs((prev) => ({ ...prev, [index]: String(quantity) }))
-    setItems((current) =>
-      current.map((item, i) =>
-        i === index ? { ...item, quantity, totalAmount: quantity * item.unitCost } : item
-      )
-    )
-  }
-
   const updateUnitCost = (index: number, unitCost: number) => {
     if (unitCost < 0) return
     setItems((current) =>
