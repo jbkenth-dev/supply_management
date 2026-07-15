@@ -231,6 +231,7 @@ export default function NewRequest() {
     const newErrors: Record<string, string> = {}
     if (!purpose.trim()) newErrors.purpose = "Purpose is required."
     if (!department) newErrors.department = "Department is required."
+    if (!dateNeeded) newErrors.dateNeeded = "Date is required."
     if (items.length === 0) newErrors.items = "Add at least one item."
     for (const item of items) {
       if (item.unitCost < 0) newErrors.unitCost = "Unit cost cannot be negative."
@@ -372,14 +373,20 @@ export default function NewRequest() {
 
               <div className="sm:col-span-3">
                 <label className="text-[11px] font-bold uppercase tracking-wider text-brown-600">
-                  Date
+                  Date <span className="text-rose-600">*</span>
                 </label>
                 <input
                   type="date"
                   value={dateNeeded}
-                  onChange={(e) => setDateNeeded(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-brown-200 bg-brown-50 px-3 py-2 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                  onChange={(e) => {
+                    setDateNeeded(e.target.value)
+                    setErrors((previous) => ({ ...previous, dateNeeded: "" }))
+                  }}
+                  className={`mt-1 w-full rounded-xl border bg-brown-50 px-3 py-2 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 ${
+                    errors.dateNeeded ? "border-rose-300 bg-rose-50" : "border-brown-200"
+                  }`}
                 />
+                {errors.dateNeeded ? <p className="mt-1 text-[11px] font-semibold text-rose-600">{errors.dateNeeded}</p> : null}
               </div>
             </div>
           </div>
