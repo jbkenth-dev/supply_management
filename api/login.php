@@ -15,8 +15,16 @@ if (!function_exists('ensureApprovalColumns')) {
             if (!$chk->fetch()) {
                 $pdo->exec($col === 'is_verified'
                     ? "ALTER TABLE users ADD COLUMN is_verified TINYINT(1) NOT NULL DEFAULT 0 AFTER profile_image_path"
-                    : "ALTER TABLE users ADD COLUMN approval_status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending' AFTER is_verified");
+                    : "ALTER TABLE users ADD COLUMN approval_status ENUM('pending','approved','rejected','deactivated') NOT NULL DEFAULT 'pending' AFTER is_verified");
             }
+        }
+
+        // Ensure 'deactivated' is in the ENUM for existing installations
+        $chk = $pdo->prepare("SHOW COLUMNS FROM users LIKE 'approval_status'");
+        $chk->execute();
+        $col = $chk->fetch();
+        if ($col && strpos($col['Type'], 'deactivated') === false) {
+            $pdo->exec("ALTER TABLE users MODIFY COLUMN approval_status ENUM('pending','approved','rejected','deactivated') NOT NULL DEFAULT 'pending'");
         }
     }
 }
@@ -167,6 +175,17 @@ try {
             'success' => false,
             'message' => 'Invalid email/username or password.',
             'attemptsRemaining' => $remainingAttempts,
+        ]);
+    }
+
+    // Block login for deactivated accounts
+    $approvalStatus = isset($user['approval_status']) ? (string) $user['approval_status'] : 'pending';
+    if ($approvalStatus === 'deactivated') {
+        $pdo->commit();
+
+        jsonResponse(403, [
+            'success' => false,
+            'message' => 'Your account has been deactivated. Please contact the administrator for assistance.',
         ]);
     }
 
