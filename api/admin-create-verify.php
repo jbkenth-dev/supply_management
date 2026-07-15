@@ -84,13 +84,21 @@ if (!function_exists('ensurePendingRegistrationsTable')) {
 }
 
 // ---------------------------------------------------------------------------
-// Helper: write to log file (non-fatal)
+// Helper: write to log file (non-fatal, best-effort)
 // ---------------------------------------------------------------------------
 
 function verifyLog(string $message): void
 {
+    $logDir  = dirname(__DIR__) . '/api/logs';
+    $logFile = $logDir . '/admin-create-verify.log';
+
+    // Ensure the logs directory exists before attempting to write.
+    if (!is_dir($logDir)) {
+        @mkdir($logDir, 0755, true);
+    }
+
     @file_put_contents(
-        dirname(__DIR__) . '/api/logs/admin-create-verify.log',
+        $logFile,
         sprintf("[%s] %s\n", date('Y-m-d H:i:s'), $message),
         FILE_APPEND
     );
@@ -142,14 +150,50 @@ try {
     $pdo = getDatabaseConnection();
     verifyLog("Step 1: DB connected");
 
-    ensureUserProfileColumns($pdo);
-    ensureApprovalColumns($pdo);
-    ensurePendingRegistrationsTable($pdo);
+    // --- Ensure schema (each migration is individually protected) ---
+    try {
+        ensureUserProfileColumns($pdo);
+    } catch (Throwable $e) {
+        verifyLog("WARN: ensureUserProfileColumns failed: " . $e->getMessage());
+        // Non-fatal: columns may already exist with correct definitions.
+    }
 
-    // *** KEY FIX: The original ENUM('Faculty Staff','Property Custodian','Administrator')
-    // rejects roles like 'Resource Planning Officer'. Convert to VARCHAR if needed. ***
-    ensureRoleColumnAcceptsAllManagedRoles($pdo);
+    try {
+        ensureApprovalColumns($pdo);
+    } catch (Throwable $e) {
+        verifyLog("WARN: ensureApprovalColumns failed: " . $e->getMessage());
+        // Non-fatal: columns may already exist.
+    }
+
+    try {
+        ensurePendingRegistrationsTable($pdo);
+    } catch (Throwable $e) {
+        verifyLog("WARN: ensurePendingRegistrationsTable failed: " . $e->getMessage());
+        // Non-fatal: table may already exist.
+    }
+
+    try {
+        ensureRoleColumnAcceptsAllManagedRoles($pdo);
+    } catch (Throwable $e) {
+        verifyLog("WARN: ensureRoleColumnAcceptsAllManagedRoles failed: " . $e->getMessage());
+        // Non-fatal: role column may already accept all values.
+    }
+
     verifyLog("Step 2: Schema ensured");
+
+    // --- Verify required columns exist before proceeding ---
+    $requiredColumns = ['is_verified', 'approval_status', 'password_hash'];
+    foreach ($requiredColumns as $col) {
+        $chk = $pdo->prepare("SHOW COLUMNS FROM users LIKE ?");
+        $chk->execute([$col]);
+        if (!$chk->fetch()) {
+            verifyLog("FATAL: Required column users.$col does not exist");
+            jsonResponse(500, [
+                'success' => false,
+                'message' => 'Server configuration error. Please contact an administrator.',
+            ]);
+        }
+    }
 
     // --- Look up pending registration ---
     $pendingQuery = $pdo->prepare(
@@ -211,7 +255,6 @@ try {
     verifyLog("Step 6: Role uniqueness OK");
 
     // --- Check for duplicate user that appeared between init & verify ---
-    // Per-field queries (same proven pattern as admin-create-init.php).
     $hasDup = false;
     $pIdNum  = (string) $pending['id_number'];
     $pUser   = (string) $pending['username'];
@@ -290,7 +333,7 @@ try {
             }
         }
 
-        // --- Delete the pending registration ---
+        // --- Delete the pending registration (OTP consumed — one-time use) ---
         $deletePending = $pdo->prepare('DELETE FROM pending_registrations WHERE id = :id');
         $deletePending->execute(['id' => $pendingId]);
 
@@ -300,7 +343,7 @@ try {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        verifyLog("Step 9 FAIL (transaction): " . $e->getMessage());
+        verifyLog("Step 9 FAIL (transaction): " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
         throw $e;
     }
 
@@ -364,7 +407,8 @@ function jsonResponse(int $statusCode, array $body): void
         ob_clean();
     }
 
+    header('Content-Type: application/json; charset=utf-8');
     http_response_code($statusCode);
-    echo json_encode($body, JSON_UNESCAPED_SLASHES);
+    echo json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     exit;
 }
