@@ -77,6 +77,7 @@ export default function NewRequest() {
   const [customName, setCustomName] = useState("")
   const [customQty, setCustomQty] = useState(1)
   const [customCost, setCustomCost] = useState(0)
+  const [qtyInputs, setQtyInputs] = useState<Record<number, string>>({})
   const authUser = getStoredAuthUser()
   const preselectedItemCode = searchParams.get("itemCode")?.trim().toUpperCase() ?? ""
   const [showModal, setShowModal] = useState(false)
@@ -161,6 +162,17 @@ export default function NewRequest() {
     setItems((current) => [...current, buildCatalogCartItem(preselectedSupply)])
   }, [preselectedItemCode, supplies])
 
+  useEffect(() => {
+    setQtyInputs((prev) => {
+      const next: Record<number, string> = {}
+      for (const [key, value] of Object.entries(prev)) {
+        const idx = Number(key)
+        if (idx < items.length) next[idx] = value
+      }
+      return next
+    })
+  }, [items.length])
+
   const filteredSupplies = useMemo(() => {
     const query = search.trim().toLowerCase()
     if (!query) return supplies
@@ -205,8 +217,25 @@ export default function NewRequest() {
     setItems((current) => current.filter((_, i) => i !== index))
   }
 
+  const handleQtyChange = (index: number, value: string) => {
+    setQtyInputs((prev) => ({ ...prev, [index]: value }))
+  }
+
+  const handleQtyBlur = (index: number) => {
+    const raw = qtyInputs[index]
+    const parsed = parseInt(raw ?? "", 10)
+    const quantity = isNaN(parsed) || parsed < 1 ? 1 : parsed
+    setQtyInputs((prev) => ({ ...prev, [index]: String(quantity) }))
+    setItems((current) =>
+      current.map((item, i) =>
+        i === index ? { ...item, quantity, totalAmount: quantity * item.unitCost } : item
+      )
+    )
+  }
+
   const updateQuantity = (index: number, quantity: number) => {
     if (quantity < 1) return
+    setQtyInputs((prev) => ({ ...prev, [index]: String(quantity) }))
     setItems((current) =>
       current.map((item, i) =>
         i === index ? { ...item, quantity, totalAmount: quantity * item.unitCost } : item
@@ -418,8 +447,9 @@ export default function NewRequest() {
                         <input
                           type="number"
                           min="1"
-                          value={item.quantity}
-                          onChange={(e) => updateQuantity(index, Math.max(1, parseInt(e.target.value) || 1))}
+                          value={qtyInputs[index] ?? String(item.quantity)}
+                          onChange={(e) => handleQtyChange(index, e.target.value)}
+                          onBlur={() => handleQtyBlur(index)}
                           className="w-full rounded-lg border border-brown-200 bg-white px-2 py-1 text-center text-xs font-bold text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-sm"
                         />
                       </TableCell>
