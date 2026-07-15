@@ -20,7 +20,7 @@ require_once __DIR__ . '/config/user_schema.php';
 require_once __DIR__ . '/config/cors.php';
 
 // ---------------------------------------------------------------------------
-// Schema helpers
+// Schema helpers (local fallbacks — used only if user_schema.php is outdated)
 // ---------------------------------------------------------------------------
 
 if (!function_exists('ensureUserProfileColumns')) {
@@ -84,6 +84,19 @@ if (!function_exists('ensurePendingRegistrationsTable')) {
 }
 
 // ---------------------------------------------------------------------------
+// Helper: write to log file (non-fatal)
+// ---------------------------------------------------------------------------
+
+function verifyLog(string $message): void
+{
+    @file_put_contents(
+        dirname(__DIR__) . '/api/logs/admin-create-verify.log',
+        sprintf("[%s] %s\n", date('Y-m-d H:i:s'), $message),
+        FILE_APPEND
+    );
+}
+
+// ---------------------------------------------------------------------------
 // CORS & method check
 // ---------------------------------------------------------------------------
 
@@ -127,9 +140,16 @@ if ($code === '' || !preg_match('/^\d{6}$/', $code)) {
 
 try {
     $pdo = getDatabaseConnection();
+    verifyLog("Step 1: DB connected");
+
     ensureUserProfileColumns($pdo);
     ensureApprovalColumns($pdo);
     ensurePendingRegistrationsTable($pdo);
+
+    // *** KEY FIX: The original ENUM('Faculty Staff','Property Custodian','Administrator')
+    // rejects roles like 'Resource Planning Officer'. Convert to VARCHAR if needed. ***
+    ensureRoleColumnAcceptsAllManagedRoles($pdo);
+    verifyLog("Step 2: Schema ensured");
 
     // --- Look up pending registration ---
     $pendingQuery = $pdo->prepare(
@@ -140,17 +160,21 @@ try {
     $pending = $pendingQuery->fetch();
 
     if (!$pending) {
+        verifyLog("Step 3 FAIL: pending registration $pendingId not found");
         jsonResponse(404, [
             'success' => false,
             'message' => 'Registration not found. Please try creating the user again.',
         ]);
     }
 
+    verifyLog("Step 3: Found pending registration $pendingId (role=" . $pending['role'] . ")");
+
     // --- Check expiration ---
     $expiresAt = new DateTimeImmutable((string) $pending['expires_at']);
     $now = new DateTimeImmutable();
 
     if ($now->getTimestamp() > $expiresAt->getTimestamp()) {
+        verifyLog("Step 4 FAIL: code expired (expires_at={$pending['expires_at']})");
         jsonResponse(400, [
             'success'  => false,
             'message'  => 'Verification code has expired. Please request a new one.',
@@ -160,20 +184,23 @@ try {
 
     // --- Check code match ---
     if ((string) $pending['code'] !== $code) {
+        verifyLog("Step 5 FAIL: code mismatch (expected={$pending['code']}, got=$code)");
         jsonResponse(400, [
             'success' => false,
             'message' => 'Invalid verification code. Please try again.',
         ]);
     }
 
-    // --- Check for role uniqueness (defense-in-depth — may have been created between init & verify) ---
+    verifyLog("Step 5: Code matched");
+
+    // --- Check for role uniqueness (defense-in-depth) ---
     $restrictedRoles = ['Resource Planning Officer', 'Vice President for Finance', 'College President'];
     if (in_array((string) $pending['role'], $restrictedRoles, true)) {
         $roleCheck = $pdo->prepare('SELECT COUNT(*) FROM users WHERE role = :role');
         $roleCheck->execute(['role' => $pending['role']]);
         if ((int) $roleCheck->fetchColumn() > 0) {
-            // Clean up the pending registration so it doesn't block future attempts.
             $pdo->prepare('DELETE FROM pending_registrations WHERE id = :id')->execute(['id' => $pendingId]);
+            verifyLog("Step 6 FAIL: restricted role already taken");
             jsonResponse(409, [
                 'success' => false,
                 'message' => 'The role "' . htmlspecialchars((string) $pending['role']) . '" can only have one account.',
@@ -181,48 +208,51 @@ try {
         }
     }
 
-    // --- Also check for duplicate user that appeared between init & verify ---
-    // Check each field individually (same pattern as admin-create-init.php)
-    // to avoid LOWER()+OR issues on shared-hosting MySQL.
-    // Only check managed-role users so non-managed accounts (e.g.
-    // Administrator) do not cause false-positive rejections.
-    $hasDup = false;
-    $pendingIdNumber = (string) $pending['id_number'];
-    $pendingUsername  = (string) $pending['username'];
-    $pendingEmail    = (string) $pending['email'];
-    $managedRoleFilter = "AND role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President')";
+    verifyLog("Step 6: Role uniqueness OK");
 
-    if ($pendingIdNumber !== '') {
-        $chk = $pdo->prepare("SELECT 1 FROM users WHERE id_number = :id_number {$managedRoleFilter} LIMIT 1");
-        $chk->execute(['id_number' => $pendingIdNumber]);
-        if ($chk->fetch()) { $hasDup = true; }
+    // --- Check for duplicate user that appeared between init & verify ---
+    // Per-field queries (same proven pattern as admin-create-init.php).
+    $hasDup = false;
+    $pIdNum  = (string) $pending['id_number'];
+    $pUser   = (string) $pending['username'];
+    $pEmail  = (string) $pending['email'];
+    $roleSQL = "AND role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President')";
+
+    if ($pIdNum !== '') {
+        $q = $pdo->prepare("SELECT 1 FROM users WHERE id_number = :v $roleSQL LIMIT 1");
+        $q->execute(['v' => $pIdNum]);
+        if ($q->fetch()) { $hasDup = true; }
     }
-    if (!$hasDup && $pendingUsername !== '') {
-        $chk = $pdo->prepare("SELECT 1 FROM users WHERE username = :username {$managedRoleFilter} LIMIT 1");
-        $chk->execute(['username' => $pendingUsername]);
-        if ($chk->fetch()) { $hasDup = true; }
+    if (!$hasDup && $pUser !== '') {
+        $q = $pdo->prepare("SELECT 1 FROM users WHERE username = :v $roleSQL LIMIT 1");
+        $q->execute(['v' => $pUser]);
+        if ($q->fetch()) { $hasDup = true; }
     }
-    if (!$hasDup && $pendingEmail !== '') {
-        $chk = $pdo->prepare("SELECT 1 FROM users WHERE email = :email {$managedRoleFilter} LIMIT 1");
-        $chk->execute(['email' => $pendingEmail]);
-        if ($chk->fetch()) { $hasDup = true; }
+    if (!$hasDup && $pEmail !== '') {
+        $q = $pdo->prepare("SELECT 1 FROM users WHERE email = :v $roleSQL LIMIT 1");
+        $q->execute(['v' => $pEmail]);
+        if ($q->fetch()) { $hasDup = true; }
     }
 
     if ($hasDup) {
         $pdo->prepare('DELETE FROM pending_registrations WHERE id = :id')->execute(['id' => $pendingId]);
+        verifyLog("Step 7 FAIL: duplicate user detected");
         jsonResponse(409, [
             'success' => false,
             'message' => 'An account with that information already exists.',
         ]);
     }
 
+    verifyLog("Step 7: No duplicates");
+
     // --- Transaction: create user & clean up ---
     $pdo->beginTransaction();
+    verifyLog("Step 8: Transaction started");
 
     try {
         $insertUser = $pdo->prepare(
             'INSERT INTO users (role, id_number, firstname, middlename, lastname, username, email, password_hash, is_verified, approval_status)
-             VALUES (:role, :id_number, :firstname, :middlename, :lastname, :username, :email, :password_hash, 1, \'approved\')'
+             VALUES (:role, :id_number, :firstname, :middlename, :lastname, :username, :email, :password_hash, 1, :approved)'
         );
         $insertUser->execute([
             'role'          => (string) $pending['role'],
@@ -233,9 +263,11 @@ try {
             'username'      => (string) $pending['username'],
             'email'         => (string) $pending['email'],
             'password_hash' => (string) $pending['password_hash'],
+            'approved'      => 'approved',
         ]);
 
         $newUserId = (int) $pdo->lastInsertId();
+        verifyLog("Step 8: User inserted with id=$newUserId");
 
         // --- Move temp profile image to final location ---
         $profileImagePath = null;
@@ -263,10 +295,12 @@ try {
         $deletePending->execute(['id' => $pendingId]);
 
         $pdo->commit();
+        verifyLog("Step 9: Transaction committed, pending deleted");
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
+        verifyLog("Step 9 FAIL (transaction): " . $e->getMessage());
         throw $e;
     }
 
@@ -278,6 +312,8 @@ try {
     );
     $userQuery->execute(['id' => $newUserId]);
     $user = $userQuery->fetch();
+
+    verifyLog("Step 10: Success — returning user $newUserId");
 
     jsonResponse(200, [
         'success' => true,
@@ -303,22 +339,15 @@ try {
         $pdo->rollBack();
     }
 
-    @file_put_contents(
-        dirname(__DIR__) . '/api/logs/admin-create-verify-error.log',
-        sprintf("[%s] PDOError %s in %s on line %d\n", date('Y-m-d H:i:s'), $exception->getMessage(), $exception->getFile(), $exception->getLine()),
-        FILE_APPEND
-    );
+    verifyLog("PDOException: " . $exception->getMessage() . " in " . $exception->getFile() . ":" . $exception->getLine());
 
     jsonResponse(500, [
         'success' => false,
         'message' => 'Unable to verify the code right now.',
     ]);
 } catch (Throwable $exception) {
-    @file_put_contents(
-        dirname(__DIR__) . '/api/logs/admin-create-verify-error.log',
-        sprintf("[%s] %s in %s on line %d\n", date('Y-m-d H:i:s'), $exception->getMessage(), $exception->getFile(), $exception->getLine()),
-        FILE_APPEND
-    );
+    verifyLog("Throwable: " . $exception->getMessage() . " in " . $exception->getFile() . ":" . $exception->getLine());
+
     jsonResponse(500, [
         'success' => false,
         'message' => 'An unexpected error occurred. Please try again.',

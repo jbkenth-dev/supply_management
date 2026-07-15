@@ -80,3 +80,36 @@ function ensurePendingRegistrationsTable(PDO $pdo): void
     );
 }
 
+/**
+ * Ensure the `role` column in the `users` table accepts all managed roles.
+ *
+ * The original schema defines `role` as ENUM('Faculty Staff','Property Custodian','Administrator')
+ * which rejects roles like 'Resource Planning Officer', 'Vice President for Finance', and
+ * 'College President'.  On strict-mode MySQL this causes a PDOException on INSERT.
+ *
+ * This function converts the column to VARCHAR(60) when it detects an ENUM type.
+ * VARCHAR(60) preserves all existing values and accepts any new role string.
+ * The conversion is safe — MySQL keeps existing data when ENUM → VARCHAR.
+ */
+function ensureRoleColumnAcceptsAllManagedRoles(PDO $pdo): void
+{
+    try {
+        $chk = $pdo->prepare("SHOW COLUMNS FROM users LIKE 'role'");
+        $chk->execute();
+        $col = $chk->fetch();
+
+        if ($col && stripos((string) ($col['Type'] ?? ''), 'enum') === 0) {
+            $pdo->exec("ALTER TABLE users MODIFY COLUMN role VARCHAR(60) NOT NULL DEFAULT 'Faculty Staff'");
+        }
+    } catch (Throwable $e) {
+        // Non-fatal: if the ALTER fails (e.g. insufficient privileges on shared
+        // hosting), log and continue. The INSERT may still succeed if the ENUM
+        // already includes the required values.
+        @file_put_contents(
+            dirname(__DIR__, 2) . '/api/logs/schema-error.log',
+            sprintf("[%s] ensureRoleColumnAcceptsAllManagedRoles: %s\n", date('Y-m-d H:i:s'), $e->getMessage()),
+            FILE_APPEND
+        );
+    }
+}
+
