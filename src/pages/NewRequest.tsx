@@ -567,7 +567,6 @@ export default function NewRequest() {
                 <tbody>
                   <tr>
                     {(["Requested", "Recommended", "Checked", "Noted", "Approved"] as const).map((label) => {
-                      const signatureName = ""
                       const printedName = label === "Requested"
                         ? (authUser ? getUserDisplayName(authUser, "Faculty Staff") : "")
                         : label === "Checked"
@@ -588,14 +587,9 @@ export default function NewRequest() {
                         <td key={label} className="border-r border-brown-200 px-2 py-4 text-center last:border-r-0">
                           <div className="mx-auto mb-2 h-px w-3/4 border-t border-brown-300" />
                           <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Signature</p>
-                          <p className="mt-3 border-b border-brown-300 pb-0.5 text-[10px] font-semibold text-brown-800 sm:text-xs">
-                            {signatureName}
-                          </p>
                           <p className="mt-3 text-[10px] sm:text-xs">{printedName}</p>
-                          <p className="border-b border-brown-300 pb-0.5" />
                           <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Printed Name</p>
                           <p className="mt-2 text-[10px] sm:text-xs">{position}</p>
-                          <p className="border-b border-brown-300 pb-0.5" />
                           <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Position / Designation</p>
                         </td>
                       )
