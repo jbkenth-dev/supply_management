@@ -10,6 +10,7 @@ import Login from "./pages/auth/Login";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import VerificationCode from "./pages/auth/VerificationCode";
 import AccountStatus from "./pages/auth/AccountStatus";
+import AdminSignup from "./pages/auth/AdminSignup";
 import ApprovalDashboard from "./pages/ApprovalDashboard"
 import ApprovalPersonnelDashboard from "./pages/ApprovalPersonnelDashboard"
 import ApprovalPersonnelRequests from "./pages/ApprovalPersonnelRequests"
@@ -51,6 +52,7 @@ export default function App() {
         <Route path="about" element={<About />} />
         <Route path="auth/signup" element={<SignUp />} />
         <Route path="auth/login" element={<Login />} />
+        <Route path="auth/admin/signup" element={<AdminSignup />} />
         <Route path="admin-create" element={<AdminCreate />} />
         <Route path="auth/forgot-password" element={<ForgotPassword />} />
         <Route path="auth/verification-code" element={<VerificationCode />} />
