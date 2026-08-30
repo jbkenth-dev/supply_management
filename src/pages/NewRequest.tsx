@@ -128,7 +128,7 @@ export default function NewRequest() {
 
     const loadApprovalPersonnel = async () => {
       try {
-        const roles = "Resource Planning Officer,Vice President for Finance,College President"
+        const roles = "Immediate Head,Resource Planning Officer,Vice President for Finance,College President"
         const response = await api(`/api/approval-personnel-info.php?roles=${encodeURIComponent(roles)}`)
         const result = (await response.json()) as ApprovalPersonnelResponse
         if (!response.ok || !result.success) return
@@ -596,6 +596,8 @@ export default function NewRequest() {
                     {(["Requested", "Recommended", "Checked", "Noted", "Approved"] as const).map((label) => {
                       const printedName = label === "Requested"
                         ? (authUser ? getUserDisplayName(authUser, "Faculty Staff") : "")
+                        : label === "Recommended"
+                        ? (approvalPersonnel["Immediate Head"] ?? "")
                         : label === "Checked"
                         ? (approvalPersonnel["Resource Planning Officer"] ?? "")
                         : label === "Noted"
@@ -603,7 +605,9 @@ export default function NewRequest() {
                           : label === "Approved"
                             ? (approvalPersonnel["College President"] ?? "")
                             : ""
-                      const position = label === "Checked"
+                      const position = label === "Recommended"
+                        ? "Immediate Head"
+                        : label === "Checked"
                         ? "Resource Planning Officer"
                         : label === "Noted"
                           ? "Vice President for Finance"

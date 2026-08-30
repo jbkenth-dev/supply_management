@@ -4,6 +4,6 @@ import { getStoredAuthUser } from "../lib/auth"
 
 export default function ApprovalPersonnelMyAccount() {
   const user = getStoredAuthUser()
-  const role = (user?.role ?? "Resource Planning Officer") as "Resource Planning Officer" | "Vice President for Finance" | "College President"
+  const role = (user?.role ?? "Resource Planning Officer") as "Resource Planning Officer" | "Vice President for Finance" | "College President" | "Immediate Head"
   return <AccountPage role={role} shell={ApprovalPersonnelShell} />
 }

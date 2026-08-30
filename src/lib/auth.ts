@@ -1,4 +1,4 @@
-export type AuthRole = "Administrator" | "Property Custodian" | "Faculty Staff" | "Resource Planning Officer" | "Vice President for Finance" | "College President"
+export type AuthRole = "Administrator" | "Property Custodian" | "Faculty Staff" | "Immediate Head" | "Resource Planning Officer" | "Vice President for Finance" | "College President"
 
 export type ApprovalStatus = "pending" | "approved" | "rejected"
 
@@ -150,6 +150,7 @@ const APPROVAL_ROLES: readonly AuthRole[] = [
   "Resource Planning Officer",
   "Vice President for Finance",
   "College President",
+  "Immediate Head",
 ]
 
 export const isApprovalRole = (role: AuthRole): boolean =>

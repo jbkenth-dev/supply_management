@@ -22,7 +22,7 @@ import { api } from "../../lib/api"
 import AppShell from "../../layout/AppShell"
 import { MessageModal } from "../../components/ui/MessageModal"
 
-type ManagedRole = "Faculty Staff" | "Property Custodian" | "Resource Planning Officer" | "Vice President for Finance" | "College President"
+type ManagedRole = "Faculty Staff" | "Property Custodian" | "Immediate Head" | "Resource Planning Officer" | "Vice President for Finance" | "College President"
 
 type ApprovalStatus = "pending" | "approved" | "rejected" | "deactivated"
 
@@ -86,6 +86,7 @@ const RESTRICTED_ROLES: readonly ManagedRole[] = [
   "Resource Planning Officer",
   "Vice President for Finance",
   "College President",
+  "Immediate Head",
 ]
 
 function formatOtpCountdown(totalSeconds: number): string {
@@ -1027,6 +1028,8 @@ export default function AdminUsers() {
                             className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
                               user.role === "Property Custodian"
                                 ? "bg-amber-50 text-amber-700"
+                                : user.role === "Immediate Head"
+                                ? "bg-blue-50 text-blue-700"
                                 : user.role === "Resource Planning Officer"
                                 ? "bg-purple-50 text-purple-700"
                                 : user.role === "Vice President for Finance"
@@ -1206,6 +1209,7 @@ export default function AdminUsers() {
               >
                 <option value="Faculty Staff">Faculty Staff</option>
                 <option value="Property Custodian">Property Custodian</option>
+                <option value="Immediate Head">Immediate Head</option>
                 <option value="Resource Planning Officer">Resource Planning Officer</option>
                 <option value="Vice President for Finance">Vice President for Finance</option>
                 <option value="College President">College President</option>

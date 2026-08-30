@@ -16,7 +16,7 @@ try {
     }
 
     $roles = array_map('trim', explode(',', $rolesParam));
-    $allowedRoles = ['Resource Planning Officer', 'Vice President for Finance', 'College President'];
+    $allowedRoles = ['Immediate Head', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
     $roles = array_filter($roles, static fn(string $r): bool => in_array($r, $allowedRoles, true));
 
     if ($roles === []) {

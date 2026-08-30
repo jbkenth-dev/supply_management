@@ -127,7 +127,7 @@ $confirmPassword = (string) ($payload['confirmPassword'] ?? '');
 // Validation (mirrors validateUserPayload in admin-users.php)
 // ---------------------------------------------------------------------------
 
-$allowedRoles = ['Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
+$allowedRoles = ['Faculty Staff', 'Property Custodian', 'Immediate Head', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
 $errors = [];
 
 if (!in_array($role, $allowedRoles, true)) {
@@ -210,7 +210,7 @@ if ($errors === []) {
         // Check ID number
         if ($idNumber !== '') {
             $idCheck = $pdo->prepare(
-                "SELECT 1 FROM users WHERE id_number = :id_number AND role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President') LIMIT 1"
+                "SELECT 1 FROM users WHERE id_number = :id_number AND role IN ('Faculty Staff','Property Custodian','Immediate Head','Resource Planning Officer','Vice President for Finance','College President') LIMIT 1"
             );
             $idCheck->execute(['id_number' => $idNumber]);
             if ($idCheck->fetch()) {
@@ -222,7 +222,7 @@ if ($errors === []) {
         // Check username
         if ($username !== '') {
             $usernameCheck = $pdo->prepare(
-                "SELECT 1 FROM users WHERE username = :username AND role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President') LIMIT 1"
+                "SELECT 1 FROM users WHERE username = :username AND role IN ('Faculty Staff','Property Custodian','Immediate Head','Resource Planning Officer','Vice President for Finance','College President') LIMIT 1"
             );
             $usernameCheck->execute(['username' => $username]);
             if ($usernameCheck->fetch()) {
@@ -234,7 +234,7 @@ if ($errors === []) {
         // Check email
         if ($email !== '') {
             $emailCheck = $pdo->prepare(
-                "SELECT 1 FROM users WHERE email = :email AND role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President') LIMIT 1"
+                "SELECT 1 FROM users WHERE email = :email AND role IN ('Faculty Staff','Property Custodian','Immediate Head','Resource Planning Officer','Vice President for Finance','College President') LIMIT 1"
             );
             $emailCheck->execute(['email' => $email]);
             if ($emailCheck->fetch()) {
@@ -245,7 +245,7 @@ if ($errors === []) {
 
         // --- Role uniqueness for restricted roles ---
         if (!$hasDuplicate) {
-            $restrictedRoles = ['Resource Planning Officer', 'Vice President for Finance', 'College President'];
+            $restrictedRoles = ['Resource Planning Officer', 'Vice President for Finance', 'College President', 'Immediate Head'];
             if (in_array($role, $restrictedRoles, true)) {
                 $roleCheck = $pdo->prepare('SELECT COUNT(*) FROM users WHERE role = :role');
                 $roleCheck->execute(['role' => $role]);

@@ -133,7 +133,7 @@ function handleList(PDO $pdo): void
     $query = $pdo->query(
         "SELECT id, role, id_number, firstname, middlename, lastname, username, email, profile_image_path, is_verified, approval_status, created_at, updated_at
          FROM users
-         WHERE role IN ('Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President')
+         WHERE role IN ('Faculty Staff', 'Property Custodian', 'Immediate Head', 'Resource Planning Officer', 'Vice President for Finance', 'College President')
          ORDER BY CASE WHEN approval_status = 'pending' THEN 0 ELSE 1 END, lastname ASC, firstname ASC, id ASC"
     );
 
@@ -419,7 +419,7 @@ function handleUpdatePayload(PDO $pdo, array $payload): void
     }
 
     $updateUser = $pdo->prepare(
-        'UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = :id AND role IN (\'Faculty Staff\', \'Property Custodian\', \'Resource Planning Officer\', \'Vice President for Finance\', \'College President\')'
+        'UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = :id AND role IN (\'Faculty Staff\', \'Property Custodian\', \'Immediate Head\', \'Resource Planning Officer\', \'Vice President for Finance\', \'College President\')'
     );
     $updateUser->execute($params);
 
@@ -461,7 +461,7 @@ function handleDelete(PDO $pdo): void
 
     $deleteUser = $pdo->prepare(
         "DELETE FROM users
-         WHERE id = :id AND role IN ('Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President')"
+         WHERE id = :id AND role IN ('Faculty Staff', 'Property Custodian', 'Immediate Head', 'Resource Planning Officer', 'Vice President for Finance', 'College President')"
     );
     $deleteUser->execute([
         'id' => (int) $id,
@@ -486,7 +486,7 @@ function validateUserPayload(PDO $pdo, array $payload, bool $isCreate, ?int $exc
     $confirmPassword = (string) ($payload['confirmPassword'] ?? '');
 
     $errors = [];
-    $allowedRoles = ['Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
+    $allowedRoles = ['Faculty Staff', 'Property Custodian', 'Immediate Head', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
 
     if (!in_array($role, $allowedRoles, true)) {
         $errors['role'] = 'Please select a valid role.';
@@ -544,7 +544,7 @@ function validateUserPayload(PDO $pdo, array $payload, bool $isCreate, ?int $exc
         $errors = array_merge($errors, $duplicateErrors);
 
         // Check for role uniqueness for restricted roles
-        $restrictedRoles = ['Resource Planning Officer', 'Vice President for Finance', 'College President'];
+        $restrictedRoles = ['Resource Planning Officer', 'Vice President for Finance', 'College President', 'Immediate Head'];
         if (in_array($role, $restrictedRoles, true)) {
             $query = $pdo->prepare('SELECT COUNT(*) FROM users WHERE role = :role AND (:exclude_id IS NULL OR id <> :exclude_id)');
             $query->execute(['role' => $role, 'exclude_id' => $excludeId]);
@@ -587,7 +587,7 @@ function findDuplicateUserConflicts(PDO $pdo, string $idNumber, string $username
     // Check ID number
     if ($idNumber !== '') {
         $idQuery = $pdo->prepare(
-            "SELECT 1 FROM users WHERE id_number = :id_number AND role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President'){$excludeCondition} LIMIT 1"
+            "SELECT 1 FROM users WHERE id_number = :id_number AND role IN ('Faculty Staff','Property Custodian','Immediate Head','Resource Planning Officer','Vice President for Finance','College President'){$excludeCondition} LIMIT 1"
         );
         $idQuery->execute(array_merge(['id_number' => $idNumber], $excludeId !== null ? ['exclude_id' => $excludeId] : []));
         if ($idQuery->fetch()) {
@@ -598,7 +598,7 @@ function findDuplicateUserConflicts(PDO $pdo, string $idNumber, string $username
     // Check username
     if ($username !== '') {
         $usernameQuery = $pdo->prepare(
-            "SELECT 1 FROM users WHERE username = :username AND role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President'){$excludeCondition} LIMIT 1"
+            "SELECT 1 FROM users WHERE username = :username AND role IN ('Faculty Staff','Property Custodian','Immediate Head','Resource Planning Officer','Vice President for Finance','College President'){$excludeCondition} LIMIT 1"
         );
         $usernameQuery->execute(array_merge(['username' => $username], $excludeId !== null ? ['exclude_id' => $excludeId] : []));
         if ($usernameQuery->fetch()) {
@@ -609,7 +609,7 @@ function findDuplicateUserConflicts(PDO $pdo, string $idNumber, string $username
     // Check email
     if ($email !== '') {
         $emailQuery = $pdo->prepare(
-            "SELECT 1 FROM users WHERE email = :email AND role IN ('Faculty Staff','Property Custodian','Resource Planning Officer','Vice President for Finance','College President'){$excludeCondition} LIMIT 1"
+            "SELECT 1 FROM users WHERE email = :email AND role IN ('Faculty Staff','Property Custodian','Immediate Head','Resource Planning Officer','Vice President for Finance','College President'){$excludeCondition} LIMIT 1"
         );
         $emailQuery->execute(array_merge(['email' => $email], $excludeId !== null ? ['exclude_id' => $excludeId] : []));
         if ($emailQuery->fetch()) {
@@ -625,7 +625,7 @@ function findManagedUser(PDO $pdo, int $id): ?array
     $query = $pdo->prepare(
         "SELECT id, role, id_number, firstname, middlename, lastname, username, email, profile_image_path, is_verified, approval_status, created_at, updated_at
          FROM users
-         WHERE id = :id AND role IN ('Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President')
+         WHERE id = :id AND role IN ('Faculty Staff', 'Property Custodian', 'Immediate Head', 'Resource Planning Officer', 'Vice President for Finance', 'College President')
          LIMIT 1"
     );
     $query->execute([

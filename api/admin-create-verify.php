@@ -238,7 +238,7 @@ try {
     verifyLog("Step 5: Code matched");
 
     // --- Check for role uniqueness (defense-in-depth) ---
-    $restrictedRoles = ['Resource Planning Officer', 'Vice President for Finance', 'College President'];
+    $restrictedRoles = ['Resource Planning Officer', 'Vice President for Finance', 'College President', 'Immediate Head'];
     if (in_array((string) $pending['role'], $restrictedRoles, true)) {
         $roleCheck = $pdo->prepare('SELECT COUNT(*) FROM users WHERE role = :role');
         $roleCheck->execute(['role' => $pending['role']]);
