@@ -78,6 +78,7 @@ export default function NewRequest() {
   const [customQty, setCustomQty] = useState(1)
   const [customCost, setCustomCost] = useState(0)
   const [qtyInputs, setQtyInputs] = useState<Record<number, string>>({})
+  const [unitCostMap, setUnitCostMap] = useState<Record<number, number>>({})
   const authUser = getStoredAuthUser()
   const preselectedItemCode = searchParams.get("itemCode")?.trim().toUpperCase() ?? ""
   const [showModal, setShowModal] = useState(false)
@@ -96,28 +97,56 @@ export default function NewRequest() {
   useEffect(() => {
     let cancelled = false
 
-    const loadSupplies = async () => {
+    const loadData = async () => {
       setLoading(true)
       try {
-        const response = await api("/api/public-supplies.php")
-        const result = (await response.json()) as CatalogResponse
-        if (!response.ok || !result.success) {
-          throw new Error(result.message ?? "Unable to load supply catalog.")
+        // Load supplies
+        const suppliesResponse = await api("/api/public-supplies.php")
+        const suppliesResult = (await suppliesResponse.json()) as CatalogResponse
+        if (!suppliesResponse.ok || !suppliesResult.success) {
+          throw new Error(suppliesResult.message ?? "Unable to load supply catalog.")
         }
         if (!cancelled) {
-          setSupplies(result.supplies ?? [])
+          setSupplies(suppliesResult.supplies ?? [])
+        }
+
+        // Load stock entries to compute latest unit cost per supply
+        const stockResponse = await api("/api/admin-stock.php")
+        const stockResult = await stockResponse.json()
+        if (stockResponse.ok && stockResult.success) {
+          const entries = stockResult.entries ?? []
+          const map: Record<number, number> = {}
+          for (const entry of entries) {
+            const id = entry.supplyId
+            const cost = entry.unitCost ?? 0
+            // Keep the latest (assuming entries are sorted descending by createdAt)
+            if (!map[id]) {
+              map[id] = cost
+            }
+          }
+          if (!cancelled) {
+            setUnitCostMap(map)
+          }
+        } else {
+          // If fails, keep empty map
+          if (!cancelled) setUnitCostMap({})
         }
       } catch (error) {
         if (!cancelled) {
           setSupplies([])
-          pushMessage("Catalog Load Failed", error instanceof Error ? error.message : "Unable to load supply catalog.", "error")
+          setUnitCostMap({})
+          pushMessage(
+            "Catalog Load Failed",
+            error instanceof Error ? error.message : "Unable to load supply catalog.",
+            "error"
+          )
         }
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
 
-    void loadSupplies()
+    void loadData()
     return () => {
       cancelled = true
     }
@@ -184,9 +213,24 @@ export default function NewRequest() {
   }, [search, supplies])
 
   const addCatalogItem = (supply: SupplyItem) => {
-    const existingIndex = items.findIndex((item) => item.supplyId === supply.id)
-    if (existingIndex >= 0) return
-    setItems((current) => [...current, buildCatalogCartItem(supply)])
+    const existingIndex = items.findIndex((item) => item.supplyId === supply.id);
+    if (existingIndex >= 0) return;
+    const unitCost = unitCostMap[supply.id] ?? 0;
+    setItems((current) => [
+      ...current,
+      {
+        supplyId: supply.id,
+        name: supply.name,
+        itemCode: supply.itemCode,
+        imagePath: supply.imagePath,
+        categoryName: supply.categoryName,
+        quantity: 1,
+        unitCost,
+        totalAmount: unitCost,
+        isCustom: false,
+        customItemName: "",
+      },
+    ]);
   }
 
   const addCustomItem = () => {
@@ -473,7 +517,8 @@ export default function NewRequest() {
                             min="0"
                             step="0.01"
                             value={item.unitCost}
-                            onChange={(e) => updateUnitCost(index, Math.max(0, parseFloat(e.target.value) || 0))}
+                            onChange={!item.isCustom ? undefined : (e) => updateUnitCost(index, Math.max(0, parseFloat(e.target.value) || 0))}
+                            readOnly={!item.isCustom}
                             className="w-full rounded-lg border border-brown-200 bg-white px-2 py-1 text-right text-xs font-bold text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-sm"
                           />
                         </div>
