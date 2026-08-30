@@ -396,8 +396,8 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
   }
 
   return (
-    {isApprovalRole(role) ? (
-      <ApprovalPersonnelShell role={role}>
+    isApprovalRole(role) ? (
+      <ApprovalPersonnelShell>
         <div className="overflow-hidden rounded-[2rem] border border-brown-200 bg-white shadow-sm">
         <div className="border-b border-brown-200 bg-brown-50/70 px-6 py-5">
           <div className="lg:hidden flex items-center gap-3">
@@ -693,6 +693,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
           )}
         </div>
       </div>
+      </ApprovalPersonnelShell>
     ) : (
       <AppShell role={role}>
         <div className="overflow-hidden rounded-[2rem] border border-brown-200 bg-white shadow-sm">
@@ -703,6 +704,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
             )}
           </div>
           <p className="hidden lg:block text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Message Center</p>
+        </div>
         </div>
       </AppShell>
     )
