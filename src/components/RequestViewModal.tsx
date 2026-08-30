@@ -74,7 +74,7 @@ export default function RequestViewModal({
             Bateria, Poblacion, Guihulngan City, Negros Oriental
           </p>
           <h1 className="mt-2 text-lg font-black uppercase tracking-wide text-brown-900 sm:text-xl">
-            OFFICE OF THE VICE PRIESIDENT FOR FINANCE
+            OFFICE OF THE VICE PRESIDENT FOR FINANCE
           </h1>
           <div className="mx-auto my-4 h-0.5 w-24 rounded-full bg-primary-500" />
           <h2 className="text-base font-black uppercase tracking-[0.15em] text-brown-900 sm:text-lg">

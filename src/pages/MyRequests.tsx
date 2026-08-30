@@ -218,38 +218,68 @@ export default function MyRequests() {
           <SummaryCard label="Rejected" value={summary.rejectedRequests} tone="rose" icon={<XCircleIcon className="h-5 w-5" />} />
         </div>
 
-        <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
-          {loading ? (
-            <div className="space-y-4">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="animate-pulse rounded-[1.5rem] border border-brown-200 bg-brown-50 p-5">
-                  <div className="h-4 w-24 rounded-full bg-brown-200" />
-                  <div className="mt-3 h-8 w-64 rounded-2xl bg-brown-200" />
-                  <div className="mt-4 h-4 w-full rounded-full bg-brown-100" />
-                </div>
-              ))}
-            </div>
-          ) : filteredRequests.length === 0 ? (
-            <div className="rounded-[1.5rem] border border-dashed border-brown-200 bg-brown-50 px-6 py-14 text-center">
-              <InboxIcon className="mx-auto h-10 w-10 text-brown-300" />
-              <p className="mt-4 text-sm font-semibold text-brown-900">No requests found</p>
-              <p className="mt-2 text-sm text-brown-500">Requests you submit from the new request page will appear here.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {paginatedRequests.map((request) => (
-                <div key={request.id} className="flex items-center justify-center p-4 rounded-[1.75rem] border border-brown-200 bg-white hover:bg-brown-50 cursor-pointer" onClick={() => {
-                  setSelectedRequest(request)
-                  setViewModalOpen(true)
-                }}>
-                  <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brown-500">
-                    {request.requestNumber}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr>
+                <th className="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[60px]">No.</th>
+                <th className="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600">Request ID</th>
+                <th className="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600">Status</th>
+                <th className="border-r-0 px-3 py-2 text-right text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[80px]">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-sm italic text-brown-400">
+                    Loading...
+                  </td>
+                </tr>
+              ) : filteredRequests.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-sm italic text-brown-400">
+                    No requests found
+                  </td>
+                </tr>
+              ) : (
+                <>
+                  {paginatedRequests.map((request, index) => (
+                    <tr
+                      key={request.id}
+                      className="border-b border-brown-200 hover:bg-brown-50 cursor-pointer"
+                      onClick={() => {
+                        setSelectedRequest(request);
+                        setViewModalOpen(true);
+                      }}
+                    >
+                      <td className="border-r border-brown-200 px-2 py-2 text-center text-sm">
+                        {(page - 1) * REQUESTS_PER_PAGE + index + 1}
+                      </td>
+                      <td className="border-r border-brown-200 px-2 py-2 text-left text-sm font-medium">
+                        {request.requestNumber}
+                      </td>
+                      <td className="border-r border-brown-200 px-2 py-2 text-left text-sm">
+                        {request.status}
+                      </td>
+                      <td className="border-r-0 px-2 py-2 text-right text-sm">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedRequest(request);
+                            setViewModalOpen(true);
+                          }}
+                          className="text-xs font-semibold text-primary-600 hover:underline"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </>
+              )}
+            </tbody>
+          </table>
+        </div>
 
         {!loading && filteredRequests.length > 0 ? (
           <PaginationControls
