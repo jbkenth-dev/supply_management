@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { motion } from 'framer-motion';
 import {
@@ -19,7 +19,6 @@ const shouldUseRecaptcha = Boolean(recaptchaSiteKey);
 
 const AdminSignup = () => {
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [formData, setFormData] = useState({
     role: 'Administrator',
