@@ -90,6 +90,7 @@ export default function App() {
       <Route path="/custodian/my-account" element={<CustodianMyAccount />} />
       <Route path="/message" element={<Messages />} />
       <Route path="/custodian/message" element={<CustodianMessages />} />
+      <Route path="/approval-personnel/message" element={<ApprovalPersonnelMessages />} />
       <Route path="/admin/message" element={<AdminMessages />} />
       <Route path="/messages" element={<Navigate to="/message" replace />} />
       <Route path="*" element={<NotFound />} />

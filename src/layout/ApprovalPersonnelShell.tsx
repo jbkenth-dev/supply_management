@@ -14,6 +14,7 @@ import {
   CheckCircleIcon,
   MegaphoneIcon,
   UserCircleIcon,
+  ChatBubbleLeftRightIcon
 } from "@heroicons/react/24/outline"
 import { api } from "../lib/api"
 import { clearStoredAuthUser, getStoredAuthUser, getUserDisplayName, isApprovalRole, type AuthRole, type AuthUser } from "../lib/auth"
@@ -25,6 +26,7 @@ type Props = {
 
 const navItems = [
   { name: "Dashboard", to: "/approval-personnel", icon: ChartBarIcon },
+  { name: "Messages", to: "/approval-personnel/message", icon: ChatBubbleLeftRightIcon },
   { name: "All Requests", to: "/approval-personnel/all-request", icon: ClipboardDocumentCheckIcon },
   { name: "My Account", to: "/approval-personnel/my-account", icon: UserCircleIcon },
 ]
