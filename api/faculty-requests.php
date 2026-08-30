@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+ob_start();
+
 require_once __DIR__ . '/config/admin_inventory.php';
 require_once __DIR__ . '/config/notifications.php';
 

@@ -13,7 +13,14 @@ function sendApiHeaders(array $allowedMethods): void
 
 function jsonResponse(int $statusCode, array $body): void
 {
+    if (ob_get_level() > 0) {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+    }
+
     http_response_code($statusCode);
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode($body, JSON_UNESCAPED_SLASHES);
     exit;
 }

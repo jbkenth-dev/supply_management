@@ -378,6 +378,22 @@ export default function NewRequest() {
       return
     }
 
+    const parseResponseJson = async (response: Response) => {
+      const text = await response.text()
+      if (!text) return {}
+
+      try {
+        return JSON.parse(text)
+      } catch {
+        const cleaned = text
+          .replace(/<[^>]*>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+
+        throw new Error(cleaned || `Request failed with status ${response.status}.`)
+      }
+    }
+
     setSubmitting(true)
     try {
       const response = await api("/api/faculty-requests.php", {
@@ -401,7 +417,7 @@ export default function NewRequest() {
         }),
       })
 
-      const result = await response.json()
+      const result = await parseResponseJson(response)
       if (!response.ok) throw new Error(result.message ?? "Unable to submit your supply request.")
 
       setItems([])
