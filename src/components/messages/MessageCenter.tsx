@@ -8,9 +8,10 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../../layout/AppShell"
+import ApprovalPersonnelShell from "../../layout/ApprovalPersonnelShell"
 import { api } from "../../lib/api"
 import { formatContactTime as manilaFormatContactTime, formatMessageDate as manilaFormatMessageDate } from "../../lib/date"
-import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
+import { getStoredAuthUser, type AuthRole, isApprovalRole } from "../../lib/auth"
 
 type MessageContact = {
   id: number
@@ -395,8 +396,9 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
   }
 
   return (
-    <AppShell role={role}>
-      <div className="overflow-hidden rounded-[2rem] border border-brown-200 bg-white shadow-sm">
+    {isApprovalRole(role) ? (
+      <ApprovalPersonnelShell role={role}>
+        <div className="overflow-hidden rounded-[2rem] border border-brown-200 bg-white shadow-sm">
         <div className="border-b border-brown-200 bg-brown-50/70 px-6 py-5">
           <div className="lg:hidden flex items-center gap-3">
             {!showMobileChat && (
@@ -691,7 +693,19 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
           )}
         </div>
       </div>
-    </AppShell>
+    ) : (
+      <AppShell role={role}>
+        <div className="overflow-hidden rounded-[2rem] border border-brown-200 bg-white shadow-sm">
+          <div className="border-b border-brown-200 bg-brown-50/70 px-6 py-5">
+          <div className="lg:hidden flex items-center gap-3">
+            {!showMobileChat && (
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Message Center</p>
+            )}
+          </div>
+          <p className="hidden lg:block text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Message Center</p>
+        </div>
+      </AppShell>
+    )
   )
 }
 
