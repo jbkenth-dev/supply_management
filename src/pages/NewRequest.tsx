@@ -285,6 +285,48 @@ export default function NewRequest() {
     )
   }
 
+  const handleDecrement = (index: number) => {
+    setItems(prev => {
+      const item = prev[index];
+      if (!item) return prev;
+      const newQty = Math.max(1, item.quantity - 1);
+      if (newQty === item.quantity) return prev;
+      return prev.map((it, i) =>
+        i === index
+          ? { ...it, quantity: newQty, totalAmount: newQty * it.unitCost }
+          : it
+      );
+    });
+    setQtyInputs(prev => {
+      const item = prev[index];
+      if (!item) return prev;
+      const newQty = Math.max(1, (parseInt(prev[index] ?? String(item.quantity),10) - 1));
+      return { ...prev, [index]: String(newQty) };
+    });
+  };
+
+  const handleIncrement = (index: number) => {
+    setItems(prev => {
+      const item = prev[index];
+      if (!item) return prev;
+      const max = item.maxStock ?? Infinity;
+      const newQty = Math.min(max, item.quantity + 1);
+      if (newQty === item.quantity) return prev;
+      return prev.map((it, i) =>
+        i === index
+          ? { ...it, quantity: newQty, totalAmount: newQty * it.unitCost }
+          : it
+      );
+    });
+    setQtyInputs(prev => {
+      const item = prev[index];
+      if (!item) return prev;
+      const max = item.maxStock ?? Infinity;
+      const newQty = Math.min(max, (parseInt(prev[index] ?? String(item.quantity),10) + 1));
+      return { ...prev, [index]: String(newQty) };
+    });
+  };
+
   const updateUnitCost = (index: number, unitCost: number) => {
     if (unitCost < 0) return
     setItems((current) =>
@@ -492,12 +534,7 @@ export default function NewRequest() {
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <button
-                            onClick={() => {
-                              const current = parseInt(qtyInputs[index] ?? String(item.quantity), 10)
-                              if (current > 1) {
-                                handleQtyChange(index, String(current - 1))
-                              }
-                            }}
+                            onClick={() => handleDecrement(index)}
                             disabled={item.maxStock !== null && item.quantity <= 1}
                             className="flex h-6 w-6 items-center justify-center rounded-lg border border-brown-200 text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
                           >
@@ -510,16 +547,10 @@ export default function NewRequest() {
                             value={qtyInputs[index] ?? String(item.quantity)}
                             onChange={(e) => handleQtyChange(index, e.target.value)}
                             onBlur={() => handleQtyBlur(index)}
-                            className="w-20 rounded-lg border border-brown-200 bg-white px-2 py-1 text-center text-xs font-bold text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-sm"
+                            className="w-20 rounded-lg border border-brown-200 bg-white px-2 py-1 text-center text-xs font-bold text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-sm appearance-none"
                           />
                           <button
-                            onClick={() => {
-                              const current = parseInt(qtyInputs[index] ?? String(item.quantity), 10)
-                              const max = item.maxStock ?? Infinity
-                              if (current < max) {
-                                handleQtyChange(index, String(current + 1))
-                              }
-                            }}
+                            onClick={() => handleIncrement(index)}
                             disabled={item.maxStock !== null && item.quantity >= item.maxStock}
                             className="flex h-6 w-6 items-center justify-center rounded-lg border border-brown-200 text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
                           >
