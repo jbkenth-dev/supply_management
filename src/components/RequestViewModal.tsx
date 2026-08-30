@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { formatDateLong } from "../lib/date";
+import { XCircleIcon } from "@heroicons/react/24/outline";
 import type { FacultyRequest } from "../types/requests";
 
 type CartItem = {
@@ -58,7 +59,13 @@ export default function RequestViewModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm" onClick={handleClose}>
-      <div className="w-full max-w-[210mm] overflow-hidden rounded-[1.75rem] border border-brown-200 bg-white shadow-sm" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-w-[210mm] max-h-[calc(100vh_-_3rem)] overflow-y-auto rounded-[1.75rem] border border-brown-200 bg-white shadow-sm" onClick={(e) => e.stopPropagation()}>
+        <button onClick={(e) => {
+            e.stopPropagation();
+            handleClose();
+          }} className="absolute top-2 right-2 rounded-xl p-2 text-brown-700 hover:text-brown-900 hover:bg-brown-50 transition" aria-label="Close">
+          <XCircleIcon className="h-5 w-5" />
+        </button>
         <div className="border-b border-brown-200 bg-gradient-to-b from-brown-50 to-white px-6 pb-5 pt-6 text-center sm:px-10">
           <p className="text-xs font-bold uppercase tracking-[0.25em] text-primary-600">
             Saint Francis College, Guihulngan, Negros Oriental, Incorporated
