@@ -33,6 +33,16 @@ type Props = {
   role?: AuthRole
 }
 
+type MessageContactSummary = {
+  unreadCount: number
+}
+
+type MessageApiResponse = {
+  success: boolean
+  contacts: MessageContactSummary[]
+  message?: string
+}
+
 const adminNavGroups = [
   {
     name: "Overview",
@@ -114,11 +124,13 @@ function SidebarContent({
   user,
   onLogout,
   onOpenAccount,
+  unreadMessageCount,
 }: {
   role?: AuthRole
   user: AuthUser | null
   onLogout: () => void
   onOpenAccount: () => void
+  unreadMessageCount: number
 }) {
   const navGroups =
     role === "Faculty Staff"
@@ -340,7 +352,7 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
     if (!authUser?.id) return
 
     let cancelled = false
-    let pollingInterval: NodeJS.Timeout | null = null
+    let pollingInterval: ReturnType<typeof window.setInterval> | null = null
 
     // Function to fetch unread message count
     const fetchUnreadMessageCount = async () => {
@@ -352,7 +364,7 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
           userId: String(authUser.id),
         })
         const response = await api(`/api/messages.php?${params.toString()}`)
-        const result = await response.json()
+        const result = (await response.json()) as MessageApiResponse
 
         if (!response.ok || !result.success) {
           console.warn('Failed to fetch messages for unread count')
@@ -362,7 +374,7 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
         if (cancelled) return
 
         // Sum up unread counts from all contacts
-        const totalUnread = (result.contacts || []).reduce(
+        const totalUnread = (result.contacts ?? []).reduce(
           (sum, contact) => sum + (contact.unreadCount || 0),
           0
         )
@@ -536,7 +548,7 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
                     </button>
                   </div>
                 </Transition.Child>
-                <SidebarContent role={role} user={authUser} onLogout={handleLogout} onOpenAccount={handleOpenAccount} />
+                <SidebarContent role={role} user={authUser} onLogout={handleLogout} onOpenAccount={handleOpenAccount} unreadMessageCount={unreadMessageCount} />
               </Dialog.Panel>
             </Transition.Child>
           </div>
@@ -545,7 +557,7 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
 
       {/* Desktop Sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72 lg:flex-col">
-        <SidebarContent role={role} user={authUser} onLogout={handleLogout} onOpenAccount={handleOpenAccount} />
+        <SidebarContent role={role} user={authUser} onLogout={handleLogout} onOpenAccount={handleOpenAccount} unreadMessageCount={unreadMessageCount} />
       </div>
 
       {/* Main Content */}
