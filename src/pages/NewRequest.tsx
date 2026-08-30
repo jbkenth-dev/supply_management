@@ -801,6 +801,8 @@ function CatalogModal({
   close: () => void
   unitCostMap: Record<number, number>
 }) {
+  const displaySupplies = supplies.filter((supply) => (unitCostMap[supply.id] ?? 0) > 0)
+
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-brown-950/55 px-4 pt-12 backdrop-blur-sm sm:pt-24">
       <div className="relative mb-12 w-full max-w-3xl overflow-hidden rounded-[1.75rem] border border-brown-200 bg-white shadow-2xl">
@@ -843,9 +845,7 @@ function CatalogModal({
                 </div>
               ))}
             </div>
-          ) : {
-            const displaySupplies = supplies.filter(s => (unitCostMap[s.id] ?? 0) > 0);
-            return displaySupplies.length === 0 ? (
+          ) : displaySupplies.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-brown-200 bg-brown-50 py-12 text-center">
                 <MagnifyingGlassIcon className="mx-auto h-8 w-8 text-brown-300" />
                 <p className="mt-3 text-sm font-semibold text-brown-800">No supplies found</p>
@@ -899,7 +899,7 @@ function CatalogModal({
                 })}
               </div>
             )
-          }}
+          }
         </div>
 
         <div className="border-t border-brown-200 px-4 py-3 text-right sm:px-6">
