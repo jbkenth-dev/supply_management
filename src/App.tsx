@@ -15,6 +15,7 @@ import ApprovalDashboard from "./pages/ApprovalDashboard"
 import ApprovalPersonnelDashboard from "./pages/ApprovalPersonnelDashboard"
 import ApprovalPersonnelRequests from "./pages/ApprovalPersonnelRequests"
 import ApprovalPersonnelMyAccount from "./pages/ApprovalPersonnelMyAccount"
+import ApprovalPersonnelMessages from "./pages/approval-personnel/ApprovalPersonnelMessages"
 import BudgetManagement from "./pages/BudgetManagement"
 import AdminCreate from "./pages/admin/AdminCreate";
 import CustodianDashboard from "./pages/custodian/CustodianDashboard";

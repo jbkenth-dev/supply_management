@@ -527,7 +527,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                           className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
                         >
                           <div className={`inline-flex max-w-[78%] flex-col ${isCurrentUser ? "items-end" : "items-start"}`}>
-                            {() => {
+                            {(() => {
                               const isUnsent = message.isUnsent ?? false;
                               const canEdit = isCurrentUser && !isUnsent;
                               const innerClassName = `rounded-[1.5rem] px-4 py-3 text-sm leading-6 shadow-sm ${
@@ -550,7 +550,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                                   {message.body}
                                 </div>
                               );
-                            }()}
+                            })()}
                             <div
                               className={`mt-1 flex items-center gap-2 px-1 ${
                                 isCurrentUser ? "self-end justify-end" : "self-start justify-start"
