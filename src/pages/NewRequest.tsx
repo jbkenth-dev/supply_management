@@ -96,6 +96,17 @@ export default function NewRequest() {
     setShowModal(true)
   }
 
+  const qtyInputStyle = `
+    .qty-input::-webkit-outer-spin-button,
+    .qty-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .qty-input[type=number] {
+      -moz-appearance: textfield;
+    }
+  `;
+
   useEffect(() => {
     let cancelled = false
 
@@ -412,6 +423,7 @@ export default function NewRequest() {
 
   return (
     <AppShell role="Faculty Staff">
+      <style dangerouslySetInnerHTML={{ __html: qtyInputStyle }} />
       <MessageModal
         open={showModal}
         title={modalTitle}
@@ -545,7 +557,7 @@ export default function NewRequest() {
                             value={qtyInputs[index] ?? String(item.quantity)}
                             onChange={(e) => handleQtyChange(index, e.target.value)}
                             onBlur={() => handleQtyBlur(index)}
-                            className="w-20 rounded-lg border border-brown-200 bg-white px-2 py-1 text-center text-xs font-bold text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-sm appearance-none"
+                            className="w-20 rounded-lg border border-brown-200 bg-white px-2 py-1 text-center text-xs font-bold text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-sm appearance-none qty-input"
                           />
                           <button
                             onClick={() => handleIncrement(index)}
