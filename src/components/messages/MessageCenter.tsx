@@ -33,6 +33,7 @@ type MessageItem = {
   isRead: boolean
   readAt: string | null
   createdAt: string
+  isUnsent?: boolean
 }
 
 type MessageApiResponse = {
@@ -63,6 +64,9 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
   const lastTypingStateRef = useRef(false)
   const shouldStickToBottomRef = useRef(true)
   const previousMessageCountRef = useRef(0)
+  const [selectedMessageId, setSelectedMessageId] = useState<number | null>(null)
+  const [editMode, setEditMode] = useState(false)
+  const [editDraft, setEditDraft] = useState("")
 
   const filteredContacts = (() => {
     const term = searchTerm.trim().toLowerCase()
@@ -273,6 +277,69 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
     setShowMobileChat(false)
   }
 
+  const handleUnsend = async (messageId: number) => {
+    if (!authUser) return
+    try {
+      await api("/api/messages.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "unsend",
+          messageId,
+          senderUserId: authUser.id,
+        })
+      })
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === messageId ? { ...m, isUnsent: true, body: "[Unsent message]" } : m
+        )
+      )
+      setSelectedMessageId(null)
+    } catch (err) {
+      console.error("Failed to unsend message", err)
+    }
+  }
+
+  const handleSaveEdit = async () => {
+    if (!selectedMessageId || !authUser) return
+    try {
+      await api("/api/messages.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "edit",
+          messageId: selectedMessageId,
+          body: editDraft,
+          senderUserId: authUser.id,
+        })
+      })
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === selectedMessageId
+            ? { ...m, body: editDraft, isUnsent: false }
+            : m
+        )
+      )
+      setEditMode(false)
+      setSelectedMessageId(null)
+      setEditDraft("")
+    } catch (err) {
+      console.error("Failed to edit message", err)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditMode(false)
+    setSelectedMessageId(null)
+    setEditDraft("")
+  }
+
+  const handleCloseModal = () => {
+    setSelectedMessageId(null)
+    setEditMode(false)
+    setEditDraft("")
+  }
+
   const handleSendMessage = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
@@ -460,15 +527,30 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                           className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
                         >
                           <div className={`inline-flex max-w-[78%] flex-col ${isCurrentUser ? "items-end" : "items-start"}`}>
-                            <div
-                              className={`rounded-[1.5rem] px-4 py-3 text-sm leading-6 shadow-sm ${
+                            {() => {
+                              const isUnsent = message.isUnsent ?? false;
+                              const canEdit = isCurrentUser && !isUnsent;
+                              const innerClassName = `rounded-[1.5rem] px-4 py-3 text-sm leading-6 shadow-sm ${
                                 isCurrentUser
-                                  ? "rounded-br-md bg-primary-600 text-white"
-                                  : "rounded-bl-md border border-brown-200 bg-white text-brown-700"
-                              }`}
-                            >
-                              {message.body}
-                            </div>
+                                  ? isUnsent
+                                    ? "rounded-br-md bg-primary-200 text-brown-400"
+                                    : "rounded-br-md bg-primary-600 text-white"
+                                  : isUnsent
+                                    ? "rounded-bl-md border border-brown-200 bg-white text-brown-400"
+                                    : "rounded-bl-md border border-brown-200 bg-white text-brown-700"
+                              }${canEdit ? " cursor-pointer" : ""}${isUnsent ? " pointer-events-none" : ""}`;
+                              return (
+                                <div
+                                  onClick={canEdit ? () => {
+    setSelectedMessageId(message.id);
+    setEditDraft(message.body);
+} : undefined}
+                                  className={innerClassName}
+                                >
+                                  {message.body}
+                                </div>
+                              );
+                            }()}
                             <div
                               className={`mt-1 flex items-center gap-2 px-1 ${
                                 isCurrentUser ? "self-end justify-end" : "self-start justify-start"
@@ -476,7 +558,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                             >
                               <p className="text-[11px] font-medium text-brown-400">
                                 {formatMessageDate(message.createdAt)}
-                                {isCurrentUser && !message.isRead ? " - Sent" : ""}
+                                {isCurrentUser && !message.isRead && ! (message.isUnsent ?? false) ? " - Sent" : ""}
                               </p>
                               {showReadAvatar && selectedContact ? (
                                 <div
@@ -555,6 +637,58 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
               </div>
             )}
           </section>
+          {selectedMessageId !== null && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={handleCloseModal}>
+              <div className="w-full max-w-md rounded-xl bg-white p-6 space-y-4" onClick={e => e.stopPropagation()} >
+                {!editMode ? (
+                  <>
+                    <p className="mb-4">{selectedMessageId ? (messages.find(m => m.id === selectedMessageId)?.body ?? '') : ''}</p>
+                    <div className="flex justify-end space-x-3">
+                      <button
+                        onClick={() => setEditMode(true)}
+                        className="inline-flex items-center px-4 py-2 bg-brown-500 text-white rounded-md hover:bg-brown-600"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (selectedMessageId) {
+                            await handleUnsend(selectedMessageId);
+                          }
+                        }}
+                        className="inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                      >
+                        Unsend
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <textarea
+                      value={editDraft}
+                      onChange={(e) => setEditDraft(e.target.value)}
+                      className="w-full h-24 rounded-border border-brown-200 bg-brown-50 px-3 py-2 text-brown-900 focus:border-primary-500 focus:outline-none"
+                      placeholder="Edit message..."
+                    />
+                    <div className="flex justify-end space-x-3 mt-2">
+                      <button
+                        onClick={handleCancelEdit}
+                        className="inline-flex items-center px-4 py-2 bg-brown-300 text-white rounded-md hover:bg-brown-400"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveEdit}
+                        className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </AppShell>
