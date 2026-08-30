@@ -371,7 +371,7 @@ function dotStuffSmtpMessage(string $message): string
     $normalized = str_replace(["\r\n", "\r"], "\n", $message);
     $lines = explode("\n", $normalized);
     $stuffed = array_map(static function (string $line): string {
-        return str_starts_with($line, '.') ? '.' . $line : $line;
+        return (substr($line, 0, 1) === '.') ? '.' . $line : $line;
     }, $lines);
 
     return str_replace("\n", "\r\n", implode("\n", $stuffed));

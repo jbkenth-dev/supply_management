@@ -27,7 +27,7 @@ function loadEnvironmentFile(?string $basePath = null): void
     foreach ($lines as $line) {
         $trimmed = trim($line);
 
-        if ($trimmed === '' || str_starts_with($trimmed, '#')) {
+        if ($trimmed === '' || (substr($trimmed, 0, 1) === '#')) {
             continue;
         }
 
@@ -45,8 +45,8 @@ function loadEnvironmentFile(?string $basePath = null): void
         }
 
         if (
-            (str_starts_with($value, '"') && str_ends_with($value, '"')) ||
-            (str_starts_with($value, "'") && str_ends_with($value, "'"))
+            ((substr($value, 0, 1) === '"' && substr($value, -1) === '"') ||
+            (substr($value, 0, 1) === "'" && substr($value, -1) === "'"))
         ) {
             $value = substr($value, 1, -1);
         }

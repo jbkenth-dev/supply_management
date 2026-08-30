@@ -135,7 +135,8 @@ function createNotificationRecord(
 
 function notifyOfficeUsersAboutFacultyRequest(PDO $pdo, array $request, array $facultyUser): void
 {
-    $recipients = fetchUsersByRoles($pdo, ['Administrator', 'Property Custodian']);
+    $approvalRoles = ['Immediate Head', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
+    $recipients = fetchUsersByRoles($pdo, $approvalRoles);
     $title = 'New Faculty Supply Request';
     $message = sprintf(
         '%s submitted %s with %d item(s) and %d total quantity.',
@@ -153,7 +154,7 @@ function notifyOfficeUsersAboutFacultyRequest(PDO $pdo, array $request, array $f
             'request_submitted',
             $title,
             $message,
-            $recipient['role'] === 'Administrator' ? '/admin/request-issuance' : '/custodian/request-issuance',
+            '/approval',
             [
                 'requestId' => (int) $request['id'],
                 'requestNumber' => (string) $request['requestNumber'],
@@ -166,7 +167,7 @@ function notifyOfficeUsersAboutFacultyRequest(PDO $pdo, array $request, array $f
     $htmlBody = buildEmailLayout(
         $title,
         sprintf(
-            '%s has submitted a new supply request. Review it in the request and issuance page.',
+            '%s has submitted a new supply request. Please review it in the approval dashboard.',
             htmlspecialchars((string) $facultyUser['full_name'], ENT_QUOTES)
         ),
         [

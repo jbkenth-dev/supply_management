@@ -375,121 +375,219 @@ function validateFacultyUser(PDO $pdo, int|false|null $userId, string $role): ar
 
 function ensureFacultyRequestTables(PDO $pdo): void
 {
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS supply_requests (
-            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            request_number VARCHAR(40) NOT NULL,
-            requested_by_user_id INT UNSIGNED NOT NULL,
-            purpose VARCHAR(500) NULL,
-            department VARCHAR(100) NULL,
-            date_needed DATE NULL,
-            notes VARCHAR(500) NULL,
-            status ENUM("Pending","Pending Immediate Head","Pending Budget Officer","Pending VP Finance","Pending College President","Approved","Waiting Purchase","Purchased","Ready for Release","Released","Received","Completed","Rejected","Fulfilled","Cancelled") NOT NULL DEFAULT "Pending Immediate Head",
-            total_items INT UNSIGNED NOT NULL DEFAULT 0,
-            total_quantity INT UNSIGNED NOT NULL DEFAULT 0,
-            grand_total DECIMAL(12,2) NOT NULL DEFAULT 0.00,
-            reviewed_by_user_id INT UNSIGNED NULL,
-            review_notes VARCHAR(500) NULL,
-            reviewed_at DATETIME NULL,
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            UNIQUE KEY unique_supply_request_number (request_number),
-            CONSTRAINT fk_supply_requests_requested_by
-                FOREIGN KEY (requested_by_user_id) REFERENCES users(id)
-                ON UPDATE CASCADE
-                ON DELETE RESTRICT,
-            CONSTRAINT fk_supply_requests_reviewed_by
-                FOREIGN KEY (reviewed_by_user_id) REFERENCES users(id)
-                ON UPDATE CASCADE
-                ON DELETE SET NULL
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
-    );
+    // helper to safely fetch column from SHOW query
+    $showTableExists = function(string $sql) use ($pdo): bool {
+        $stmt = $pdo->query($sql);
+        if ($stmt === false) {
+            // query failed; treat as false to avoid creating duplicate?
+            return false;
+        }
+        return (bool)$stmt->fetchColumn();
+    };
+    $showColumnExists = function(string $sql) use ($pdo): bool {
+        $stmt = $pdo->query($sql);
+        if ($stmt === false) {
+            return false;
+        }
+        return (bool)$stmt->fetchColumn();
+    };
 
-    // Migrate existing table: add new columns if they don't exist
-    $pdo->exec("ALTER TABLE supply_requests ADD COLUMN IF NOT EXISTS purpose VARCHAR(500) NULL AFTER requested_by_user_id");
-    $pdo->exec("ALTER TABLE supply_requests ADD COLUMN IF NOT EXISTS department VARCHAR(100) NULL AFTER purpose");
-    $pdo->exec("ALTER TABLE supply_requests ADD COLUMN IF NOT EXISTS date_needed DATE NULL AFTER department");
-    $pdo->exec("ALTER TABLE supply_requests ADD COLUMN IF NOT EXISTS grand_total DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER total_quantity");
+    // supply_requests table
+    $tableExists = $showTableExists("SHOW TABLES LIKE 'supply_requests'");
+    if (!$tableExists) {
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS supply_requests (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                request_number VARCHAR(40) NOT NULL,
+                requested_by_user_id INT UNSIGNED NOT NULL,
+                purpose VARCHAR(500) NULL,
+                department VARCHAR(100) NULL,
+                date_needed DATE NULL,
+                notes VARCHAR(500) NULL,
+                status ENUM("Pending","Pending Immediate Head","Pending Budget Officer","Pending VP Finance","Pending College President","Approved","Waiting Purchase","Purchased","Ready for Release","Released","Received","Completed","Rejected","Fulfilled","Cancelled") NOT NULL DEFAULT "Pending Immediate Head",
+                total_items INT UNSIGNED NOT NULL DEFAULT 0,
+                total_quantity INT UNSIGNED NOT NULL DEFAULT 0,
+                grand_total DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                reviewed_by_user_id INT UNSIGNED NULL,
+                review_notes VARCHAR(500) NULL,
+                reviewed_at DATETIME NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY unique_supply_request_number (request_number),
+                CONSTRAINT fk_supply_requests_requested_by
+                    FOREIGN KEY (requested_by_user_id) REFERENCES users(id)
+                    ON UPDATE CASCADE
+                    ON DELETE RESTRICT,
+                CONSTRAINT fk_supply_requests_reviewed_by
+                    FOREIGN KEY (reviewed_by_user_id) REFERENCES users(id)
+                    ON UPDATE CASCADE
+                    ON DELETE SET NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+    }
 
-    // Migrate status ENUM
+    // supply_request_items table
+    $tableExists = $showTableExists("SHOW TABLES LIKE 'supply_request_items'");
+    if (!$tableExists) {
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS supply_request_items (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                request_id BIGINT UNSIGNED NOT NULL,
+                supply_id INT UNSIGNED NULL,
+                custom_item_name VARCHAR(200) NULL,
+                unit_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                total_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                quantity_requested INT UNSIGNED NOT NULL,
+                quantity_approved INT UNSIGNED NULL,
+                quantity_fulfilled INT UNSIGNED NOT NULL DEFAULT 0,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                CONSTRAINT fk_supply_request_items_request
+                    FOREIGN KEY (request_id) REFERENCES supply_requests(id)
+                    ON UPDATE CASCADE
+                    ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+    }
+
+    // approval_log table
+    $tableExists = $showTableExists("SHOW TABLES LIKE 'approval_log'");
+    if (!$tableExists) {
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS approval_log (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                request_id BIGINT UNSIGNED NOT NULL,
+                approver_user_id INT UNSIGNED NOT NULL,
+                approver_role VARCHAR(60) NOT NULL,
+                action VARCHAR(40) NOT NULL,
+                remarks TEXT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_approval_log_request
+                    FOREIGN KEY (request_id) REFERENCES supply_requests(id)
+                    ON UPDATE CASCADE
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_approval_log_approver
+                    FOREIGN KEY (approver_user_id) REFERENCES users(id)
+                    ON UPDATE CASCADE
+                    ON DELETE RESTRICT,
+                INDEX idx_approval_log_request (request_id, created_at DESC)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+    }
+
+    // department_budgets table
+    $tableExists = $showTableExists("SHOW TABLES LIKE 'department_budgets'");
+    if (!$tableExists) {
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS department_budgets (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                department VARCHAR(100) NOT NULL,
+                fiscal_year YEAR NOT NULL,
+                annual_budget DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+                total_spent DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY unique_dept_fiscal (department, fiscal_year)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+    }
+
+    // Ensure purpose column exists (for older installations)
+    $colExists = $showColumnExists("SHOW COLUMNS FROM supply_requests LIKE 'purpose'");
+    if (!$colExists) {
+        try {
+            $pdo->exec("ALTER TABLE supply_requests ADD COLUMN purpose VARCHAR(500) NULL AFTER requested_by_user_id");
+        } catch (PDOException $e) {
+            // column may already exist; ignore
+        }
+    }
+
+    // Ensure department column exists
+    $colExists = $showColumnExists("SHOW COLUMNS FROM supply_requests LIKE 'department'");
+    if (!$colExists) {
+        try {
+            $pdo->exec("ALTER TABLE supply_requests ADD COLUMN department VARCHAR(100) NULL AFTER purpose");
+        } catch (PDOException $e) {
+            // column may already exist; ignore
+        }
+    }
+
+    // Ensure date_needed column exists
+    $colExists = $showColumnExists("SHOW COLUMNS FROM supply_requests LIKE 'date_needed'");
+    if (!$colExists) {
+        try {
+            $pdo->exec("ALTER TABLE supply_requests ADD COLUMN date_needed DATE NULL AFTER department");
+        } catch (PDOException $e) {
+            // column may already exist; ignore
+        }
+    }
+
+    // Ensure grand_total column exists
+    $colExists = $showColumnExists("SHOW COLUMNS FROM supply_requests LIKE 'grand_total'");
+    if (!$colExists) {
+        try {
+            $pdo->exec("ALTER TABLE supply_requests ADD COLUMN grand_total DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER total_quantity");
+        } catch (PDOException $e) {
+            // column may already exist; ignore
+        }
+    }
+
+    // Ensure status column has correct ENUM (best effort)
     try {
         $pdo->exec("ALTER TABLE supply_requests MODIFY COLUMN status ENUM('Pending','Pending Immediate Head','Pending Budget Officer','Pending VP Finance','Pending College President','Approved','Waiting Purchase','Purchased','Ready for Release','Released','Received','Completed','Rejected','Fulfilled','Cancelled') NOT NULL DEFAULT 'Pending Immediate Head'");
     } catch (PDOException $e) {
-        // If status change fails, keep existing
+        // If fails, keep existing
     }
 
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS supply_request_items (
-            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            request_id BIGINT UNSIGNED NOT NULL,
-            supply_id INT UNSIGNED NULL,
-            custom_item_name VARCHAR(200) NULL,
-            unit_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-            total_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
-            quantity_requested INT UNSIGNED NOT NULL,
-            quantity_approved INT UNSIGNED NULL,
-            quantity_fulfilled INT UNSIGNED NOT NULL DEFAULT 0,
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            CONSTRAINT fk_supply_request_items_request
-                FOREIGN KEY (request_id) REFERENCES supply_requests(id)
-                ON UPDATE CASCADE
-                ON DELETE CASCADE
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
-    );
-
-    // Migrate existing items table
-    try {
-        $pdo->exec("ALTER TABLE supply_request_items ADD COLUMN IF NOT EXISTS custom_item_name VARCHAR(200) NULL AFTER supply_id");
-        $pdo->exec("ALTER TABLE supply_request_items ADD COLUMN IF NOT EXISTS unit_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00 AFTER custom_item_name");
-        $pdo->exec("ALTER TABLE supply_request_items ADD COLUMN IF NOT EXISTS total_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER unit_cost");
-        $pdo->exec("ALTER TABLE supply_request_items MODIFY COLUMN supply_id INT UNSIGNED NULL");
-    } catch (PDOException $e) {
-        // If column already exists or can't modify, continue
+    // Ensure supply_request_items columns
+    // custom_item_name
+    $colExists = $showColumnExists("SHOW COLUMNS FROM supply_request_items LIKE 'custom_item_name'");
+    if (!$colExists) {
+        try {
+            $pdo->exec("ALTER TABLE supply_request_items ADD COLUMN custom_item_name VARCHAR(200) NULL AFTER supply_id");
+        } catch (PDOException $e) {
+            // ignore
+        }
+    }
+    // unit_cost
+    $colExists = $showColumnExists("SHOW COLUMNS FROM supply_request_items LIKE 'unit_cost'");
+    if (!$colExists) {
+        try {
+            $pdo->exec("ALTER TABLE supply_request_items ADD COLUMN unit_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00 AFTER custom_item_name");
+        } catch (PDOException $e) {
+            // ignore
+        }
+    }
+    // total_amount
+    $colExists = $showColumnExists("SHOW COLUMNS FROM supply_request_items LIKE 'total_amount'");
+    if (!$colExists) {
+        try {
+            $pdo->exec("ALTER TABLE supply_request_items ADD COLUMN total_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 AFTER unit_cost");
+        } catch (PDOException $e) {
+            // ignore
+        }
+    }
+    // supply_id nullable
+    $colExists = $showColumnExists("SHOW COLUMNS FROM supply_request_items LIKE 'supply_id'");
+    if ($colExists) {
+        // check if it's nullable; we just try to modify to INT UNSIGNED NULL if not already
+        // We'll attempt to change to NULL allowed; if fails, ignore.
+        try {
+            $pdo->exec("ALTER TABLE supply_request_items MODIFY COLUMN supply_id INT UNSIGNED NULL");
+        } catch (PDOException $e) {
+            // ignore
+        }
     }
 
     // Ensure users table has designation column
-    try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS designation VARCHAR(60) NULL AFTER role");
-    } catch (PDOException $e) {
-        // Column may already exist
+    $colExists = $showColumnExists("SHOW COLUMNS FROM users LIKE 'designation'");
+    if (!$colExists) {
+        try {
+            $pdo->exec("ALTER TABLE users ADD COLUMN designation VARCHAR(60) NULL AFTER role");
+        } catch (PDOException $e) {
+            // column may already exist; ignore
+        }
     }
-
-    // Create approval_log table for tracking approval workflow
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS approval_log (
-            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            request_id BIGINT UNSIGNED NOT NULL,
-            approver_user_id INT UNSIGNED NOT NULL,
-            approver_role VARCHAR(60) NOT NULL,
-            action VARCHAR(40) NOT NULL,
-            remarks TEXT NULL,
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            CONSTRAINT fk_approval_log_request
-                FOREIGN KEY (request_id) REFERENCES supply_requests(id)
-                ON UPDATE CASCADE
-                ON DELETE CASCADE,
-            CONSTRAINT fk_approval_log_approver
-                FOREIGN KEY (approver_user_id) REFERENCES users(id)
-                ON UPDATE CASCADE
-                ON DELETE RESTRICT,
-            INDEX idx_approval_log_request (request_id, created_at DESC)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
-    );
-
-    // Create department_budgets table
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS department_budgets (
-            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            department VARCHAR(100) NOT NULL,
-            fiscal_year YEAR NOT NULL,
-            annual_budget DECIMAL(14,2) NOT NULL DEFAULT 0.00,
-            total_spent DECIMAL(14,2) NOT NULL DEFAULT 0.00,
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            UNIQUE KEY unique_dept_fiscal (department, fiscal_year)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
-    );
 }
 
 function normalizeRequestedItemsV2(array $items): array
