@@ -131,12 +131,90 @@ function handleSendMessage(PDO $pdo): void
     $senderUserId = filter_var($payload['senderUserId'] ?? null, FILTER_VALIDATE_INT);
     $recipientUserId = filter_var($payload['recipientUserId'] ?? null, FILTER_VALIDATE_INT);
     $body = trim((string) ($payload['body'] ?? ''));
+    $messageId = filter_var($payload['messageId'] ?? null, FILTER_VALIDATE_INT);
     $action = trim((string) ($payload['action'] ?? 'send'));
 
     if ($action === 'typing') {
         handleTypingStatus($pdo, $payload);
+        return;
     }
 
+    if ($action === 'edit' || $action === 'unsend') {
+        // Validate sender and message ownership
+        if (!$senderUserId || !$messageId) {
+            jsonResponse(422, [
+                'success' => false,
+                'message' => 'Sender ID and Message ID are required.',
+            ]);
+        }
+
+        $sender = findUserById($pdo, (int) $senderUserId);
+        if ($sender === null) {
+            jsonResponse(404, [
+                'success' => false,
+                'message' => 'Sender not found.',
+            ]);
+        }
+
+        $message = fetchMessageById($pdo, (int) $messageId);
+        if ($message === null) {
+            jsonResponse(404, [
+                'success' => false,
+                'message' => 'Message not found.',
+            ]);
+        }
+
+        if ((int) $message['senderUserId'] !== (int) $senderUserId) {
+            jsonResponse(403, [
+                'success' => false,
+                'message' => 'You are not authorized to modify this message.',
+            ]);
+        }
+
+        if ($action === 'edit') {
+            if ($body === '') {
+                jsonResponse(422, [
+                    'success' => false,
+                    'message' => 'Message body is required for edit.',
+                ]);
+            }
+            if (mb_strlen($body) > 2000) {
+                jsonResponse(422, [
+                    'success' => false,
+                    'message' => 'Message body must not exceed 2000 characters.',
+                ]);
+            }
+
+            $update = $pdo->prepare(
+                'UPDATE messages SET body = :body, is_unsent = 0, updated_at = CURRENT_TIMESTAMP WHERE id = :id AND sender_user_id = :sender_id'
+            );
+            $update->execute([
+                'body' => $body,
+                'id' => $messageId,
+                'sender_id' => $senderUserId,
+            ]);
+        } else { // unsend
+            $update = $pdo->prepare(
+                'UPDATE messages SET body = :body, is_unsent = 1, updated_at = CURRENT_TIMESTAMP WHERE id = :id AND sender_user_id = :sender_id'
+            );
+            $update->execute([
+                'body' => '[Unsent message]',
+                'id' => $messageId,
+                'sender_id' => $senderUserId,
+            ]);
+        }
+
+        $updatedMessage = fetchMessageById($pdo, (int) $messageId);
+
+        jsonResponse(200, [
+            'success' => true,
+            'message' => 'Message ' . ($action === 'edit' ? 'updated' : 'unsent') . ' successfully.',
+            'data' => $updatedMessage,
+        ]);
+        return;
+    }
+
+    // Default send action
     $errors = [];
 
     if (!$senderUserId) {
@@ -199,6 +277,7 @@ function handleSendMessage(PDO $pdo): void
 
 function ensureMessagesTable(PDO $pdo): void
 {
+    // Create table if it doesn't exist
     $pdo->exec(
         'CREATE TABLE IF NOT EXISTS messages (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -221,6 +300,17 @@ function ensureMessagesTable(PDO $pdo): void
             INDEX idx_messages_recipient_read (recipient_user_id, is_read, created_at)
         )'
     );
+
+    // Add is_unsent column if it doesn't exist
+    try {
+        $pdo->exec('ALTER TABLE messages ADD COLUMN is_unsent TINYINT(1) NOT NULL DEFAULT 0');
+    } catch (PDOException $e) {
+        // Ignore error if column already exists (duplicate column name)
+        if (strpos($e->getMessage(), 'Duplicate column name') === false) {
+            // Re-throw if it's a different error
+            throw $e;
+        }
+    }
 }
 
 function ensureTypingStatusTable(PDO $pdo): void
@@ -365,6 +455,7 @@ function fetchContacts(PDO $pdo, int $userId): array
             FROM messages
             WHERE recipient_user_id = :user_id_unread
               AND is_read = 0
+              AND is_unsent = 0
             GROUP BY sender_user_id
          ) unread
             ON unread.contact_user_id = u.id
@@ -406,7 +497,7 @@ function fetchContacts(PDO $pdo, int $userId): array
 function fetchConversationMessages(PDO $pdo, int $userId, int $conversationUserId): array
 {
     $query = $pdo->prepare(
-        'SELECT id, sender_user_id, recipient_user_id, body, is_read, read_at, created_at
+        'SELECT id, sender_user_id, recipient_user_id, body, is_read, read_at, created_at, is_unsent
          FROM messages
          WHERE (sender_user_id = :user_id AND recipient_user_id = :contact_user_id)
             OR (sender_user_id = :contact_user_id_reply AND recipient_user_id = :user_id_reply)
@@ -459,7 +550,7 @@ function fetchTypingStatus(PDO $pdo, int $userId, int $conversationUserId): arra
 function fetchMessageById(PDO $pdo, int $messageId): ?array
 {
     $query = $pdo->prepare(
-        'SELECT id, sender_user_id, recipient_user_id, body, is_read, read_at, created_at
+        'SELECT id, sender_user_id, recipient_user_id, body, is_read, read_at, created_at, is_unsent
          FROM messages
          WHERE id = :id
          LIMIT 1'
@@ -525,6 +616,7 @@ function normalizeMessageRow(array $row): array
         'isRead' => (bool) $row['is_read'],
         'readAt' => $row['read_at'] !== null ? (string) $row['read_at'] : null,
         'createdAt' => (string) $row['created_at'],
+        'isUnsent' => (bool) $row['is_unsent'],
     ];
 }
 
