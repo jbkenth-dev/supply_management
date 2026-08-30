@@ -149,7 +149,12 @@ function SidebarContent({
               <div className="h-px bg-primary-600 flex-1" />
             </div>
             <div className="space-y-1">
-              {group.items.map((item) => (
+              {group.items.map((item) => {
+            // Show badge for Messages link
+            const showMessageBadge = item.name === "Messages" && unreadMessageCount > 0;
+            const badgeValue = unreadMessageCount >= 10 ? "9+" : String(unreadMessageCount);
+
+            return (
                 <NavLink
                   key={item.name}
                   to={item.to}
@@ -170,6 +175,11 @@ function SidebarContent({
                         }`}
                       />
                       <span className="flex-1">{item.name}</span>
+                      {showMessageBadge && (
+                        <span className="flex-shrink-0 ml-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
+                          {badgeValue}
+                        </span>
+                      )}
                       {isActive && (
                         <motion.div
                           layoutId="activeSidebar"
@@ -182,7 +192,8 @@ function SidebarContent({
                     </>
                   )}
                 </NavLink>
-              ))}
+            );
+          })}
             </div>
           </div>
         ))}
@@ -236,6 +247,7 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
   const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0)
   const [notificationMenuOpen, setNotificationMenuOpen] = useState(false)
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0)
   const location = useLocation()
   const navigate = useNavigate()
   const notificationMenuRef = useRef<HTMLDivElement | null>(null)
@@ -322,6 +334,84 @@ export default function AppShell({ children, role = "Faculty Staff" }: Props) {
       document.removeEventListener("mousedown", handleDocumentClick)
     }
   }, [])
+
+  // Unread message count polling
+  useEffect(() => {
+    if (!authUser?.id) return
+
+    let cancelled = false
+    let pollingInterval: NodeJS.Timeout | null = null
+
+    // Function to fetch unread message count
+    const fetchUnreadMessageCount = async () => {
+      if (cancelled) return
+
+      try {
+        // Fetch messages data to get unread counts from all contacts
+        const params = new URLSearchParams({
+          userId: String(authUser.id),
+        })
+        const response = await api(`/api/messages.php?${params.toString()}`)
+        const result = await response.json()
+
+        if (!response.ok || !result.success) {
+          console.warn('Failed to fetch messages for unread count')
+          return
+        }
+
+        if (cancelled) return
+
+        // Sum up unread counts from all contacts
+        const totalUnread = (result.contacts || []).reduce(
+          (sum, contact) => sum + (contact.unreadCount || 0),
+          0
+        )
+
+        setUnreadMessageCount(totalUnread)
+      } catch (error) {
+        console.error('Error fetching unread message count:', error)
+      }
+    }
+
+    // Initial fetch
+    void fetchUnreadMessageCount()
+
+    // Set up polling interval (every 60 seconds to minimize requests)
+    pollingInterval = setInterval(() => {
+      void fetchUnreadMessageCount()
+    }, 60 * 1000) // 60 seconds
+
+    // Handle visibility change to pause polling when tab is hidden
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Pause polling when tab is hidden
+        if (pollingInterval) {
+          clearInterval(pollingInterval)
+          pollingInterval = null
+        }
+      } else {
+        // Resume polling when tab becomes visible
+        if (!pollingInterval) {
+          pollingInterval = setInterval(() => {
+            void fetchUnreadMessageCount()
+          }, 60 * 1000) // 60 seconds
+          // Fetch immediately when becoming visible
+          void fetchUnreadMessageCount()
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    // Cleanup
+    return () => {
+      cancelled = true
+      if (pollingInterval) {
+        clearInterval(pollingInterval)
+      }
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [authUser?.id])
 
   const handleLogout = () => {
     clearStoredAuthUser()
