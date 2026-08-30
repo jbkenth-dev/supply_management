@@ -1208,7 +1208,7 @@ export default function AdminUsers() {
                 className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3.5 text-sm text-brown-900 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
               >
                 <option value="Faculty Staff">Faculty Staff</option>
-                <option value="Property Custodian">Property Custodian</option>
+                <option value="" disabled>Approval Personnel</option>
                 <option value="Immediate Head">Immediate Head</option>
                 <option value="Resource Planning Officer">Resource Planning Officer</option>
                 <option value="Vice President for Finance">Vice President for Finance</option>
