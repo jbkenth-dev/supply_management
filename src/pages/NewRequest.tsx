@@ -5,6 +5,7 @@ import {
   PlusIcon,
   XMarkIcon,
   TrashIcon,
+  MinusIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../layout/AppShell"
 import { MessageModal } from "../components/ui/MessageModal"
@@ -39,6 +40,7 @@ type CartItem = {
   totalAmount: number
   isCustom: boolean
   customItemName: string
+  maxStock: number | null
 }
 
 const DEPARTMENTS = [
@@ -213,9 +215,9 @@ export default function NewRequest() {
   }, [search, supplies])
 
   const addCatalogItem = (supply: SupplyItem) => {
-    const existingIndex = items.findIndex((item) => item.supplyId === supply.id);
-    if (existingIndex >= 0) return;
-    const unitCost = unitCostMap[supply.id] ?? 0;
+    const existingIndex = items.findIndex((item) => item.supplyId === supply.id)
+    if (existingIndex >= 0) return
+    const unitCost = unitCostMap[supply.id] ?? 0
     setItems((current) => [
       ...current,
       {
@@ -229,8 +231,9 @@ export default function NewRequest() {
         totalAmount: unitCost,
         isCustom: false,
         customItemName: "",
+        maxStock: supply.quantityOnHand,
       },
-    ]);
+    ])
   }
 
   const addCustomItem = () => {
@@ -249,6 +252,7 @@ export default function NewRequest() {
         totalAmount: customQty * customCost,
         isCustom: true,
         customItemName: name,
+        maxStock: null,
       },
     ])
     setCustomName("")
@@ -268,7 +272,11 @@ export default function NewRequest() {
   const handleQtyBlur = (index: number) => {
     const raw = qtyInputs[index]
     const parsed = parseInt(raw ?? "", 10)
-    const quantity = isNaN(parsed) || parsed < 1 ? 1 : parsed
+    const item = items[index]
+    let quantity = isNaN(parsed) || parsed < 1 ? 1 : parsed
+    if (item.maxStock !== null) {
+      quantity = Math.min(item.maxStock, quantity)
+    }
     setQtyInputs((prev) => ({ ...prev, [index]: String(quantity) }))
     setItems((current) =>
       current.map((item, i) =>
@@ -299,6 +307,10 @@ export default function NewRequest() {
     for (const item of items) {
       if (item.unitCost < 0) newErrors.unitCost = "Unit cost cannot be negative."
       if (item.quantity < 1) newErrors.quantity = "Quantity must be at least 1."
+      if (item.maxStock !== null && item.quantity > item.maxStock) {
+        // This shouldn't happen due to blur clamping, but just in case
+        newErrors.quantity = `Quantity cannot exceed available stock (${item.maxStock}).`
+      }
     }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -478,14 +490,47 @@ export default function NewRequest() {
                   {items.map((item, index) => (
                     <tr key={`${item.itemCode}-${index}`} className="border-b border-brown-200">
                       <TableCell>
-                        <input
-                          type="number"
-                          min="1"
-                          value={qtyInputs[index] ?? String(item.quantity)}
-                          onChange={(e) => handleQtyChange(index, e.target.value)}
-                          onBlur={() => handleQtyBlur(index)}
-                          className="w-full rounded-lg border border-brown-200 bg-white px-2 py-1 text-center text-xs font-bold text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-sm"
-                        />
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => {
+                              const current = parseInt(qtyInputs[index] ?? String(item.quantity), 10)
+                              if (current > 1) {
+                                handleQtyChange(index, String(current - 1))
+                              }
+                            }}
+                            disabled={item.maxStock !== null && item.quantity <= 1}
+                            className="flex h-6 w-6 items-center justify-center rounded-lg border border-brown-200 text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                          >
+                            <MinusIcon className="h-3 w-3" />
+                          </button>
+                          <input
+                            type="number"
+                            min={1}
+                            max={item.maxStock ?? undefined}
+                            value={qtyInputs[index] ?? String(item.quantity)}
+                            onChange={(e) => handleQtyChange(index, e.target.value)}
+                            onBlur={() => handleQtyBlur(index)}
+                            className="w-20 rounded-lg border border-brown-200 bg-white px-2 py-1 text-center text-xs font-bold text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-sm"
+                          />
+                          <button
+                            onClick={() => {
+                              const current = parseInt(qtyInputs[index] ?? String(item.quantity), 10)
+                              const max = item.maxStock ?? Infinity
+                              if (current < max) {
+                                handleQtyChange(index, String(current + 1))
+                              }
+                            }}
+                            disabled={item.maxStock !== null && item.quantity >= item.maxStock}
+                            className="flex h-6 w-6 items-center justify-center rounded-lg border border-brown-200 text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                          >
+                            <PlusIcon className="h-3 w-3" />
+                          </button>
+                          {item.maxStock !== null && item.quantity >= item.maxStock && (
+                            <p className="mt-[2px] text-[10px] text-rose-600">
+                              You’ve reached the available stock
+                            </p>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -651,19 +696,19 @@ export default function NewRequest() {
                         : label === "Checked"
                         ? (approvalPersonnel["Resource Planning Officer"] ?? "")
                         : label === "Noted"
-                          ? (approvalPersonnel["Vice President for Finance"] ?? "")
-                          : label === "Approved"
-                            ? (approvalPersonnel["College President"] ?? "")
-                            : ""
+                        ? (approvalPersonnel["Vice President for Finance"] ?? "")
+                        : label === "Approved"
+                        ? (approvalPersonnel["College President"] ?? "")
+                        : ""
                       const position = label === "Recommended"
                         ? "Immediate Head"
                         : label === "Checked"
                         ? "Resource Planning Officer"
                         : label === "Noted"
-                          ? "Vice President for Finance"
-                          : label === "Approved"
-                            ? "College President"
-                            : ""
+                        ? "Vice President for Finance"
+                        : label === "Approved"
+                        ? "College President"
+                        : ""
                       return (
                         <td key={label} className="border-r border-brown-200 px-2 py-4 text-center last:border-r-0">
                           <div className="mx-auto mb-2 h-px w-3/4 border-t border-brown-300" />
@@ -740,6 +785,7 @@ function buildCatalogCartItem(supply: SupplyItem): CartItem {
     totalAmount: 0,
     isCustom: false,
     customItemName: "",
+    maxStock: supply.quantityOnHand,
   }
 }
 
@@ -851,60 +897,59 @@ function CatalogModal({
               ))}
             </div>
           ) : displaySupplies.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-brown-200 bg-brown-50 py-12 text-center">
-                <MagnifyingGlassIcon className="mx-auto h-8 w-8 text-brown-300" />
-                <p className="mt-3 text-sm font-semibold text-brown-800">No supplies found</p>
-                <p className="mt-1 text-xs text-brown-500">Try a different search term.</p>
-              </div>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {displaySupplies.map((supply) => {
-                  const inCart = items.some((item) => item.supplyId === supply.id)
-                  const outOfStock = supply.quantityOnHand < 1
-                  return (
-                    <button
-                      key={supply.id}
-                      type="button"
-                      disabled={inCart || outOfStock}
-                      onClick={() => {
-                        addCatalogItem(supply)
-                        close()
-                      }}
-                      className={`overflow-hidden rounded-2xl border text-left transition ${
-                        inCart
-                          ? "cursor-not-allowed border-brown-200 bg-brown-100"
-                          : outOfStock
-                            ? "cursor-not-allowed border-brown-100 bg-brown-50 opacity-60"
-                            : "border-brown-200 bg-white hover:border-primary-300 hover:bg-brown-50"
-                      }`}
-                    >
-                      <div className="aspect-[4/3] overflow-hidden border-b border-brown-100 bg-brown-100">
-                        <img
-                          src={supply.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
-                          alt={supply.name}
-                          className="h-full w-full object-cover"
-                        />
+            <div className="rounded-2xl border border-dashed border-brown-200 bg-brown-50 py-12 text-center">
+              <MagnifyingGlassIcon className="mx-auto h-8 w-8 text-brown-300" />
+              <p className="mt-3 text-sm font-semibold text-brown-800">No supplies found</p>
+              <p className="mt-1 text-xs text-brown-500">Try a different search term.</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {displaySupplies.map((supply) => {
+                const inCart = items.some((item) => item.supplyId === supply.id)
+                const outOfStock = supply.quantityOnHand < 1
+                return (
+                  <button
+                    key={supply.id}
+                    type="button"
+                    disabled={inCart || outOfStock}
+                    onClick={() => {
+                      addCatalogItem(supply)
+                      close()
+                    }}
+                    className={`overflow-hidden rounded-2xl border text-left transition ${
+                      inCart
+                        ? "cursor-not-allowed border-brown-200 bg-brown-100"
+                        : outOfStock
+                          ? "cursor-not-allowed border-brown-100 bg-brown-50 opacity-60"
+                          : "border-brown-200 bg-white hover:border-primary-300 hover:bg-brown-50"
+                    }`}
+                  >
+                    <div className="aspect-[4/3] overflow-hidden border-b border-brown-100 bg-brown-100">
+                      <img
+                        src={supply.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
+                        alt={supply.name}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="p-3">
+                      <p className="text-xs font-bold uppercase leading-tight text-brown-900">{supply.name}</p>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        <span className="rounded-full bg-brown-100 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-brown-500">
+                          {supply.categoryName}
+                        </span>
+                        <span className="rounded-full bg-accent-100 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-primary-600">
+                          {supply.itemCode}
+                        </span>
                       </div>
-                      <div className="p-3">
-                        <p className="text-xs font-bold uppercase leading-tight text-brown-900">{supply.name}</p>
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          <span className="rounded-full bg-brown-100 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-brown-500">
-                            {supply.categoryName}
-                          </span>
-                          <span className="rounded-full bg-accent-100 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-primary-600">
-                            {supply.itemCode}
-                          </span>
-                        </div>
-                        <p className="mt-2 text-[10px] text-brown-500">Stock: {supply.quantityOnHand}</p>
-                        {inCart ? <p className="mt-1 text-[10px] font-bold uppercase text-brown-500">Already Added</p> : null}
-                        {outOfStock ? <p className="mt-1 text-[10px] font-bold uppercase text-brown-500">Out of Stock</p> : null}
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            )
-          }
+                      <p className="mt-2 text-[10px] text-brown-500">Stock: {supply.quantityOnHand}</p>
+                      {inCart ? <p className="mt-1 text-[10px] font-bold uppercase text-brown-500">Already Added</p> : null}
+                      {outOfStock ? <p className="mt-1 text-[10px] font-bold uppercase text-brown-500">Out of Stock</p> : null}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         <div className="border-t border-brown-200 px-4 py-3 text-right sm:px-6">
