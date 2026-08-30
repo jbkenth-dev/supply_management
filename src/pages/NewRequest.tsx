@@ -459,7 +459,6 @@ export default function NewRequest() {
               <table className="w-full border-collapse text-xs sm:text-sm">
                 <thead>
                   <tr className="border-b border-brown-200 bg-brown-100">
-                    <TableHead className="sm:w-[60px]">Image</TableHead>
                     <TableHead className="sm:w-[60px]">Qty</TableHead>
                     <TableHead>Item / Description</TableHead>
                     <TableHead className="text-right sm:w-[110px]">Unit Cost</TableHead>
@@ -470,7 +469,7 @@ export default function NewRequest() {
                 <tbody>
                   {items.length === 0 ? (
                     <tr className="border-b border-brown-200">
-                      <td colSpan={5} className="px-4 py-8 text-center text-sm italic text-brown-400">
+                      <td colSpan={4} className="px-4 py-8 text-center text-sm italic text-brown-400">
                         No items added yet. Use the buttons below to add items.
                       </td>
                     </tr>
@@ -478,13 +477,6 @@ export default function NewRequest() {
 
                   {items.map((item, index) => (
                     <tr key={`${item.itemCode}-${index}`} className="border-b border-brown-200">
-                      <TableCell>
-                        <img
-                          src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
-                          alt={item.name}
-                          className="h-6 w-6 object-cover rounded"
-                        />
-                      </TableCell>
                       <TableCell>
                         <input
                           type="number"
@@ -496,7 +488,12 @@ export default function NewRequest() {
                         />
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
+                            alt={item.name}
+                            className="h-6 w-6 object-cover rounded"
+                          />
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-xs font-semibold text-brown-900 sm:text-sm">{item.name}</p>
                             {item.isCustom ? (
@@ -543,14 +540,13 @@ export default function NewRequest() {
                           <TableCell />
                           <TableCell />
                           <TableCell />
-                          <TableCell />
                           <TableCell className="border-r-0" />
                         </tr>
                       ))
                     : null}
 
                   <tr className="border-b border-brown-200 bg-brown-50">
-                    <td colSpan={5} className="px-3 py-3">
+                    <td colSpan={4} className="px-3 py-3">
                       <div className="flex flex-wrap items-center gap-2">
                         {customRowOpen ? (
                           <div className="flex w-full flex-wrap items-center gap-2">
