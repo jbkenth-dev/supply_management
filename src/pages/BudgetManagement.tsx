@@ -144,6 +144,60 @@ export default function BudgetManagement() {
           </p>
         </div>
 
+        {authUser?.role === "Administrator" && (
+            <div className="mt-6 border-t border-brown-200 pt-6">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Add New Budget</p>
+              <div className="mt-3 grid gap-4 sm:grid-cols-[1fr_200px_auto]">
+                <select
+                  id="new-dept"
+                  value={newDept}
+                  onChange={(e) => { setNewDept(e.target.value); setNewAmount("") }}
+                  className="rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                >
+                  <option value="">Select department...</option>
+                  {availableDepartments.map((department) => (
+                    <option key={department.id} value={department.name}>{department.name}</option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  min="100"
+                  max="100000"
+                  step="0.01"
+                  value={newAmount}
+                  onChange={(e) => setNewAmount(e.target.value)}
+                  placeholder="Annual budget"
+                  className="rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!newDept || !newAmount) {
+                      setResultModal({ type: "error", title: "Invalid Amount", message: "Annual budget is required." })
+                      return
+                    }
+
+                    const finalAmount = parseFloat(newAmount)
+                    const validationError = validateAnnualBudget(finalAmount)
+                    if (validationError) {
+                      setResultModal({ type: "error", title: "Invalid Amount", message: validationError })
+                      return
+                    }
+
+                    void handleSetBudget(newDept, finalAmount)
+                    setNewDept("")
+                    setNewAmount("")
+                  }}
+                  disabled={!newDept || !newAmount}
+                  className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Set Budget
+                </button>
+              </div>
+            </div>
+          )}
+
+
         {/* Overall Summary */}
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-[1.5rem] border border-brown-200 bg-white p-5 shadow-sm">
@@ -302,59 +356,7 @@ export default function BudgetManagement() {
           )}
 
           {/* Add Budget for unconfigured departments - always visible for admins */}
-          {authUser?.role === "Administrator" && (
-            <div className="mt-6 border-t border-brown-200 pt-6">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Add New Budget</p>
-              <div className="mt-3 grid gap-4 sm:grid-cols-[1fr_200px_auto]">
-                <select
-                  id="new-dept"
-                  value={newDept}
-                  onChange={(e) => { setNewDept(e.target.value); setNewAmount("") }}
-                  className="rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                >
-                  <option value="">Select department...</option>
-                  {availableDepartments.map((department) => (
-                    <option key={department.id} value={department.name}>{department.name}</option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  min="100"
-                  max="100000"
-                  step="0.01"
-                  value={newAmount}
-                  onChange={(e) => setNewAmount(e.target.value)}
-                  placeholder="Annual budget"
-                  className="rounded-xl border border-brown-200 bg-white px-4 py-2.5 text-sm text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!newDept || !newAmount) {
-                      setResultModal({ type: "error", title: "Invalid Amount", message: "Annual budget is required." })
-                      return
-                    }
-
-                    const finalAmount = parseFloat(newAmount)
-                    const validationError = validateAnnualBudget(finalAmount)
-                    if (validationError) {
-                      setResultModal({ type: "error", title: "Invalid Amount", message: validationError })
-                      return
-                    }
-
-                    void handleSetBudget(newDept, finalAmount)
-                    setNewDept("")
-                    setNewAmount("")
-                  }}
-                  disabled={!newDept || !newAmount}
-                  className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Set Budget
-                </button>
-              </div>
-            </div>
-          )}
-        </section>
+                  </section>
       </div>
     </AppShell>
   )

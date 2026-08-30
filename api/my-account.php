@@ -313,7 +313,7 @@ function storeProfileImage(array $file, int $userId, string $role): string
 function getValidatedRole(mixed $value): string
 {
     $role = trim((string) $value);
-    $allowedRoles = ['Administrator', 'Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
+    $allowedRoles = ['Administrator', 'Faculty Staff', 'Property Custodian', 'Resource Planning Officer', 'Vice President for Finance', 'College President', 'Immediate Head'];
 
     if (!in_array($role, $allowedRoles, true)) {
         jsonResponse(422, [
