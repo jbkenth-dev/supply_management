@@ -15,6 +15,7 @@ import { MessageModal } from "../components/ui/MessageModal"
 import { api } from "../lib/api"
 import { getStoredAuthUser } from "../lib/auth"
 import type { FacultyRequest, FacultyRequestSummary, RequestStatus } from "../types/requests"
+import RequestViewModal from "../components/RequestViewModal"
 
 type RequestsResponse = {
   success: boolean
@@ -48,6 +49,8 @@ export default function MyRequests() {
   const [modalTitle, setModalTitle] = useState("")
   const [modalMessage, setModalMessage] = useState("")
   const [modalType, setModalType] = useState<"success" | "error">("error")
+  const [selectedRequest, setSelectedRequest] = useState<FacultyRequest | null>(null)
+  const [viewModalOpen, setViewModalOpen] = useState(false)
 
   const pushMessage = (title: string, message: string, type: "success" | "error") => {
     setModalTitle(title)
@@ -269,174 +272,16 @@ export default function MyRequests() {
               <p className="mt-2 text-sm text-brown-500">Requests you submit from the new request page will appear here.</p>
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className="space-y-4">
               {paginatedRequests.map((request) => (
-                <article key={request.id} className="rounded-[1.75rem] border border-brown-200 bg-brown-50 p-5">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brown-500">
-                          {request.requestNumber}
-                        </span>
-                        <StatusBadge status={request.status} />
-                      </div>
-                      <h2 className="mt-3 text-xl font-black tracking-tight text-brown-900">
-                        {request.totalItems} item{request.totalItems === 1 ? "" : "s"} requested
-                      </h2>
-                      <p className="mt-2 text-sm text-brown-500">
-                        Submitted {formatDateTime(request.createdAt)} with {request.totalQuantity} total {request.totalQuantity === 1 ? "quantity" : "quantities"}.
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-start gap-3 lg:items-end">
-                      <div className="text-sm text-brown-500">
-                        Last updated {formatDateTimeShort(request.updatedAt)}
-                      </div>
-                      {request.status === "Pending Immediate Head" ? (
-                        <button
-                          type="button"
-                          onClick={() => setRequestToCancel(request)}
-                          className="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
-                        >
-                          <XCircleIcon className="mr-2 h-4 w-4" />
-                          Cancel Request
-                        </button>
-                      ) : null}
-                      {request.status === "Released" ? (
-                        <button
-                          type="button"
-                          onClick={() => handleConfirmReceived(request)}
-                          className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700"
-                        >
-                          <CheckCircleIcon className="mr-2 h-4 w-4" />
-                          Confirm Received
-                        </button>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  {/* Purpose, Department, Date Needed, Grand Total */}
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {request.purpose ? (
-                      <div className="rounded-2xl border border-brown-200 bg-white px-4 py-3">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Purpose</p>
-                        <p className="mt-1.5 text-sm leading-5 text-brown-700 line-clamp-2">{request.purpose}</p>
-                      </div>
-                    ) : null}
-                    {request.department ? (
-                      <div className="rounded-2xl border border-brown-200 bg-white px-4 py-3">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Department</p>
-                        <p className="mt-1.5 text-sm font-semibold text-brown-700">{request.department}</p>
-                      </div>
-                    ) : null}
-                    {request.dateNeeded ? (
-                      <div className="rounded-2xl border border-brown-200 bg-white px-4 py-3">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Date Needed</p>
-                        <p className="mt-1.5 text-sm font-semibold text-brown-700">{formatDateLong(request.dateNeeded)}</p>
-                      </div>
-                    ) : null}
-                    {request.grandTotal > 0 ? (
-                      <div className="rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary-600">Grand Total</p>
-                        <p className="mt-1.5 text-sm font-black text-primary-800">₱{request.grandTotal.toFixed(2)}</p>
-                      </div>
-                    ) : null}
-                  </div>
-
-                  {/* Approval Timeline */}
-                  <div className="mt-4 rounded-2xl border border-brown-200 bg-white p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Approval Timeline</p>
-                    <div className="mt-4 flex items-start gap-1 overflow-x-auto pb-2">
-                      {getTimelineSteps(request.status).map((step, idx) => (
-                        <div key={idx} className="flex items-center gap-1 min-w-0">
-                          <div className="flex flex-col items-center min-w-0">
-                            <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                              step.status === "completed" ? "bg-emerald-500 text-white" :
-                              step.status === "current" ? "bg-amber-500 text-white ring-2 ring-amber-200 ring-offset-2" :
-                              step.status === "rejected" ? "bg-rose-500 text-white" :
-                              "bg-brown-200 text-brown-500"
-                            }`}>
-                              {step.status === "completed" ? "✓" : step.status === "rejected" ? "✗" : idx + 1}
-                            </div>
-                            <p className={`mt-1.5 whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.12em] ${
-                              step.status === "completed" || step.status === "current" ? "text-brown-700" : "text-brown-400"
-                            }`}>
-                              {step.label}
-                            </p>
-                          </div>
-                          {idx < getTimelineSteps(request.status).length - 1 ? (
-                            <div className={`mx-1 mt-4 h-0.5 w-8 sm:w-12 ${
-                              step.status === "completed" ? "bg-emerald-400" : "bg-brown-200"
-                            }`} />
-                          ) : null}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {request.notes ? (
-                    <div className="mt-4 rounded-2xl border border-brown-200 bg-white px-4 py-3">
-                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Additional Notes</p>
-                      <p className="mt-2 text-sm leading-6 text-brown-600">{request.notes}</p>
-                    </div>
-                  ) : null}
-
-                  <div className="mt-5 grid gap-3 md:grid-cols-2">
-                    {request.items.map((item, idx) => (
-                      <div key={`${request.id}-${item.supplyId ?? idx}`} className="rounded-2xl border border-brown-200 bg-white p-4">
-                        <div className="flex items-start gap-4">
-                          <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-brown-200 bg-brown-50">
-                            <img
-                              src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop"}
-                              alt={item.name}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate font-bold text-brown-900">{item.name}</p>
-                            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-brown-400">
-                              {item.itemCode} • {item.categoryName}
-                            </p>
-                          </div>
-                          <div className="flex flex-col items-end gap-1">
-                            <span className="rounded-full bg-brown-100 px-3 py-1 text-sm font-bold text-brown-900">
-                              x{item.quantityRequested}
-                            </span>
-                            {item.unitCost > 0 ? (
-                              <span className="text-xs font-semibold text-primary-700">
-                                ₱{(item.unitCost).toFixed(2)}/ea
-                              </span>
-                            ) : null}
-                          </div>
-                        </div>
-                        <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-                          <span className="rounded-full bg-primary-50 px-3 py-1 text-primary-700">
-                            Requested: {item.quantityRequested}
-                          </span>
-                          {item.quantityApproved !== null ? (
-                            <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
-                              Approved: {item.quantityApproved}
-                            </span>
-                          ) : null}
-                          {item.totalAmount > 0 ? (
-                            <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-700">
-                              Cost: ₱{item.totalAmount.toFixed(2)}
-                            </span>
-                          ) : null}
-                          <span className="rounded-full bg-brown-100 px-3 py-1 text-brown-600">
-                            In stock now: {item.quantityOnHand}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {request.reviewNotes ? (
-                    <div className="mt-4 rounded-2xl border border-primary-100 bg-primary-50 px-4 py-3">
-                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary-600">Review Notes</p>
-                      <p className="mt-2 text-sm leading-6 text-primary-900">{request.reviewNotes}</p>
-                    </div>
-                  ) : null}
-                </article>
+                <div key={request.id} className="flex items-center justify-center p-4 rounded-[1.75rem] border border-brown-200 bg-white hover:bg-brown-50 cursor-pointer" onClick={() => {
+                  setSelectedRequest(request)
+                  setViewModalOpen(true)
+                }}>
+                  <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brown-500">
+                    {request.requestNumber}
+                  </span>
+                </div>
               ))}
             </div>
           )}
@@ -464,6 +309,18 @@ export default function MyRequests() {
             }
           }}
           onConfirm={() => void cancelRequest(requestToCancel)}
+        />
+      ) : null}
+
+      {/* Request View Modal */}
+      {selectedRequest && viewModalOpen ? (
+        <RequestViewModal
+          request={selectedRequest}
+          open={viewModalOpen}
+          onClose={() => {
+            setSelectedRequest(null)
+            setViewModalOpen(false)
+          }}
         />
       ) : null}
     </AppShell>
@@ -620,7 +477,7 @@ function ConfirmCancelModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="w-full max-w-xl rounded-[2rem] border border-brown-200 bg-white p-6 shadow-2xl sm:p-8"
+        className="w-full max-w-xl rounded-[2rem] border-border-brown-200 bg-white p-6 shadow-2xl sm:p-8"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start gap-4">
