@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react"
-import { formatDateTime, formatDateTimeShort, formatDateLong } from "../lib/date"
 import {
   ArrowPathIcon,
   ExclamationTriangleIcon,
@@ -169,41 +168,6 @@ export default function MyRequests() {
     }
   }
 
-  async function handleConfirmReceived(request: FacultyRequest) {
-    if (!authUser?.id || authUser.role !== "Faculty Staff") {
-      return
-    }
-
-    setBusyRequestId(request.id)
-
-    try {
-      const response = await api("/api/faculty-requests.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "confirm_received",
-          requestId: request.id,
-          userId: authUser.id,
-          role: authUser.role,
-        }),
-      })
-      const result = (await response.json()) as CancelResponse
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message ?? "Unable to confirm receipt.")
-      }
-
-      setRequests(result.requests ?? [])
-      setSummary(result.summary ?? emptySummary)
-      setPage(1)
-      pushMessage("Confirmed", "Receipt confirmed. Thank you!", "success")
-    } catch (error) {
-      pushMessage("Confirmation Failed", error instanceof Error ? error.message : "Unable to confirm receipt.", "error")
-    } finally {
-      setBusyRequestId(null)
-    }
-  }
-
   return (
     <AppShell role="Faculty Staff">
       <MessageModal
@@ -355,64 +319,6 @@ function SummaryCard({
       <p className="mt-4 text-3xl font-black tracking-tight text-brown-900">{value.toLocaleString()}</p>
     </div>
   )
-}
-
-function getTimelineSteps(currentStatus: string): { label: string; status: "completed" | "current" | "pending" | "rejected" }[] {
-  const allSteps = [
-    "Pending Immediate Head",
-    "Pending Budget Officer",
-    "Pending VP Finance",
-    "Pending College President",
-    "Approved",
-    "Waiting Purchase",
-    "Purchased",
-    "Ready for Release",
-    "Released",
-    "Completed",
-  ]
-
-  const isRejected = currentStatus === "Rejected" || currentStatus === "Cancelled"
-  const currentIdx = allSteps.indexOf(currentStatus)
-
-  return allSteps.map((step, idx) => {
-    let status: "completed" | "current" | "pending" | "rejected"
-    if (isRejected && idx < allSteps.length - 1) {
-      status = idx < currentIdx ? "completed" : idx === currentIdx ? "rejected" : "pending"
-    } else if (currentIdx === -1) {
-      status = "pending"
-    } else if (idx < currentIdx) {
-      status = "completed"
-    } else if (idx === currentIdx) {
-      status = "current"
-    } else {
-      status = "pending"
-    }
-    return { label: step.replace("Pending ", "").replace("Waiting ", "Wait "), status }
-  })
-}
-
-function StatusBadge({ status }: { status: RequestStatus }) {
-  const colorMap: Record<string, string> = {
-    "Pending Immediate Head": "bg-amber-100 text-amber-700",
-    "Pending Budget Officer": "bg-amber-200 text-amber-800",
-    "Pending VP Finance": "bg-amber-300 text-amber-900",
-    "Pending College President": "bg-amber-300 text-amber-900",
-    "Pending": "bg-amber-100 text-amber-700",
-    "Approved": "bg-primary-100 text-primary-700",
-    "Waiting Purchase": "bg-blue-100 text-blue-700",
-    "Purchased": "bg-indigo-100 text-indigo-700",
-    "Ready for Release": "bg-teal-100 text-teal-700",
-    "Released": "bg-cyan-100 text-cyan-700",
-    "Received": "bg-emerald-100 text-emerald-700",
-    "Completed": "bg-emerald-100 text-emerald-700",
-    "Fulfilled": "bg-emerald-100 text-emerald-700",
-    "Rejected": "bg-rose-100 text-rose-700",
-    "Cancelled": "bg-brown-200 text-brown-700",
-  }
-
-  const className = colorMap[status] ?? "bg-brown-200 text-brown-700"
-
-  return <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${className}`}>{status}</span>
 }
 
 function PaginationControls({

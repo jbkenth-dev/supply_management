@@ -1,31 +1,6 @@
 import { useEffect, useState } from "react";
 import { formatDateLong } from "../lib/date";
-import {
-  MagnifyingGlassIcon,
-  PlusIcon,
-  XMarkIcon,
-  TrashIcon,
-  MinusIcon,
-} from "@heroicons/react/24/outline";
-import { api } from "../lib/api";
-import type { FacultyRequest, FacultyRequestItem } from "../types/requests";
-import type { SupplyItem } from "../types/adminInventory";
-
-type CatalogResponse = {
-  success: boolean;
-  supplies: SupplyItem[];
-  message?: string;
-};
-
-type ApprovalPersonnelItem = {
-  role: string;
-  fullName: string;
-};
-
-type ApprovalPersonnelResponse = {
-  success: boolean;
-  personnel: ApprovalPersonnelItem[];
-};
+import type { FacultyRequest } from "../types/requests";
 
 type CartItem = {
   supplyId: number | null;
@@ -52,12 +27,8 @@ export default function RequestViewModal({
   open,
   onClose,
 }: RequestViewModalProps) {
-  const [supplies, setSupplies] = useState<SupplyItem[]>([]);
   const [items, setItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [unitCostMap, setUnitCostMap] = useState<Record<number, number>>({});
 
-  // Convert FacultyRequestItem to CartItem for display
   useEffect(() => {
     const cartItems: CartItem[] = request.items.map((item) => ({
       supplyId: item.supplyId,
@@ -74,57 +45,6 @@ export default function RequestViewModal({
     }));
     setItems(cartItems);
   }, [request.items]);
-
-  // Load supplies and unit cost map (optional for view, but needed for potential edit? We'll load for completeness)
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        // Load supplies
-        const suppliesResponse = await api("/api/public-supplies.php");
-        const suppliesResult = (await suppliesResponse.json()) as CatalogResponse;
-        if (!suppliesResponse.ok || !suppliesResult.success) {
-          throw new Error(suppliesResult.message ?? "Unable to load supply catalog.");
-        }
-        if (!cancelled) {
-          setSupplies(suppliesResult.supplies ?? []);
-        }
-
-        // Load stock entries to compute latest unit cost per supply
-        const stockResponse = await api("/api/admin-stock.php");
-        const stockResult = await stockResponse.json();
-        if (stockResponse.ok && stockResult.success) {
-          const entries = stockResult.entries ?? [];
-          const map: Record<number, number> = {};
-          for (const entry of entries) {
-            const id = entry.supplyId;
-            const cost = entry.unitCost ?? 0;
-            if (!map[id]) {
-              map[id] = cost;
-            }
-          }
-          if (!cancelled) {
-            setUnitCostMap(map);
-          }
-        } else {
-          if (!cancelled) setUnitCostMap({});
-        }
-      } catch (error) {
-        if (!cancelled) {
-          console.error("Failed to load catalog for request view:", error);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    void loadData();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const grandTotal = request.grandTotal;
   const totalQuantity = request.totalQuantity;
