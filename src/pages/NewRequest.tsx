@@ -716,6 +716,7 @@ export default function NewRequest() {
           items={items}
           addCatalogItem={addCatalogItem}
           close={() => setCatalogOpen(false)}
+          unitCostMap={unitCostMap}
         />
       ) : null}
     </AppShell>
@@ -789,6 +790,7 @@ function CatalogModal({
   items,
   addCatalogItem,
   close,
+  unitCostMap,
 }: {
   loading: boolean
   search: string
@@ -797,6 +799,7 @@ function CatalogModal({
   items: CartItem[]
   addCatalogItem: (supply: SupplyItem) => void
   close: () => void
+  unitCostMap: Record<number, number>
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-brown-950/55 px-4 pt-12 backdrop-blur-sm sm:pt-24">
@@ -840,60 +843,63 @@ function CatalogModal({
                 </div>
               ))}
             </div>
-          ) : supplies.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-brown-200 bg-brown-50 py-12 text-center">
-              <MagnifyingGlassIcon className="mx-auto h-8 w-8 text-brown-300" />
-              <p className="mt-3 text-sm font-semibold text-brown-800">No supplies found</p>
-              <p className="mt-1 text-xs text-brown-500">Try a different search term.</p>
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {supplies.map((supply) => {
-                const inCart = items.some((item) => item.supplyId === supply.id)
-                const outOfStock = supply.quantityOnHand < 1
-                return (
-                  <button
-                    key={supply.id}
-                    type="button"
-                    disabled={inCart || outOfStock}
-                    onClick={() => {
-                      addCatalogItem(supply)
-                      close()
-                    }}
-                    className={`overflow-hidden rounded-2xl border text-left transition ${
-                      inCart
-                        ? "cursor-not-allowed border-brown-200 bg-brown-100"
-                        : outOfStock
-                          ? "cursor-not-allowed border-brown-100 bg-brown-50 opacity-60"
-                          : "border-brown-200 bg-white hover:border-primary-300 hover:bg-brown-50"
-                    }`}
-                  >
-                    <div className="aspect-[4/3] overflow-hidden border-b border-brown-100 bg-brown-100">
-                      <img
-                        src={supply.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
-                        alt={supply.name}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <div className="p-3">
-                      <p className="text-xs font-bold uppercase leading-tight text-brown-900">{supply.name}</p>
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        <span className="rounded-full bg-brown-100 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-brown-500">
-                          {supply.categoryName}
-                        </span>
-                        <span className="rounded-full bg-accent-100 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-primary-600">
-                          {supply.itemCode}
-                        </span>
+          ) : {
+            const displaySupplies = supplies.filter(s => (unitCostMap[s.id] ?? 0) > 0);
+            return displaySupplies.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-brown-200 bg-brown-50 py-12 text-center">
+                <MagnifyingGlassIcon className="mx-auto h-8 w-8 text-brown-300" />
+                <p className="mt-3 text-sm font-semibold text-brown-800">No supplies found</p>
+                <p className="mt-1 text-xs text-brown-500">Try a different search term.</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {displaySupplies.map((supply) => {
+                  const inCart = items.some((item) => item.supplyId === supply.id)
+                  const outOfStock = supply.quantityOnHand < 1
+                  return (
+                    <button
+                      key={supply.id}
+                      type="button"
+                      disabled={inCart || outOfStock}
+                      onClick={() => {
+                        addCatalogItem(supply)
+                        close()
+                      }}
+                      className={`overflow-hidden rounded-2xl border text-left transition ${
+                        inCart
+                          ? "cursor-not-allowed border-brown-200 bg-brown-100"
+                          : outOfStock
+                            ? "cursor-not-allowed border-brown-100 bg-brown-50 opacity-60"
+                            : "border-brown-200 bg-white hover:border-primary-300 hover:bg-brown-50"
+                      }`}
+                    >
+                      <div className="aspect-[4/3] overflow-hidden border-b border-brown-100 bg-brown-100">
+                        <img
+                          src={supply.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
+                          alt={supply.name}
+                          className="h-full w-full object-cover"
+                        />
                       </div>
-                      <p className="mt-2 text-[10px] text-brown-500">Stock: {supply.quantityOnHand}</p>
-                      {inCart ? <p className="mt-1 text-[10px] font-bold uppercase text-brown-500">Already Added</p> : null}
-                      {outOfStock ? <p className="mt-1 text-[10px] font-bold uppercase text-brown-500">Out of Stock</p> : null}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          )}
+                      <div className="p-3">
+                        <p className="text-xs font-bold uppercase leading-tight text-brown-900">{supply.name}</p>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          <span className="rounded-full bg-brown-100 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-brown-500">
+                            {supply.categoryName}
+                          </span>
+                          <span className="rounded-full bg-accent-100 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-primary-600">
+                            {supply.itemCode}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-[10px] text-brown-500">Stock: {supply.quantityOnHand}</p>
+                        {inCart ? <p className="mt-1 text-[10px] font-bold uppercase text-brown-500">Already Added</p> : null}
+                        {outOfStock ? <p className="mt-1 text-[10px] font-bold uppercase text-brown-500">Out of Stock</p> : null}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )
+          }}
         </div>
 
         <div className="border-t border-brown-200 px-4 py-3 text-right sm:px-6">
