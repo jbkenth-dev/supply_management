@@ -162,7 +162,7 @@ export default function BudgetManagement() {
                 <input
                   type="number"
                   min="100"
-                  max="100000"
+                  max="100000000"
                   step="0.01"
                   value={newAmount}
                   onChange={(e) => setNewAmount(e.target.value)}
@@ -312,7 +312,7 @@ export default function BudgetManagement() {
                             <input
                               type="number"
                               min="100"
-                              max="100000"
+                              max="100000000"
                               step="0.01"
                               value={editAmount}
                               onChange={(e) => setEditAmount(e.target.value)}
@@ -371,8 +371,8 @@ function validateAnnualBudget(value: number): string {
     return "Annual budget must be at least 100."
   }
 
-  if (value > 100000) {
-    return "Annual budget cannot exceed 100000."
+  if (value > 100000000) {
+    return "Annual budget cannot exceed 100000000."
   }
 
   return ""
