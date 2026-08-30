@@ -227,10 +227,14 @@ try {
     $pdo->beginTransaction();
 
     try {
+        // Determine approval status based on role
+        // Administrators are auto-approved, others go through approval process
+        $approvalStatus = ($pending['role'] === 'Administrator') ? 'approved' : 'pending';
+
         // Create the user in users table (is_verified=1 since they just verified)
         $insertUser = $pdo->prepare(
             'INSERT INTO users (role, id_number, firstname, middlename, lastname, username, email, password_hash, is_verified, approval_status)
-             VALUES (:role, :id_number, :firstname, :middlename, :lastname, :username, :email, :password_hash, 1, \'pending\')'
+             VALUES (:role, :id_number, :firstname, :middlename, :lastname, :username, :email, :password_hash, 1, :approval_status)'
         );
         $insertUser->execute([
             'role' => (string) $pending['role'],
@@ -241,6 +245,7 @@ try {
             'username' => (string) $pending['username'],
             'email' => (string) $pending['email'],
             'password_hash' => (string) $pending['password_hash'],
+            'approval_status' => $approvalStatus,
         ]);
 
         $newUserId = (int) $pdo->lastInsertId();
