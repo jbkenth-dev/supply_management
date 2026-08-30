@@ -286,46 +286,44 @@ export default function NewRequest() {
   }
 
   const handleDecrement = (index: number) => {
+    const item = items[index]
+    if (!item) return
+
     setItems(prev => {
-      const item = prev[index];
-      if (!item) return prev;
       const newQty = Math.max(1, item.quantity - 1);
-      if (newQty === item.quantity) return prev;
+      if (newQty === item.quantity) return prev
       return prev.map((it, i) =>
         i === index
           ? { ...it, quantity: newQty, totalAmount: newQty * it.unitCost }
           : it
-      );
-    });
+      )
+    })
     setQtyInputs(prev => {
-      const item = prev[index];
-      if (!item) return prev;
-      const newQty = Math.max(1, (parseInt(prev[index] ?? String(item.quantity),10) - 1));
-      return { ...prev, [index]: String(newQty) };
-    });
-  };
+      const newQty = Math.max(1, parseInt(prev[index] ?? String(item.quantity), 10) - 1)
+      return { ...prev, [index]: String(newQty) }
+    })
+  }
 
   const handleIncrement = (index: number) => {
+    const item = items[index]
+    if (!item) return
+
     setItems(prev => {
-      const item = prev[index];
-      if (!item) return prev;
       const max = item.maxStock ?? Infinity;
       const newQty = Math.min(max, item.quantity + 1);
-      if (newQty === item.quantity) return prev;
+      if (newQty === item.quantity) return prev
       return prev.map((it, i) =>
         i === index
           ? { ...it, quantity: newQty, totalAmount: newQty * it.unitCost }
           : it
-      );
-    });
+      )
+    })
     setQtyInputs(prev => {
-      const item = prev[index];
-      if (!item) return prev;
       const max = item.maxStock ?? Infinity;
-      const newQty = Math.min(max, (parseInt(prev[index] ?? String(item.quantity),10) + 1));
-      return { ...prev, [index]: String(newQty) };
-    });
-  };
+      const newQty = Math.min(max, parseInt(prev[index] ?? String(item.quantity), 10) + 1)
+      return { ...prev, [index]: String(newQty) }
+    })
+  }
 
   const updateUnitCost = (index: number, unitCost: number) => {
     if (unitCost < 0) return
