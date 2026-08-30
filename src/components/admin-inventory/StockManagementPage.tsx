@@ -114,6 +114,16 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
   const stockTotalPages = Math.max(1, Math.ceil(filteredSupplies.length / STOCKS_PER_PAGE))
   const entriesTotalPages = Math.max(1, Math.ceil(filteredEntries.length / ENTRIES_PER_PAGE))
 
+  const latestUnitCostMap = useMemo(() => {
+    const map: Record<number, number> = {};
+    for (const entry of entries) {
+      if (!(entry.supplyId in map)) {
+        map[entry.supplyId] = entry.unitCost;
+      }
+    }
+    return map;
+  }, [entries])
+
   const paginatedSupplies = useMemo(() => {
     const startIndex = (stockPage - 1) * STOCKS_PER_PAGE
     return filteredSupplies.slice(startIndex, startIndex + STOCKS_PER_PAGE)
@@ -150,7 +160,17 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
     }
     document.addEventListener("mousedown", handleClick)
     return () => document.removeEventListener("mousedown", handleClick)
-  }, [])
+  }, []
+
+  useEffect(() => {
+    if (form.supplyId) {
+      const id = Number(form.supplyId);
+      const cost = latestUnitCostMap[id] ?? 0;
+      setForm((prev) => ({ ...prev, unitCost: String(cost) }));
+    } else {
+      setForm((prev) => ({ ...prev, unitCost: "" }));
+    }
+  }, [form.supplyId, latestUnitCostMap])
 
   const filteredSuppliesList = useMemo(() => {
     const query = supplySearch.trim().toLowerCase()
