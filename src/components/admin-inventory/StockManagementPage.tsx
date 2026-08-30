@@ -160,7 +160,7 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
     }
     document.addEventListener("mousedown", handleClick)
     return () => document.removeEventListener("mousedown", handleClick)
-  }, []
+  }, [])
 
   useEffect(() => {
     if (form.supplyId) {
