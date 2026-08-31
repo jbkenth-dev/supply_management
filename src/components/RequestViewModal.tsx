@@ -175,7 +175,7 @@ export default function RequestViewModal({
                             </div>
                           </>
                         ) : (
-                          <div className={`relative w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium ${idx < currentIndex ? 'bg-primary-600' : 'bg-gray-200'}`}>
+                          <div className={`relative w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${idx < currentIndex ? 'bg-gray-100 text-gray-500' : 'bg-gray-200 text-gray-800'}`}>
                             {idx + 1}
                           </div>
                         )}
