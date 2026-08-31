@@ -29,6 +29,7 @@ export default function RequestViewModal({
   onClose,
 }: RequestViewModalProps) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     const cartItems: CartItem[] = request.items.map((item) => ({
@@ -136,22 +137,46 @@ export default function RequestViewModal({
         </div>
 
         <div className="px-6 py-4 sm:px-10">
-          {/* Status Progress Stepper */}
-          <div className="mb-6 flex items-center gap-2">
-            {steps.map((step, idx) => (
-              <Fragment key={idx}>
-                <div className="relative flex flex-col items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${idx < currentIndex ? 'bg-primary-600' : idx === currentIndex ? 'bg-primary-500' : 'bg-gray-200'} ${idx <= currentIndex ? 'text-white' : 'text-gray-500'}`}>
-                    {idx + 1}
+          <div className="mb-4 flex items-center gap-3">
+            {!isExpanded && (
+              <>
+                <div className="relative w-10 h-10 rounded-full flex items-center justify-center border-2 border-primary-500 animate-pulse">
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center bg-primary-600 text-white text-xs font-medium">
+                    {currentIndex + 1}
                   </div>
-                  <div className="mt-1 text-xs font-medium text-gray-600">{step.label}</div>
                 </div>
-                {idx < steps.length - 1 && (
-                  <div className={`w-8 h-0.5 ${idx < currentIndex ? 'bg-primary-600' : 'bg-gray-200'}`}></div>
-                )}
-              </Fragment>
-            ))}
+                <span className="font-medium">{steps[currentIndex]?.label ?? request.status}</span>
+              </>
+            )}
           </div>
+          {!isExpanded && (
+            <button onClick={() => setIsExpanded(true)} className="mt-2 text-xs font-semibold text-primary-600 hover:underline">
+              View More
+            </button>
+          )}
+          {isExpanded && (
+            <>
+              <div className="mb-6 flex items-center gap-2">
+                {steps.map((step, idx) => (
+                  <Fragment key={idx}>
+                    <div className="relative flex flex-col items-center">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${idx < currentIndex ? 'bg-primary-600' : idx === currentIndex ? 'bg-primary-500' : 'bg-gray-200'} ${idx <= currentIndex ? 'text-white' : 'text-gray-500'}`}>
+                        {idx + 1}
+                      </div>
+                      <div className="mt-1 text-xs font-medium text-gray-600">{step.label}</div>
+                    </div>
+                    {idx < steps.length - 1 && (
+                      <div className={`w-8 h-0.5 ${idx < currentIndex ? 'bg-primary-600' : 'bg-gray-200'}`}></div>
+                    )}
+                  </Fragment>
+                ))}
+              </div>
+              <button onClick={() => setIsExpanded(false)} className="mt-2 text-xs font-semibold text-primary-600 hover:underline">
+                View Less
+              </button>
+            </>
+          )}
+        </div>
 
           <div className="overflow-x-auto rounded-2xl border border-brown-200">
             <table className="w-full border-collapse text-xs sm:text-sm">
