@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { formatDateLong } from "../lib/date";
 import { XCircleIcon } from "@heroicons/react/24/outline";
 import type { FacultyRequest } from "../types/requests";
@@ -65,7 +65,7 @@ export default function RequestViewModal({
     { label: "Completed", value: "Completed" },
   ];
 
-  const statusToIndex = (status) => {
+  const statusToIndex = (status: FacultyRequest["status"]) => {
     const idx = steps.findIndex(s => s.value === status);
     return idx >= 0 ? idx : -1;
   };
@@ -139,7 +139,7 @@ export default function RequestViewModal({
           {/* Status Progress Stepper */}
           <div className="mb-6 flex items-center gap-2">
             {steps.map((step, idx) => (
-              <React.Fragment key={idx}>
+              <Fragment key={idx}>
                 <div className="relative flex flex-col items-center">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${idx < currentIndex ? 'bg-primary-600' : idx === currentIndex ? 'bg-primary-500' : 'bg-gray-200'} ${idx <= currentIndex ? 'text-white' : 'text-gray-500'}`}>
                     {idx + 1}
@@ -149,7 +149,7 @@ export default function RequestViewModal({
                 {idx < steps.length - 1 && (
                   <div className={`w-8 h-0.5 ${idx < currentIndex ? 'bg-primary-600' : 'bg-gray-200'}`}></div>
                 )}
-              </React.Fragment>
+              </Fragment>
             ))}
           </div>
 
