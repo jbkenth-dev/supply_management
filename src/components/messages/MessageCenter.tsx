@@ -101,6 +101,34 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
 
   const selectedContact = contacts.find((contact) => contact.id === selectedConversationUserId) ?? null
 
+  if (!authUser) {
+    const shell = isApprovalRole(role)
+      ? <ApprovalPersonnelShell>
+          <div className="flex min-h-[60vh] items-center justify-center rounded-[2rem] border border-brown-200 bg-white p-8 text-center shadow-sm">
+            <div className="max-w-md">
+              <ChatBubbleLeftRightIcon className="mx-auto h-14 w-14 text-brown-300" />
+              <p className="mt-4 text-xl font-bold text-brown-900">Please sign in to view messages</p>
+              <p className="mt-2 text-sm leading-6 text-brown-500">
+                Your session is missing, so the messaging inbox could not load.
+              </p>
+            </div>
+          </div>
+        </ApprovalPersonnelShell>
+      : <AppShell role={role}>
+          <div className="flex min-h-[60vh] items-center justify-center rounded-[2rem] border border-brown-200 bg-white p-8 text-center shadow-sm">
+            <div className="max-w-md">
+              <ChatBubbleLeftRightIcon className="mx-auto h-14 w-14 text-brown-300" />
+              <p className="mt-4 text-xl font-bold text-brown-900">Please sign in to view messages</p>
+              <p className="mt-2 text-sm leading-6 text-brown-500">
+                Your session is missing, so the messaging inbox could not load.
+              </p>
+            </div>
+          </div>
+        </AppShell>
+
+    return shell
+  }
+
   useEffect(() => {
     if (!authUser) {
       return
@@ -441,7 +469,10 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                 <div className="px-6 py-12 text-center">
                   <ChatBubbleLeftRightIcon className="mx-auto h-12 w-12 text-brown-300" />
                   <p className="mt-4 text-sm font-semibold text-brown-900">No users found</p>
-                  <p className="mt-2 text-sm text-brown-500">Create more accounts to start messaging across roles.</p>
+                  <p className="mt-2 text-sm text-brown-500">
+                    This message center now shows all user accounts, even before a conversation starts.
+                  </p>
+                  <p className="mt-1 text-xs text-brown-400">If you still do not see accounts, sign back in and refresh the page.</p>
                 </div>
               ) : (
                 filteredContacts.map((contact) => {
