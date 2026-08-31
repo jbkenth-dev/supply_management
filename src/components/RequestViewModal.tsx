@@ -142,9 +142,9 @@ export default function RequestViewModal({
               <>
                 <div className="relative w-10 h-10 flex items-center justify-center">
                   {/* Spinning border */}
-                  <div className="absolute inset-0 w-10 h-10 rounded-full border-2 border-primary-500 animate-spin"></div>
+                  <div className="absolute inset-0 w-10 h-10 rounded-full border-3 border-primary-500 animate-spin"></div>
                   {/* Number */}
-                  <div className="relative w-6 h-6 rounded-full flex items-center justify-center bg-primary-600 text-white text-xs font-medium z-10">
+                  <div className="relative w-4 h-4 flex-shrink-0 items-center justify-center bg-primary-600 text-white text-[9px] font-medium z-10">
                     {currentIndex + 1}
                   </div>
                 </div>
@@ -168,9 +168,9 @@ export default function RequestViewModal({
                         {idx === currentIndex ? (
                           <>
                             {/* Spinning border */}
-                            <div className="absolute inset-0 w-8 h-8 rounded-full border-2 border-primary-500 animate-spin"></div>
+                            <div className="absolute inset-0 w-8 h-8 rounded-full border-3 border-primary-500 animate-spin"></div>
                             {/* Number */}
-                            <div className="relative w-6 h-6 rounded-full flex items-center justify-center bg-primary-600 text-white text-xs font-medium z-10">
+                            <div className="relative w-4 h-4 flex-shrink-0 items-center justify-center bg-primary-600 text-white text-[9px] font-medium z-10">
                               {idx + 1}
                             </div>
                           </>
