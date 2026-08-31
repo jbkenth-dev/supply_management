@@ -747,7 +747,7 @@ export default function NewRequest() {
                 <thead>
                   <tr className="border-b border-brown-200 bg-brown-100">
                     {["Requested By", "Recommended By", "Checked By", "Noted By", "Approved By"].map((label) => (
-                      <th key={label} className="border-r border-brown-200 px-2 py-2 text-center font-bold uppercase tracking-wider text-brown-600 last:border-r-0">
+                      <th key={label} className="border-r border-brown-200 px-2 py-2 align-middle text-center font-bold uppercase tracking-wider text-brown-600 last:border-r-0">
                         {label}
                       </th>
                     ))}
@@ -777,7 +777,7 @@ export default function NewRequest() {
                         ? "College President"
                         : ""
                       return (
-                        <td key={label} className="border-r border-brown-200 px-2 py-4 text-center last:border-r-0">
+                        <td key={label} className="border-r border-brown-200 px-2 py-4 align-middle text-center last:border-r-0">
                           <div className="mx-auto mb-2 h-px w-3/4 border-t border-brown-300" />
                           <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Signature</p>
                           <p className="mt-3 text-[10px] sm:text-xs">{printedName}</p>
