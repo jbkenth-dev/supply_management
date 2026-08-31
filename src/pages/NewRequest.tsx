@@ -105,7 +105,7 @@ export default function NewRequest() {
     .qty-input[type=number] {
       -moz-appearance: textfield;
     }
-  `;
+  `
 
   useEffect(() => {
     let cancelled = false
@@ -557,80 +557,48 @@ export default function NewRequest() {
 
                   {items.map((item, index) => (
                     <tr key={`${item.itemCode}-${index}`} className="border-b border-brown-200">
-                      <TableCell className="w-[60px]">
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => handleDecrement(index)}
-                            disabled={item.maxStock !== null && item.quantity <= 1}
-                            className="flex h-6 w-6 items-center justify-center rounded-lg border border-brown-200 text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
-                          >
-                            <MinusIcon className="h-3 w-3" />
-                          </button>
-                          <input
-                            type="number"
-                            min={1}
-                            max={item.maxStock ?? undefined}
-                            value={qtyInputs[index] ?? String(item.quantity)}
-                            onChange={(e) => handleQtyChange(index, e.target.value)}
-                            onBlur={() => handleQtyBlur(index)}
-                            className="w-20 rounded-lg border border-brown-200 bg-white px-2 py-1 text-center text-xs font-bold text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-sm appearance-none qty-input"
-                          />
-                          <button
-                            onClick={() => handleIncrement(index)}
-                            disabled={item.maxStock !== null && item.quantity >= item.maxStock}
-                            className="flex h-6 w-6 items-center justify-center rounded-lg border border-brown-200 text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
-                          >
-                            <PlusIcon className="h-3 w-3" />
-                          </button>
-                          {item.maxStock !== null && item.quantity >= item.maxStock && (
-                            <p className="mt-[2px] text-[10px] text-rose-600">
-                              You’ve reached the available stock
-                            </p>
-                          )}
+                      <TableCell className="w-[60px] text-right">
+                        <div className="text-xs font-bold text-brown-900">
+                          {item.quantity}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col space-y-1">
-                          <img
-                            src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
-                            alt={item.name}
-                            className="h-6 w-6 object-cover rounded"
-                          />
-                          <div className="space-y-0">
-                            <p className="truncate text-xs font-semibold text-brown-900 sm:text-sm">{item.name}</p>
-                            {item.isCustom ? (
-                              <span className="inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-600">
-                                Custom
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-medium text-brown-400">{item.itemCode}</span>
-                            )}
+                        <div className="flex flex-col items-start space-y-3">
+                          <div className="flex items-start space-x-3">
+                            <img
+                              src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
+                              alt={item.name}
+                              className="h-8 w-8 object-cover rounded flex-shrink-0"
+                            />
+                            <div className="space-y-1 text-left">
+                              <p className="truncate text-xs font-semibold text-brown-900">{item.name}</p>
+                              {item.isCustom ? (
+                                <span className="inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-600">
+                                  Custom
+                                )
+                              ) : (
+                                <span className="text-[10px] font-medium text-brown-400">{item.itemCode}</span>
+                              )}
+                            </div>
                           </div>
                           <button
                             type="button"
                             onClick={() => removeItem(index)}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-brown-200 text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                            className="flex h-6 w-6 items-center justify-center rounded-lg border border-brown-200 text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
                           >
-                            <TrashIcon className="h-3.5 w-3.5" />
+                            <TrashIcon className="h-3 w-3" />
                           </button>
                         </div>
                       </TableCell>
                       <TableCell className="text-right w-[110px]">
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] font-semibold text-brown-400 sm:text-xs">₱</span>
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={item.unitCost}
-                            onChange={!item.isCustom ? undefined : (e) => updateUnitCost(index, Math.max(0, parseFloat(e.target.value) || 0))}
-                            readOnly={!item.isCustom}
-                            className="w-full rounded-lg border border-brown-200 bg-white px-2 py-1 text-right text-xs font-bold text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-sm"
-                          />
+                        <div className="text-xs font-bold text-brown-900">
+                          ₱{item.unitCost.toFixed(2)}
                         </div>
                       </TableCell>
                       <TableCell className="border-r-0 text-right text-xs font-bold text-brown-900 sm:text-sm w-[120px]">
-                        ₱{(item.quantity * item.unitCost).toFixed(2)}
+                        <div className="text-xs font-bold text-brown-900">
+                          ₱{(item.quantity * item.unitCost).toFixed(2)}
+                        </div>
                       </TableCell>
                     </tr>
                   ))}
@@ -638,21 +606,40 @@ export default function NewRequest() {
                   {items.length > 0 && items.length < 5
                     ? Array.from({ length: Math.min(5 - items.length, 3) }).map((_, i) => (
                         <tr key={`empty-${i}`} className="h-8 border-b border-brown-100">
-                          <TableCell className="w-[60px]" />
+                          <TableCell className="w-[60px] text-right" />
                           <TableCell>
-                            <div className="flex flex-col space-y-2">
-                              <img className="h-6 w-6 object-cover rounded" src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop" alt="" />
-                              <div className="space-y-1">
-                                <p className="truncate text-xs font-semibold text-brown-900 sm:text-sm"></p>
-                                <span className="text-[10px] font-medium text-brown-400"></span>
+                            <div className="flex flex-col items-start space-y-3">
+                              <div className="flex items-start space-x-3">
+                                <img
+                                  className="h-8 w-8 object-cover rounded"
+                                  src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"
+                                  alt=""
+                                  className="flex-shrink-0"
+                                />
+                                <div className="space-y-1 text-left">
+                                  <p className="truncate text-xs font-semibold text-brown-900"></p>
+                                  <span className="text-[10px] font-medium text-brown-400"></span>
+                                </div>
                               </div>
-                              <button className="disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                                <TrashIcon className="h-3.5 w-3.5" />
+                              <button
+                                type="button"
+                                onClick={() => {/* No-op for empty rows */}}
+                                className="flex h-6 w-6 items-center justify-center rounded-lg border border-brown-200 text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <TrashIcon className="h-3 w-3" />
                               </button>
                             </div>
                           </TableCell>
-                          <TableCell className="text-right w-[110px]" />
-                          <TableCell className="border-r-0 text-right w-[120px]" />
+                          <TableCell className="text-right w-[110px]">
+                            <div className="text-xs font-bold text-brown-900">
+                              -
+                            </div>
+                          </TableCell>
+                          <TableCell className="border-r-0 text-right text-xs font-bold text-brown-900 sm:text-sm w-[120px]">
+                            <div className="text-xs font-bold text-brown-900">
+                              -
+                            </div>
+                          </TableCell>
                         </tr>
                       ))
                     : null}
@@ -893,7 +880,7 @@ function NumberField({
         min={min}
         step={step}
         value={value}
-        onChange={(e) => onChange(Math.max(min, Number(e.target.value) || min))}
+        onChange={(e) => onChange(Math.min(Number(e.target.value) || min))}
         className="w-20 rounded-xl border border-brown-200 bg-white px-2 py-2 text-center text-xs text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
       />
     </label>
@@ -961,8 +948,8 @@ function CatalogModal({
                   <div className="mt-3 h-4 w-3/4 rounded-full bg-brown-200" />
                   <div className="mt-2 h-3 w-1/2 rounded-full bg-brown-100" />
                 </div>
-              ))}
-            </div>
+              ))
+            }
           ) : displaySupplies.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-brown-200 bg-brown-50 py-12 text-center">
               <MagnifyingGlassIcon className="mx-auto h-8 w-8 text-brown-300" />
@@ -999,7 +986,7 @@ function CatalogModal({
                       />
                     </div>
                     <div className="p-3">
-                      <p className="text-xs font-bold uppercase leading-tight text-brown-900">{supply.name}</p>
+                      <p className="text-xs font-bold uppercase leading-tight text-brown-900">{suppry.name}</p>
                       <div className="mt-2 flex flex-wrap gap-1">
                         <span className="rounded-full bg-brown-100 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-brown-500">
                           {supply.categoryName}
