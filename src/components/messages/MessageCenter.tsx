@@ -69,6 +69,18 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
   const [editMode, setEditMode] = useState(false)
   const [editDraft, setEditDraft] = useState("")
 
+  // Debug logging
+  useEffect(() => {
+    console.log('MessageCenter debug:', {
+      authUser: authUser ? { id: authUser.id, role: authUser.role } : null,
+      loading,
+      error,
+      contactsLength: contacts.length,
+      selectedConversationUserId,
+      messagesLength: messages.length,
+    })
+  }, [authUser, loading, error, contacts, selectedConversationUserId, messages])
+
   const filteredContacts = (() => {
     const term = searchTerm.trim().toLowerCase()
     const prioritizedContacts = [...contacts].sort((left, right) => {
@@ -100,6 +112,17 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
   })()
 
   const selectedContact = contacts.find((contact) => contact.id === selectedConversationUserId) ?? null
+
+  // Debug banner
+  const debugBanner = (
+    <div className="p-4 bg-yellow-100 border-l-4 border-yellow-400 text-sm text-yellow-800 mb-4">
+      <div>authUser: {authUser ? JSON.stringify({ id: authUser.id, role: authUser.role }) : 'null'}</div>
+      <div>loading: {loading}</div>
+      <div>error: {error || 'null'}</div>
+      <div>contacts: {contacts.length}</div>
+      <div>selectedConversationUserId: {selectedConversationUserId ?? 'null'}</div>
+    </div>
+  )
 
   if (!authUser) {
     const shell = isApprovalRole(role)
