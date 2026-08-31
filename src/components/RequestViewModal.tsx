@@ -294,7 +294,7 @@ export default function RequestViewModal({
             <table className="w-full border-collapse text-xs sm:text-sm">
               <thead>
                 <tr className="border-b border-brown-200 bg-brown-100">
-                  <th className="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[60px]">
+                  <th className="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600">
                     Qty
                   </th>
                   <th className="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600">
