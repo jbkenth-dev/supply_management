@@ -5,7 +5,6 @@ import {
   PlusIcon,
   XMarkIcon,
   TrashIcon,
-  MinusIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../layout/AppShell"
 import { MessageModal } from "../components/ui/MessageModal"
@@ -79,7 +78,6 @@ export default function NewRequest() {
   const [customName, setCustomName] = useState("")
   const [customQty, setCustomQty] = useState(1)
   const [customCost, setCustomCost] = useState(0)
-  const [qtyInputs, setQtyInputs] = useState<Record<number, string>>({})
   const [unitCostMap, setUnitCostMap] = useState<Record<number, number>>({})
   const authUser = getStoredAuthUser()
   const preselectedItemCode = searchParams.get("itemCode")?.trim().toUpperCase() ?? ""
@@ -204,17 +202,6 @@ export default function NewRequest() {
     setItems((current) => [...current, buildCatalogCartItem(preselectedSupply)])
   }, [preselectedItemCode, supplies])
 
-  useEffect(() => {
-    setQtyInputs((prev) => {
-      const next: Record<number, string> = {}
-      for (const [key, value] of Object.entries(prev)) {
-        const idx = Number(key)
-        if (idx < items.length) next[idx] = value
-      }
-      return next
-    })
-  }, [items.length])
-
   const filteredSupplies = useMemo(() => {
     const query = search.trim().toLowerCase()
     if (!query) return supplies
@@ -274,75 +261,6 @@ export default function NewRequest() {
 
   const removeItem = (index: number) => {
     setItems((current) => current.filter((_, i) => i !== index))
-  }
-
-  const handleQtyChange = (index: number, value: string) => {
-    setQtyInputs((prev) => ({ ...prev, [index]: value }))
-  }
-
-  const handleQtyBlur = (index: number) => {
-    const raw = qtyInputs[index]
-    const parsed = parseInt(raw ?? "", 10)
-    const item = items[index]
-    let quantity = isNaN(parsed) || parsed < 1 ? 1 : parsed
-    if (item.maxStock !== null) {
-      quantity = Math.min(item.maxStock, quantity)
-    }
-    setQtyInputs((prev) => ({ ...prev, [index]: String(quantity) }))
-    setItems((current) =>
-      current.map((item, i) =>
-        i === index ? { ...item, quantity, totalAmount: quantity * item.unitCost } : item
-      )
-    )
-  }
-
-  const handleDecrement = (index: number) => {
-    const item = items[index]
-    if (!item) return
-
-    setItems(prev => {
-      const newQty = Math.max(1, item.quantity - 1);
-      if (newQty === item.quantity) return prev
-      return prev.map((it, i) =>
-        i === index
-          ? { ...it, quantity: newQty, totalAmount: newQty * it.unitCost }
-          : it
-      )
-    })
-    setQtyInputs(prev => {
-      const newQty = Math.max(1, parseInt(prev[index] ?? String(item.quantity), 10) - 1)
-      return { ...prev, [index]: String(newQty) }
-    })
-  }
-
-  const handleIncrement = (index: number) => {
-    const item = items[index]
-    if (!item) return
-
-    setItems(prev => {
-      const max = item.maxStock ?? Infinity;
-      const newQty = Math.min(max, item.quantity + 1);
-      if (newQty === item.quantity) return prev
-      return prev.map((it, i) =>
-        i === index
-          ? { ...it, quantity: newQty, totalAmount: newQty * it.unitCost }
-          : it
-      )
-    })
-    setQtyInputs(prev => {
-      const max = item.maxStock ?? Infinity;
-      const newQty = Math.min(max, parseInt(prev[index] ?? String(item.quantity), 10) + 1)
-      return { ...prev, [index]: String(newQty) }
-    })
-  }
-
-  const updateUnitCost = (index: number, unitCost: number) => {
-    if (unitCost < 0) return
-    setItems((current) =>
-      current.map((item, i) =>
-        i === index ? { ...item, unitCost, totalAmount: item.quantity * unitCost } : item
-      )
-    )
   }
 
   const grandTotal = useMemo(() => {
@@ -575,7 +493,7 @@ export default function NewRequest() {
                               {item.isCustom ? (
                                 <span className="inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-600">
                                   Custom
-                                )
+                                </span>
                               ) : (
                                 <span className="text-[10px] font-medium text-brown-400">{item.itemCode}</span>
                               )}
@@ -611,10 +529,9 @@ export default function NewRequest() {
                             <div className="flex flex-col items-start space-y-3">
                               <div className="flex items-start space-x-3">
                                 <img
-                                  className="h-8 w-8 object-cover rounded"
+                                  className="h-8 w-8 flex-shrink-0 rounded object-cover"
                                   src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"
                                   alt=""
-                                  className="flex-shrink-0"
                                 />
                                 <div className="space-y-1 text-left">
                                   <p className="truncate text-xs font-semibold text-brown-900"></p>
@@ -949,7 +866,8 @@ function CatalogModal({
                   <div className="mt-2 h-3 w-1/2 rounded-full bg-brown-100" />
                 </div>
               ))
-            }
+              }
+            </div>
           ) : displaySupplies.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-brown-200 bg-brown-50 py-12 text-center">
               <MagnifyingGlassIcon className="mx-auto h-8 w-8 text-brown-300" />
@@ -986,7 +904,7 @@ function CatalogModal({
                       />
                     </div>
                     <div className="p-3">
-                      <p className="text-xs font-bold uppercase leading-tight text-brown-900">{suppry.name}</p>
+                      <p className="text-xs font-bold uppercase leading-tight text-brown-900">{supply.name}</p>
                       <div className="mt-2 flex flex-wrap gap-1">
                         <span className="rounded-full bg-brown-100 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-brown-500">
                           {supply.categoryName}
