@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { formatDateLong } from "../lib/date";
 import { XCircleIcon } from "@heroicons/react/24/outline";
 import type { FacultyRequest } from "../types/requests";
@@ -72,6 +72,24 @@ export default function RequestViewModal({
   };
 
   const currentIndex = statusToIndex(request.status);
+  const currentStatusLabel = (() => {
+    switch (request.status) {
+      case "Pending Immediate Head":
+        return "Pending — Immediate Head";
+      case "Pending Budget Officer":
+        return "Pending — Budget Officer";
+      case "Pending VP Finance":
+        return "Pending — VP Finance";
+      case "Pending College President":
+        return "Pending — College President";
+      case "Waiting Purchase":
+        return "Waiting — Purchase";
+      case "Ready for Release":
+        return "Ready — Release";
+      default:
+        return request.status;
+    }
+  })();
 
   const handleClose = () => {
     onClose();
@@ -136,62 +154,114 @@ export default function RequestViewModal({
           </div>
         </div>
 
-        <div className="px-6 py-4 sm:px-10">
-          <div className="mb-4 flex items-center gap-3">
-            {!isExpanded && (
-              <>
-                <div className="relative w-10 h-10 flex items-center justify-center">
-                  {/* Spinning border */}
-                  <div className="absolute inset-0 w-10 h-10 rounded-full border-3 border-primary-500 animate-spin"></div>
-                  {/* Number */}
-                  <div className="relative w-4 h-4 rounded-full flex-shrink-0 items-center justify-center bg-primary-600 text-white text-[9px] font-medium z-10">
-                    {currentIndex + 1}
+        <div className="border-b border-brown-200 bg-brown-50/60 px-6 py-4 sm:px-10">
+          {!isExpanded ? (
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-center gap-4">
+                <div className="status-orbit-shell shrink-0">
+                  <span className="status-orbit-ring" />
+                  <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-base font-black text-white shadow-sm ring-4 ring-white">
+                    {Math.max(currentIndex + 1, 1)}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brown-500">Current status</p>
+                  <p className="mt-1 text-base font-bold tracking-tight text-brown-900 sm:text-lg">
+                    {currentStatusLabel}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                aria-expanded={isExpanded}
+                onClick={() => setIsExpanded(true)}
+                className="inline-flex items-center justify-center rounded-full border border-primary-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-primary-700 transition hover:border-primary-300 hover:bg-primary-50"
+              >
+                View More
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-4">
+                  <div className="status-orbit-shell shrink-0">
+                    <span className="status-orbit-ring" />
+                    <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-base font-black text-white shadow-sm ring-4 ring-white">
+                      {Math.max(currentIndex + 1, 1)}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brown-500">Current status</p>
+                    <p className="mt-1 text-base font-bold tracking-tight text-brown-900 sm:text-lg">
+                      {currentStatusLabel}
+                    </p>
                   </div>
                 </div>
-                <span className="font-medium">{steps[currentIndex]?.label ?? request.status}</span>
-              </>
-            )}
-          </div>
-          {!isExpanded && (
-            <button onClick={() => setIsExpanded(true)} className="mt-2 text-xs font-semibold text-primary-600 hover:underline">
-              View More
-            </button>
-          )}
-          {isExpanded && (
-            <>
-              <div className="relative pl-4">
-                <div className="absolute left-0 top-0 h-full w-0.5 bg-primary-200" />
-                {steps.map((step, idx) => (
-                  <Fragment key={idx}>
-                    <div className="flex items-start mb-6">
-                      <div className="relative w-8 h-8 flex-shrink-0 left-[-3.5px]">
-                        {idx === currentIndex ? (
-                          <>
-                            {/* Spinning border */}
-                            <div className="absolute inset-0 w-8 h-8 rounded-full border-3 border-primary-500 animate-spin"></div>
-                            {/* Number */}
-                            <div className="relative w-4 h-4 rounded-full flex-shrink-0 items-center justify-center bg-primary-600 text-white text-[9px] font-medium z-10">
-                              {idx + 1}
-                            </div>
-                          </>
-                        ) : (
-                          <div className={`relative w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${idx < currentIndex ? 'bg-gray-100 text-gray-500' : 'bg-gray-200 text-gray-800'}`}>
-                            {idx + 1}
-                          </div>
-                        )}
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-sm font-medium text-gray-700">{step.label}</p>
-                      </div>
-                    </div>
-                  </Fragment>
-                ))}
+                <button
+                  type="button"
+                  aria-expanded={isExpanded}
+                  onClick={() => setIsExpanded(false)}
+                  className="inline-flex items-center justify-center rounded-full border border-primary-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-primary-700 transition hover:border-primary-300 hover:bg-primary-50"
+                >
+                  View Less
+                </button>
               </div>
-              <button onClick={() => setIsExpanded(false)} className="mt-4 text-xs font-semibold text-primary-600 hover:underline">
-                View Less
-              </button>
+
+              <div className="relative ml-2 pt-2">
+                <div className="absolute left-[17px] top-2 h-[calc(100%-0.75rem)] w-px bg-brown-200" aria-hidden="true" />
+                <div className="space-y-4">
+                  {steps.map((step, idx) => {
+                    const isCurrent = idx === currentIndex;
+                    const isCompleted = idx < currentIndex;
+                    const isUpcoming = idx > currentIndex;
+
+                    return (
+                      <div key={step.value} className="relative flex items-start gap-3">
+                        <div className="relative z-10 mt-0.5 flex h-8 w-8 items-center justify-center shrink-0 rounded-full border bg-white shadow-sm">
+                          {isCurrent ? (
+                            <div className="status-orbit-shell h-8 w-8">
+                              <span className="status-orbit-ring ring-1 ring-primary-200" />
+                              <span className="relative flex h-5 w-5 items-center justify-center rounded-full bg-primary-600 text-[10px] font-bold text-white">
+                                {idx + 1}
+                              </span>
+                            </div>
+                          ) : (
+                            <span
+                              className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
+                                isCompleted
+                                  ? "bg-brown-200 text-brown-600"
+                                  : isUpcoming
+                                    ? "bg-brown-100 text-brown-400"
+                                    : "bg-primary-100 text-primary-700"
+                              }`}
+                            >
+                              {idx + 1}
+                            </span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1 pt-0.5">
+                          <p
+                            className={`text-sm font-semibold ${
+                              isCurrent
+                                ? "text-brown-900"
+                                : isCompleted
+                                  ? "text-brown-500"
+                                  : "text-brown-400"
+                            }`}
+                          >
+                            {step.label}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </>
           )}
+        </div>
+
+        <div className="px-6 py-4 sm:px-10">
 
           <div className="overflow-x-auto rounded-2xl border border-brown-200">
             <table className="w-full border-collapse text-xs sm:text-sm">

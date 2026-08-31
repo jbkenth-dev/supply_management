@@ -68,6 +68,33 @@ body {
   }
 }
 
+@keyframes statusOrbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.status-orbit-shell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-orbit-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  border: 2px solid rgba(139, 94, 60, 0.14);
+  border-top-color: rgba(139, 94, 60, 0.95);
+  border-right-color: rgba(212, 196, 179, 0.9);
+  animation: statusOrbit 2.8s linear infinite;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
 .animate-fade-in-down {
   animation: fadeInDown 1s ease-out;
 }
