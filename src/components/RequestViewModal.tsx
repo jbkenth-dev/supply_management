@@ -51,6 +51,27 @@ export default function RequestViewModal({
   const totalQuantity = request.totalQuantity;
   const totalItems = request.totalItems;
 
+  const steps = [
+    { label: "Pending Immediate Head", value: "Pending Immediate Head" },
+    { label: "Pending Budget Officer", value: "Pending Budget Officer" },
+    { label: "Pending VP Finance", value: "Pending VP Finance" },
+    { label: "Pending College President", value: "Pending College President" },
+    { label: "Approved", value: "Approved" },
+    { label: "Waiting Purchase", value: "Waiting Purchase" },
+    { label: "Purchased", value: "Purchased" },
+    { label: "Ready for Release", value: "Ready for Release" },
+    { label: "Released", value: "Released" },
+    { label: "Received", value: "Received" },
+    { label: "Completed", value: "Completed" },
+  ];
+
+  const statusToIndex = (status) => {
+    const idx = steps.findIndex(s => s.value === status);
+    return idx >= 0 ? idx : -1;
+  };
+
+  const currentIndex = statusToIndex(request.status);
+
   const handleClose = () => {
     onClose();
   };
@@ -115,6 +136,23 @@ export default function RequestViewModal({
         </div>
 
         <div className="px-6 py-4 sm:px-10">
+          {/* Status Progress Stepper */}
+          <div className="mb-6 flex items-center gap-2">
+            {steps.map((step, idx) => (
+              <React.Fragment key={idx}>
+                <div className="relative flex flex-col items-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${idx < currentIndex ? 'bg-primary-600' : idx === currentIndex ? 'bg-primary-500' : 'bg-gray-200'} ${idx <= currentIndex ? 'text-white' : 'text-gray-500'}`}>
+                    {idx + 1}
+                  </div>
+                  <div className="mt-1 text-xs font-medium text-gray-600">{step.label}</div>
+                </div>
+                {idx < steps.length - 1 && (
+                  <div className={`w-8 h-0.5 ${idx < currentIndex ? 'bg-primary-600' : 'bg-gray-200'}`}></div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+
           <div className="overflow-x-auto rounded-2xl border border-brown-200">
             <table className="w-full border-collapse text-xs sm:text-sm">
               <thead>
