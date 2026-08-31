@@ -113,17 +113,6 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
 
   const selectedContact = contacts.find((contact) => contact.id === selectedConversationUserId) ?? null
 
-  // Debug banner
-  const debugBanner = (
-    <div className="p-4 bg-yellow-100 border-l-4 border-yellow-400 text-sm text-yellow-800 mb-4">
-      <div>authUser: {authUser ? JSON.stringify({ id: authUser.id, role: authUser.role }) : 'null'}</div>
-      <div>loading: {loading}</div>
-      <div>error: {error || 'null'}</div>
-      <div>contacts: {contacts.length}</div>
-      <div>selectedConversationUserId: {selectedConversationUserId ?? 'null'}</div>
-    </div>
-  )
-
   if (!authUser) {
     const shell = isApprovalRole(role)
       ? <ApprovalPersonnelShell>
@@ -450,307 +439,308 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
     isApprovalRole(role) ? (
       <ApprovalPersonnelShell>
         <div className="overflow-hidden rounded-[2rem] border border-brown-200 bg-white shadow-sm">
-        <div className="border-b border-brown-200 bg-brown-50/70 px-6 py-5">
-          <div className="lg:hidden flex items-center gap-3">
-            {!showMobileChat && (
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Message Center</p>
-            )}
-          </div>
-          <p className="hidden lg:block text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Message Center</p>
-        </div>
-
-        <div className="grid min-h-[72vh] lg:grid-cols-[22rem_minmax(0,1fr)]">
-          <aside className={`border-b border-brown-200 bg-white lg:border-b-0 lg:border-r ${showMobileChat ? 'hidden' : 'block'} lg:block`}>
-            <div className="border-b border-brown-100 p-4">
-              <div className="relative">
-                <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-brown-400" />
-                <input
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Search users"
-                  className="w-full rounded-2xl border border-brown-200 bg-brown-50 py-3 pl-10 pr-4 text-sm text-brown-900 outline-none transition focus:border-primary-500 focus:bg-white focus:ring-2 focus:ring-primary-500/20"
-                />
-              </div>
+          <div className="border-b border-brown-200 bg-brown-50/70 px-6 py-5">
+            <div className="lg:hidden flex items-center gap-3">
+              {!showMobileChat && (
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Message Center</p>
+              )}
             </div>
+            <p className="hidden lg:block text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Message Center</p>
+          </div>
 
-            <div className="max-h-[65vh] overflow-y-auto lg:max-h-[calc(72vh-81px)]">
-              {loading ? (
-                <div className="space-y-3 p-4">
-                  {Array.from({ length: 6 }).map((_, index) => (
-                    <div key={index} className="animate-pulse rounded-2xl border border-brown-100 p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-11 w-11 rounded-full bg-brown-200" />
-                        <div className="flex-1 space-y-2">
-                          <div className="h-4 w-32 rounded-full bg-brown-200" />
-                          <div className="h-3 w-40 rounded-full bg-brown-100" />
+          <div className="grid min-h-[72vh] lg:grid-cols-[22rem_minmax(0,1fr)]">
+            <aside className={`border-b border-brown-200 bg-white lg:border-b-0 lg:border-r ${showMobileChat ? 'hidden' : 'block'} lg:block`}>
+              <div className="border-b border-brown-100 p-4">
+                <div className="relative">
+                  <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-brown-400" />
+                  <input
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="Search users"
+                    className="w-full rounded-2xl border border-brown-200 bg-brown-50 py-3 pl-10 pr-4 text-sm text-brown-900 outline-none transition focus:border-primary-500 focus:bg-white focus:ring-2 focus:ring-primary-500/20"
+                  />
+                </div>
+              </div>
+
+              <div className="max-h-[65vh] overflow-y-auto lg:max-h-[calc(72vh-81px)]">
+                {loading ? (
+                  <div className="space-y-3 p-4">
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <div key={index} className="animate-pulse rounded-2xl border border-brown-100 p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-11 w-11 rounded-full bg-brown-200" />
+                          <div className="flex-1 space-y-2">
+                            <div className="h-4 w-32 rounded-full bg-brown-200" />
+                            <div className="h-3 w-40 rounded-full bg-brown-100" />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : error ? (
-                <div className="p-4 bg-red-50 text-red-500 rounded-lg">
-                  <p className="text-sm font-medium text-red-700">{error}</p>
-                </div>
-              ) : filteredContacts.length === 0 ? (
-                <div className="px-6 py-12 text-center">
-                  <ChatBubbleLeftRightIcon className="mx-auto h-12 w-12 text-brown-300" />
-                  <p className="mt-4 text-sm font-semibold text-brown-900">No users found</p>
-                  <p className="mt-2 text-sm text-brown-500">
-                    This message center now shows all user accounts, even before a conversation starts.
-                  </p>
-                  <p className="mt-1 text-xs text-brown-400">If you still do not see accounts, sign back in and refresh the page.</p>
-                </div>
-              ) : (
-                filteredContacts.map((contact) => {
-                  const isActive = contact.id === selectedConversationUserId
+                    ))}
+                  </div>
+                ) : error ? (
+                  <div className="p-4 bg-red-50 text-red-500 rounded-lg">
+                    <p className="text-sm font-medium text-red-700">{error}</p>
+                  </div>
+                ) : filteredContacts.length === 0 ? (
+                  <div className="px-6 py-12 text-center">
+                    <ChatBubbleLeftRightIcon className="mx-auto h-12 w-12 text-brown-300" />
+                    <p className="mt-4 text-sm font-semibold text-brown-900">No users found</p>
+                    <p className="mt-2 text-sm text-brown-500">
+                      This message center now shows all user accounts, even before a conversation starts.
+                    </p>
+                    <p className="mt-1 text-xs text-brown-400">If you still do not see accounts, sign back in and refresh the page.</p>
+                  </div>
+                ) : (
+                  filteredContacts.map((contact) => {
+                    const isActive = contact.id === selectedConversationUserId
 
-                  return (
-                    <button
-                      key={contact.id}
-                      type="button"
-                      onClick={() => handleSelectConversation(contact.id)}
-                      className={`block w-full border-b border-brown-100 px-4 py-4 text-left transition hover:bg-brown-50 ${
-                        isActive ? "bg-primary-50/70" : "bg-white"
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <Avatar contact={contact} />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className={`truncate text-sm font-bold ${isActive ? "text-primary-700" : "text-brown-900"}`}>
-                                {contact.name}
-                              </p>
-                              <p className="mt-0.5 text-xs font-medium text-brown-500">{contact.role}</p>
+                    return (
+                      <button
+                        key={contact.id}
+                        type="button"
+                        onClick={() => handleSelectConversation(contact.id)}
+                        className={`block w-full border-b border-brown-100 px-4 py-4 text-left transition hover:bg-brown-50 ${
+                          isActive ? "bg-primary-50/70" : "bg-white"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <Avatar contact={contact} />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className={`truncate text-sm font-bold ${isActive ? "text-primary-700" : "text-brown-900"}`}>
+                                  {contact.name}
+                                </p>
+                                <p className="mt-0.5 text-xs font-medium text-brown-500">{contact.role}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[11px] font-medium text-brown-400">
+                                  {formatContactTime(contact.lastMessageAt)}
+                                </p>
+                                {contact.unreadCount > 0 ? (
+                                  <span className="mt-1 inline-flex min-w-6 items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                                    {contact.unreadCount}
+                                  </span>
+                                ) : null}
+                              </div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-[11px] font-medium text-brown-400">
-                                {formatContactTime(contact.lastMessageAt)}
-                              </p>
-                              {contact.unreadCount > 0 ? (
-                                <span className="mt-1 inline-flex min-w-6 items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">
-                                  {contact.unreadCount}
-                                </span>
-                              ) : null}
-                            </div>
+                            <p className="mt-2 truncate text-xs text-brown-500">
+                              <span className={contact.unreadCount > 0 ? "font-bold text-brown-900" : ""}>
+                                {contact.lastMessage ?? `Start a conversation with ${contact.name}.`}
+                              </span>
+                            </p>
                           </div>
-                          <p className="mt-2 truncate text-xs text-brown-500">
-                            <span className={contact.unreadCount > 0 ? "font-bold text-brown-900" : ""}>
-                              {contact.lastMessage ?? `Start a conversation with ${contact.name}.`}
-                            </span>
+                        </div>
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+            </aside>
+
+            <section className={`flex h-[78vh] min-h-[55vh] flex-col bg-brown-50/60 ${!showMobileChat ? 'hidden' : 'flex'} lg:flex`}>
+              {selectedContact ? (
+                <>
+                  <div className="flex items-center gap-3 border-b border-brown-200 bg-white px-4 py-4 sm:px-6">
+                    <button type="button" onClick={handleBack} className="lg:hidden flex items-center justify-center h-8 w-8 -ml-1 rounded-xl hover:bg-brown-50 transition-colors">
+                      <ChevronLeftIcon className="h-5 w-5 text-brown-700" />
+                    </button>
+                    <Avatar contact={selectedContact} />
+                    <div className="min-w-0">
+                      <p className="truncate text-base font-bold text-brown-900">{selectedContact.name}</p>
+                      <p className="text-sm text-brown-500">{selectedContact.role}</p>
+                    </div>
+                  </div>
+
+                  <div ref={messagesViewportRef} className="h-full flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6">
+                    {messages.length === 0 ? (
+                      <div className="flex h-full min-h-64 items-center justify-center">
+                        <div className="max-w-sm rounded-[2rem] border border-dashed border-brown-300 bg-white px-6 py-10 text-center">
+                          <ChatBubbleLeftRightIcon className="mx-auto h-12 w-12 text-brown-300" />
+                          <p className="mt-4 text-sm font-semibold text-brown-900">No messages yet</p>
+                          <p className="mt-2 text-sm text-brown-500">
+                            Send the first message to begin this conversation.
                           </p>
                         </div>
                       </div>
-                    </button>
-                  )
-                })
-              )}
-            </div>
-          </aside>
+                    ) : (
+                      messages.map((message) => {
+                        const isCurrentUser = message.senderUserId === authUser?.id
+                        const showReadAvatar = isCurrentUser && message.id === latestReadMessageId
 
-          <section className={`flex h-[78vh] min-h-[55vh] flex-col bg-brown-50/60 ${!showMobileChat ? 'hidden' : 'flex'} lg:flex`}>
-            {selectedContact ? (
-              <>
-                <div className="flex items-center gap-3 border-b border-brown-200 bg-white px-4 py-4 sm:px-6">
-                  <button type="button" onClick={handleBack} className="lg:hidden flex items-center justify-center h-8 w-8 -ml-1 rounded-xl hover:bg-brown-50 transition-colors">
-                    <ChevronLeftIcon className="h-5 w-5 text-brown-700" />
-                  </button>
-                  <Avatar contact={selectedContact} />
-                  <div className="min-w-0">
-                    <p className="truncate text-base font-bold text-brown-900">{selectedContact.name}</p>
-                    <p className="text-sm text-brown-500">{selectedContact.role}</p>
-                  </div>
-                </div>
+                        return (
+                          <motion.div
+                            key={message.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                          >
+                            <div className={`inline-flex max-w-[78%] flex-col ${isCurrentUser ? "items-end" : "items-start"}`}>
+                              {(() => {
+                                const isUnsent = message.isUnsent ?? false
+                                const canEdit = isCurrentUser && !isUnsent
+                                const innerClassName = `rounded-[1.5rem] px-4 py-3 text-sm leading-6 shadow-sm ${
+                                  isCurrentUser
+                                    ? isUnsent
+                                      ? "rounded-br-md bg-primary-200 text-brown-400"
+                                      : "rounded-br-md bg-primary-600 text-white"
+                                    : isUnsent
+                                      ? "rounded-bl-md border border-brown-200 bg-white text-brown-400"
+                                      : "rounded-bl-md border border-brown-200 bg-white text-brown-700"
+                                }${canEdit ? " cursor-pointer" : ""}${isUnsent ? " pointer-events-none" : ""}`
 
-                <div ref={messagesViewportRef} className="h-full flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6">
-                  {messages.length === 0 ? (
-                    <div className="flex h-full min-h-64 items-center justify-center">
-                      <div className="max-w-sm rounded-[2rem] border border-dashed border-brown-300 bg-white px-6 py-10 text-center">
-                        <ChatBubbleLeftRightIcon className="mx-auto h-12 w-12 text-brown-300" />
-                        <p className="mt-4 text-sm font-semibold text-brown-900">No messages yet</p>
-                        <p className="mt-2 text-sm text-brown-500">
-                          Send the first message to begin this conversation.
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    messages.map((message) => {
-                      const isCurrentUser = message.senderUserId === authUser?.id
-                      const showReadAvatar = isCurrentUser && message.id === latestReadMessageId
-
-                      return (
-                        <motion.div
-                          key={message.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
-                        >
-                          <div className={`inline-flex max-w-[78%] flex-col ${isCurrentUser ? "items-end" : "items-start"}`}>
-                            {(() => {
-                              const isUnsent = message.isUnsent ?? false;
-                              const canEdit = isCurrentUser && !isUnsent;
-                              const innerClassName = `rounded-[1.5rem] px-4 py-3 text-sm leading-6 shadow-sm ${
-                                isCurrentUser
-                                  ? isUnsent
-                                    ? "rounded-br-md bg-primary-200 text-brown-400"
-                                    : "rounded-br-md bg-primary-600 text-white"
-                                  : isUnsent
-                                    ? "rounded-bl-md border border-brown-200 bg-white text-brown-400"
-                                    : "rounded-bl-md border border-brown-200 bg-white text-brown-700"
-                              }${canEdit ? " cursor-pointer" : ""}${isUnsent ? " pointer-events-none" : ""}`;
-                              return (
-                                <div
-                                  onClick={canEdit ? () => {
-    setSelectedMessageId(message.id);
-    setEditDraft(message.body);
-} : undefined}
-                                  className={innerClassName}
-                                >
-                                  {message.body}
-                                </div>
-                              );
-                            })()}
-                            <div
-                              className={`mt-1 flex items-center gap-2 px-1 ${
-                                isCurrentUser ? "self-end justify-end" : "self-start justify-start"
-                              }`}
-                            >
-                              <p className="text-[11px] font-medium text-brown-400">
-                                {formatMessageDate(message.createdAt)}
-                                {isCurrentUser && !message.isRead && ! (message.isUnsent ?? false) ? " - Sent" : ""}
-                              </p>
-                              {showReadAvatar && selectedContact ? (
-                                <div
-                                  className="flex h-4 w-4 items-center justify-center overflow-hidden rounded-full border border-brown-200 bg-white"
-                                  title={`${selectedContact.name} has read this message`}
-                                >
-                                  {selectedContact.profileImageUrl ? (
-                                    <img
-                                      src={selectedContact.profileImageUrl}
-                                      alt={selectedContact.name}
-                                      className="h-full w-full object-cover"
-                                    />
-                                  ) : (
-                                    <UserCircleIcon className="h-2.5 w-2.5 text-brown-400" />
-                                  )}
-                                </div>
-                              ) : null}
+                                return (
+                                  <div
+                                    onClick={canEdit ? () => {
+                                      setSelectedMessageId(message.id)
+                                      setEditDraft(message.body)
+                                    } : undefined}
+                                    className={innerClassName}
+                                  >
+                                    {message.body}
+                                  </div>
+                                )
+                              })()}
+                              <div
+                                className={`mt-1 flex items-center gap-2 px-1 ${
+                                  isCurrentUser ? "self-end justify-end" : "self-start justify-start"
+                                }`}
+                              >
+                                <p className="text-[11px] font-medium text-brown-400">
+                                  {formatMessageDate(message.createdAt)}
+                                  {isCurrentUser && !message.isRead && !(message.isUnsent ?? false) ? " - Sent" : ""}
+                                </p>
+                                {showReadAvatar && selectedContact ? (
+                                  <div
+                                    className="flex h-4 w-4 items-center justify-center overflow-hidden rounded-full border border-brown-200 bg-white"
+                                    title={`${selectedContact.name} has read this message`}
+                                  >
+                                    {selectedContact.profileImageUrl ? (
+                                      <img
+                                        src={selectedContact.profileImageUrl}
+                                        alt={selectedContact.name}
+                                        className="h-full w-full object-cover"
+                                      />
+                                    ) : (
+                                      <UserCircleIcon className="h-2.5 w-2.5 text-brown-400" />
+                                    )}
+                                  </div>
+                                ) : null}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )
+                      })
+                    )}
+                    {isContactTyping && selectedContact ? (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex justify-start"
+                      >
+                        <div className="flex max-w-[78%] items-end gap-3">
+                          <Avatar contact={selectedContact} />
+                          <div className="rounded-[1.5rem] rounded-bl-md border border-brown-200 bg-white px-4 py-3 shadow-sm">
+                            <div className="flex items-center gap-1">
+                              <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400 [animation-delay:-0.2s]" />
+                              <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400 [animation-delay:-0.1s]" />
+                              <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400" />
                             </div>
                           </div>
-                        </motion.div>
-                      )
-                    })
-                  )}
-                  {isContactTyping && selectedContact ? (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex justify-start"
-                    >
-                      <div className="flex max-w-[78%] items-end gap-3">
-                        <Avatar contact={selectedContact} />
-                        <div className="rounded-[1.5rem] rounded-bl-md border border-brown-200 bg-white px-4 py-3 shadow-sm">
-                          <div className="flex items-center gap-1">
-                            <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400 [animation-delay:-0.2s]" />
-                            <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400 [animation-delay:-0.1s]" />
-                            <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400" />
-                          </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  ) : null}
-                </div>
+                      </motion.div>
+                    ) : null}
+                  </div>
 
-                <div className="border-t border-brown-200 bg-white p-4 sm:p-5">
-                  <form onSubmit={handleSendMessage} className="space-y-3">
-                    <div className="flex items-end gap-3">
-                      <textarea
-                        value={draft}
-                        onChange={(event) => setDraft(event.target.value)}
-                        placeholder={`Message ${selectedContact.name}`}
-                        rows={3}
-                        className="min-h-[56px] flex-1 rounded-[1.5rem] border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 outline-none transition focus:border-primary-500 focus:bg-white focus:ring-2 focus:ring-primary-500/20"
-                      />
-                      <button
-                        type="submit"
-                        disabled={sending || !draft.trim()}
-                        className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-lg shadow-primary-500/20 transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-brown-300 disabled:shadow-none"
-                      >
-                        <PaperAirplaneIcon className="h-5 w-5" />
-                      </button>
-                    </div>
-                    {error ? <p className="text-sm font-medium text-rose-600">{error}</p> : null}
-                  </form>
+                  <div className="border-t border-brown-200 bg-white p-4 sm:p-5">
+                    <form onSubmit={handleSendMessage} className="space-y-3">
+                      <div className="flex items-end gap-3">
+                        <textarea
+                          value={draft}
+                          onChange={(event) => setDraft(event.target.value)}
+                          placeholder={`Message ${selectedContact.name}`}
+                          rows={3}
+                          className="min-h-[56px] flex-1 rounded-[1.5rem] border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 outline-none transition focus:border-primary-500 focus:bg-white focus:ring-2 focus:ring-primary-500/20"
+                        />
+                        <button
+                          type="submit"
+                          disabled={sending || !draft.trim()}
+                          className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-lg shadow-primary-500/20 transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-brown-300 disabled:shadow-none"
+                        >
+                          <PaperAirplaneIcon className="h-5 w-5" />
+                        </button>
+                      </div>
+                      {error ? <p className="text-sm font-medium text-rose-600">{error}</p> : null}
+                    </form>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-1 items-center justify-center px-6">
+                  <div className="max-w-md text-center">
+                    <ChatBubbleLeftRightIcon className="mx-auto h-14 w-14 text-brown-300" />
+                    <p className="mt-4 text-lg font-bold text-brown-900">Choose a conversation</p>
+                    <p className="mt-2 text-sm leading-6 text-brown-500">
+                      Select a faculty, custodian, or admin account from the left panel to view and send live messages.
+                    </p>
+                    {error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}
+                  </div>
                 </div>
-              </>
-            ) : (
-              <div className="flex flex-1 items-center justify-center px-6">
-                <div className="max-w-md text-center">
-                  <ChatBubbleLeftRightIcon className="mx-auto h-14 w-14 text-brown-300" />
-                  <p className="mt-4 text-lg font-bold text-brown-900">Choose a conversation</p>
-                  <p className="mt-2 text-sm leading-6 text-brown-500">
-                    Select a faculty, custodian, or admin account from the left panel to view and send live messages.
-                  </p>
-                  {error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}
+              )}
+            </section>
+            {selectedMessageId !== null && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={handleCloseModal}>
+                <div className="w-full max-w-md rounded-xl bg-white p-6 space-y-4" onClick={e => e.stopPropagation()}>
+                  {!editMode ? (
+                    <>
+                      <p className="mb-4">{selectedMessageId ? (messages.find(m => m.id === selectedMessageId)?.body ?? '') : ''}</p>
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          onClick={() => setEditMode(true)}
+                          className="inline-flex items-center px-4 py-2 bg-brown-500 text-white rounded-md hover:bg-brown-600"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (selectedMessageId) {
+                              await handleUnsend(selectedMessageId)
+                            }
+                          }}
+                          className="inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                        >
+                          Unsend
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <textarea
+                        value={editDraft}
+                        onChange={(e) => setEditDraft(e.target.value)}
+                        className="w-full h-24 rounded-border border-brown-200 bg-brown-50 px-3 py-2 text-brown-900 focus:border-primary-500 focus:outline-none"
+                        placeholder="Edit message..."
+                      />
+                      <div className="flex justify-end space-x-3 mt-2">
+                        <button
+                          onClick={handleCancelEdit}
+                          className="inline-flex items-center px-4 py-2 bg-brown-300 text-white rounded-md hover:bg-brown-400"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleSaveEdit}
+                          className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             )}
-          </section>
-          {selectedMessageId !== null && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={handleCloseModal}>
-              <div className="w-full max-w-md rounded-xl bg-white p-6 space-y-4" onClick={e => e.stopPropagation()} >
-                {!editMode ? (
-                  <>
-                    <p className="mb-4">{selectedMessageId ? (messages.find(m => m.id === selectedMessageId)?.body ?? '') : ''}</p>
-                    <div className="flex justify-end space-x-3">
-                      <button
-                        onClick={() => setEditMode(true)}
-                        className="inline-flex items-center px-4 py-2 bg-brown-500 text-white rounded-md hover:bg-brown-600"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={async () => {
-                          if (selectedMessageId) {
-                            await handleUnsend(selectedMessageId);
-                          }
-                        }}
-                        className="inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                      >
-                        Unsend
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <textarea
-                      value={editDraft}
-                      onChange={(e) => setEditDraft(e.target.value)}
-                      className="w-full h-24 rounded-border border-brown-200 bg-brown-50 px-3 py-2 text-brown-900 focus:border-primary-500 focus:outline-none"
-                      placeholder="Edit message..."
-                    />
-                    <div className="flex justify-end space-x-3 mt-2">
-                      <button
-                        onClick={handleCancelEdit}
-                        className="inline-flex items-center px-4 py-2 bg-brown-300 text-white rounded-md hover:bg-brown-400"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleSaveEdit}
-                        className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-                      >
-                        Save
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
       </ApprovalPersonnelShell>
     ) : (
       <AppShell role={role}>
@@ -790,7 +780,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                             <div className="h-3 w-40 rounded-full bg-brown-100" />
                           </div>
                         </div>
-                      )
+                      </div>
                     ))}
                   </div>
                 ) : error ? (
@@ -824,7 +814,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
-                                <p className={`truncate text-sm font-bold ${isActive ? "text-primary-700" : "text-brown-900`}">
+                                <p className={`truncate text-sm font-bold ${isActive ? "text-primary-700" : "text-brown-900"}`}>
                                   {contact.name}
                                 </p>
                                 <p className="mt-0.5 text-xs font-medium text-brown-500">{contact.role}</p>
@@ -835,7 +825,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                                 </p>
                                 {contact.unreadCount > 0 ? (
                                   <span className="mt-1 inline-flex min-w-6 items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">
-                                    {contact.unsendCount}
+                                    {contact.unreadCount}
                                   </span>
                                 ) : null}
                               </div>
@@ -864,19 +854,21 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                     <Avatar contact={selectedContact} />
                     <div className="min-w-0">
                       <p className="truncate text-base font-bold text-brown-900">{selectedContact.name}</p>
-                      <p className="text-sm text-brown-500}>{selectedContact.role}</p>
+                      <p className="text-sm text-brown-500">{selectedContact.role}</p>
                     </div>
                   </div>
 
                   <div ref={messagesViewportRef} className="h-full flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6">
                     {messages.length === 0 ? (
-                      <div className="flex h-full min-h-64 items-center justify-center>
-                        <div className="max-w-sm rounded-[2rem] border border-dashed border-brown-300 bg-white px-6 py-10 text-center>
-                          <ChatBubbleLeftRightIcon className="mx-auto h-12 w-12 text-brown-300</div>
-                          <p className="mt-4 text-sm font-semibold text-brown-900>No messages yet</p>
-                          <p className="mt-2 text-sm text-brown-500>Send the first message to begin this conversation.</p>
+                      <div className="flex h-full min-h-64 items-center justify-center">
+                        <div className="max-w-sm rounded-[2rem] border border-dashed border-brown-300 bg-white px-6 py-10 text-center">
+                          <ChatBubbleLeftRightIcon className="mx-auto h-12 w-12 text-brown-300" />
+                          <p className="mt-4 text-sm font-semibold text-brown-900">No messages yet</p>
+                          <p className="mt-2 text-sm text-brown-500">
+                            Send the first message to begin this conversation.
+                          </p>
                         </div>
-                      )
+                      </div>
                     ) : (
                       messages.map((message) => {
                         const isCurrentUser = message.senderUserId === authUser?.id
@@ -891,8 +883,8 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                           >
                             <div className={`inline-flex max-w-[78%] flex-col ${isCurrentUser ? "items-end" : "items-start"}`}>
                               {(() => {
-                                const isUnsent = message.isUnsent ?? false;
-                                const canEdit = isCurrentUser && !isUnsent;
+                                const isUnsent = message.isUnsent ?? false
+                                const canEdit = isCurrentUser && !isUnsent
                                 const innerClassName = `rounded-[1.5rem] px-4 py-3 text-sm leading-6 shadow-sm ${
                                   isCurrentUser
                                     ? isUnsent
@@ -901,47 +893,48 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                                     : isUnsent
                                       ? "rounded-bl-md border border-brown-200 bg-white text-brown-400"
                                       : "rounded-bl-md border border-brown-200 bg-white text-brown-700"
-                                }${canEdit ? " cursor-pointer" : ""}${isUnsent ? " pointer-events-none" : ""}`;
+                                }${canEdit ? " cursor-pointer" : ""}${isUnsent ? " pointer-events-none" : ""}`
+
                                 return (
                                   <div
                                     onClick={canEdit ? () => {
-                                      setSelectedMessageId(message.id);
-                                      setEditDraft(message.body);
+                                      setSelectedMessageId(message.id)
+                                      setEditDraft(message.body)
                                     } : undefined}
                                     className={innerClassName}
                                   >
                                     {message.body}
                                   </div>
-                                );
+                                )
                               })()}
+                              <div
+                                className={`mt-1 flex items-center gap-2 px-1 ${
+                                  isCurrentUser ? "self-end justify-end" : "self-start justify-start"
+                                }`}
+                              >
+                                <p className="text-[11px] font-medium text-brown-400">
+                                  {formatMessageDate(message.createdAt)}
+                                  {isCurrentUser && !message.isRead && !(message.isUnsent ?? false) ? " - Sent" : ""}
+                                </p>
+                                {showReadAvatar && selectedContact ? (
+                                  <div
+                                    className="flex h-4 w-4 items-center justify-center overflow-hidden rounded-full border border-brown-200 bg-white"
+                                    title={`${selectedContact.name} has read this message`}
+                                  >
+                                    {selectedContact.profileImageUrl ? (
+                                      <img
+                                        src={selectedContact.profileImageUrl}
+                                        alt={selectedContact.name}
+                                        className="h-full w-full object-cover"
+                                      />
+                                    ) : (
+                                      <UserCircleIcon className="h-2.5 w-2.5 text-brown-400" />
+                                    )}
+                                  </div>
+                                ) : null}
+                              </div>
                             </div>
-                            <div
-                              className={`mt-1 flex items-center gap-2 px-1 ${
-                                isCurrentUser ? "self-end justify-end" : "self-start justify-start"
-                              }`}
-                            >
-                              <p className="text-[11px] font-medium text-brown-400>
-                                {formatMessageDate(message.createdAt)}
-                                {isCurrentUser && !message.isRead && ! (message.isUnsent ?? false) ? " - Sent" : ""}
-                              </p>
-                              {showReadAvatar && selectedContact ? (
-                                <div
-                                  className="flex h-4 w-4 items-center justify-center overflow-hidden rounded-full border border-brown-200 bg-white"
-                                  title={`${selectedContact.name} has read this message`}
-                                >
-                                  {selectedContact.profileImageUrl ? (
-                                    <img
-                                      src={selectedContact.profileImageUrl}
-                                      alt={selectedContact.name}
-                                      className="h-full w-full object-cover"
-                                    />
-                                  ) : (
-                                    <UserCircleIcon className="h-2.5 w-2.5 text-brown-400" />
-                                  )}
-                                </div>
-                              ) : null}
-                            </div>
-                          </div>
+                          </motion.div>
                         )
                       })
                     )}
@@ -951,106 +944,110 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                         animate={{ opacity: 1, y: 0 }}
                         className="flex justify-start"
                       >
-                        <div className="flex max-w-[78%] items-end gap-3>
+                        <div className="flex max-w-[78%] items-end gap-3">
                           <Avatar contact={selectedContact} />
                           <div className="rounded-[1.5rem] rounded-bl-md border border-brown-200 bg-white px-4 py-3 shadow-sm">
-                            <div className="flex items-center gap-1>
-                              <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400 [animation-delay:-0.2s]</span>
-                              <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400 [animation-delay:-0.1s]</span>
-                              <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400]</span>
+                            <div className="flex items-center gap-1">
+                              <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400 [animation-delay:-0.2s]" />
+                              <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400 [animation-delay:-0.1s]" />
+                              <span className="h-2 w-2 animate-bounce rounded-full bg-brown-400" />
                             </div>
                           </div>
-                        </motion.div>
-                      ) : null}
-                    </div>
-
-                    <div className="border-t border-brown-200 bg-white p-4 sm:p-5>
-                      <form onSubmit={handleSendMessage} className="space-y-3>
-                        <div className="flex items-end gap-3>
-                          <textarea
-                            value={draft}
-                            onChange={(event) => setDraft(event.target.value)}
-                            placeholder={`Message ${selectedContact.name}`}
-                            rows={3}
-                            className="min-h-[56px] flex-1 rounded-[1.5rem] border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 outline-none transition focus:border-primary-500 focus:bg-white focus:ring-2 focus:ring-primary-500/20
-                          />
-                          <button
-                            type="submit"
-                            disabled={sending || !draft.trim()}
-                            className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-lg shadow-primary-500/20 transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-brown-300 disabled:shadow-none
-                          >
-                            <PaperAirplaneIcon className="h-5 w-5</button>
                         </div>
-                        {error ? <p className="text-sm font-medium text-rose-600>{error}</p> : null}
-                      </form>
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex flex-1 items-center justify-center px-6>
-                    <div className="max-w-md text-center>
-                      <ChatBubbleLeftRightIcon className="mx-auto h-14 w-14 text-brown-300</div>
-                      <p className="mt-4 text-lg font-bold text-brown-900>Choose a conversation</p>
-                      <p className="mt-2 text-sm leading-6 text-brown-500>Select a faculty, custodian, or admin account from the left panel to view and send live messages.</p>
-                      {error ? <p className="mt-3 text-sm font-medium text-rose-600>{error}</p> : null}
-                    </div>
+                      </motion.div>
+                    ) : null}
                   </div>
-                )}
-                {selectedMessageId !== null && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 onClick={handleCloseModal}>
-                    <div className="w-full max-w-md rounded-xl bg-white p-6 space-y-4 onClick={e => e.stopPropagation()} >
-                      {!editMode ? (
-                        <>
-                          <p className="mb-4>{selectedMessageId ? (messages.find(m => m.id === selectedMessageId)?.body ?? '') : ''}</p>
-                          <div className="flex justify-end space-x-3>
-                            <button
-                              onClick={() => setEditMode(true)}
-                              className="inline-flex items-center px-4 py-2 bg-brown-500 text-white rounded-md hover:bg-brown-600
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={async () => {
-                                if (selectedMessageId) {
-                                  await handleUnsend(selectedMessageId);
-                                }
-                              }}
-                              className="inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600
-                            >
-                              Unsend
-                            </button>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <textarea
-                            value={editDraft}
-                            onChange={(e) => setEditDraft(e.target.value)}
-                            className="w-full h-24 rounded-border border-brown-200 bg-brown-50 px-3 py-2 text-brown-900 focus:border-primary-500 focus:outline-none
-                            placeholder="Edit message..."
-                          />
-                          <div className="flex justify-end space-x-3 mt-2>
-                            <button
-                              onClick={handleCancelEdit}
-                              className="inline-flex items-center px-4 py-2 bg-brown-300 text-white rounded-md hover:bg-brown-400
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              onClick={handleSaveEdit}
-                              className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700
-                            >
-                              Save
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
+
+                  <div className="border-t border-brown-200 bg-white p-4 sm:p-5">
+                    <form onSubmit={handleSendMessage} className="space-y-3">
+                      <div className="flex items-end gap-3">
+                        <textarea
+                          value={draft}
+                          onChange={(event) => setDraft(event.target.value)}
+                          placeholder={`Message ${selectedContact.name}`}
+                          rows={3}
+                          className="min-h-[56px] flex-1 rounded-[1.5rem] border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 outline-none transition focus:border-primary-500 focus:bg-white focus:ring-2 focus:ring-primary-500/20"
+                        />
+                        <button
+                          type="submit"
+                          disabled={sending || !draft.trim()}
+                          className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-lg shadow-primary-500/20 transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-brown-300 disabled:shadow-none"
+                        >
+                          <PaperAirplaneIcon className="h-5 w-5" />
+                        </button>
+                      </div>
+                      {error ? <p className="text-sm font-medium text-rose-600">{error}</p> : null}
+                    </form>
                   </div>
-                )}
-              </section>
-            </div>
+                </>
+              ) : (
+                <div className="flex flex-1 items-center justify-center px-6">
+                  <div className="max-w-md text-center">
+                    <ChatBubbleLeftRightIcon className="mx-auto h-14 w-14 text-brown-300" />
+                    <p className="mt-4 text-lg font-bold text-brown-900">Choose a conversation</p>
+                    <p className="mt-2 text-sm leading-6 text-brown-500">
+                      Select a faculty, custodian, or admin account from the left panel to view and send live messages.
+                    </p>
+                    {error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}
+                  </div>
+                </div>
+              )}
+            </section>
+            {selectedMessageId !== null && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={handleCloseModal}>
+                <div className="w-full max-w-md rounded-xl bg-white p-6 space-y-4" onClick={e => e.stopPropagation()}>
+                  {!editMode ? (
+                    <>
+                      <p className="mb-4">{selectedMessageId ? (messages.find(m => m.id === selectedMessageId)?.body ?? '') : ''}</p>
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          onClick={() => setEditMode(true)}
+                          className="inline-flex items-center px-4 py-2 bg-brown-500 text-white rounded-md hover:bg-brown-600"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (selectedMessageId) {
+                              await handleUnsend(selectedMessageId)
+                            }
+                          }}
+                          className="inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                        >
+                          Unsend
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <textarea
+                        value={editDraft}
+                        onChange={(e) => setEditDraft(e.target.value)}
+                        className="w-full h-24 rounded-border border-brown-200 bg-brown-50 px-3 py-2 text-brown-900 focus:border-primary-500 focus:outline-none"
+                        placeholder="Edit message..."
+                      />
+                      <div className="flex justify-end space-x-3 mt-2">
+                        <button
+                          onClick={handleCancelEdit}
+                          className="inline-flex items-center px-4 py-2 bg-brown-300 text-white rounded-md hover:bg-brown-400"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleSaveEdit}
+                          className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        </AppShell>
+        </div>
+      </AppShell>
     )
   )
 }
