@@ -536,13 +536,13 @@ export default function NewRequest() {
 
           <div className="px-6 py-4 sm:px-10">
             <div className="overflow-x-auto rounded-2xl border border-brown-200">
-              <table className="w-full border-collapse text-xs sm:text-sm">
+              <table className="w-full border-collapse table-fixed text-xs sm:text-sm">
                 <thead>
                   <tr className="border-b border-brown-200 bg-brown-100">
-                    <TableHead className="sm:w-[60px]">Qty</TableHead>
+                    <TableHead className="w-[60px]">Qty</TableHead>
                     <TableHead>Item / Description</TableHead>
-                    <TableHead className="text-right sm:w-[110px]">Unit Cost</TableHead>
-                    <TableHead className="border-r-0 text-right sm:w-[120px]">Total Amount</TableHead>
+                    <TableHead className="text-right w-[110px]">Unit Cost</TableHead>
+                    <TableHead className="border-r-0 text-right w-[120px]">Total Amount</TableHead>
                   </tr>
                 </thead>
 
@@ -557,7 +557,7 @@ export default function NewRequest() {
 
                   {items.map((item, index) => (
                     <tr key={`${item.itemCode}-${index}`} className="border-b border-brown-200">
-                      <TableCell>
+                      <TableCell className="w-[60px]">
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => handleDecrement(index)}
@@ -616,7 +616,7 @@ export default function NewRequest() {
                           </button>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-right w-[110px]">
                         <div className="flex items-center gap-1">
                           <span className="text-[10px] font-semibold text-brown-400 sm:text-xs">PHP</span>
                           <input
@@ -630,7 +630,7 @@ export default function NewRequest() {
                           />
                         </div>
                       </TableCell>
-                      <TableCell className="border-r-0 text-right text-xs font-bold text-brown-900 sm:text-sm">
+                      <TableCell className="border-r-0 text-right text-xs font-bold text-brown-900 sm:text-sm w-[120px]">
                         PHP {(item.quantity * item.unitCost).toFixed(2)}
                       </TableCell>
                     </tr>
@@ -639,10 +639,10 @@ export default function NewRequest() {
                   {items.length > 0 && items.length < 5
                     ? Array.from({ length: Math.min(5 - items.length, 3) }).map((_, i) => (
                         <tr key={`empty-${i}`} className="h-8 border-b border-brown-100">
+                          <TableCell className="w-[60px]" />
                           <TableCell />
-                          <TableCell />
-                          <TableCell />
-                          <TableCell className="border-r-0" />
+                          <TableCell className="text-right w-[110px]" />
+                          <TableCell className="border-r-0 text-right w-[120px]" />
                         </tr>
                       ))
                     : null}
