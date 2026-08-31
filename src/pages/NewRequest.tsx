@@ -590,13 +590,13 @@ export default function NewRequest() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col space-y-2">
                           <img
                             src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
                             alt={item.name}
                             className="h-6 w-6 object-cover rounded"
                           />
-                          <div className="min-w-0 flex-1">
+                          <div className="space-y-1">
                             <p className="truncate text-xs font-semibold text-brown-900 sm:text-sm">{item.name}</p>
                             {item.isCustom ? (
                               <span className="inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-600">
@@ -609,8 +609,7 @@ export default function NewRequest() {
                           <button
                             type="button"
                             onClick={() => removeItem(index)}
-                            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-brown-200 text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
-                            title="Remove item"
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-brown-200 text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
                           >
                             <TrashIcon className="h-3.5 w-3.5" />
                           </button>
@@ -640,7 +639,18 @@ export default function NewRequest() {
                     ? Array.from({ length: Math.min(5 - items.length, 3) }).map((_, i) => (
                         <tr key={`empty-${i}`} className="h-8 border-b border-brown-100">
                           <TableCell className="w-[60px]" />
-                          <TableCell />
+                          <TableCell>
+                            <div className="flex flex-col space-y-2">
+                              <img className="h-6 w-6 object-cover rounded" src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop" alt="" />
+                              <div className="space-y-1">
+                                <p className="truncate text-xs font-semibold text-brown-900 sm:text-sm"></p>
+                                <span className="text-[10px] font-medium text-brown-400"></span>
+                              </div>
+                              <button className="disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <TrashIcon className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </TableCell>
                           <TableCell className="text-right w-[110px]" />
                           <TableCell className="border-r-0 text-right w-[120px]" />
                         </tr>
@@ -848,7 +858,7 @@ function buildCatalogCartItem(supply: SupplyItem): CartItem {
 
 function TableHead({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600 ${className}`}>
+    <th className={`border-r border-brown-200 px-3 py-2 align-middle text-left text-[11px] font-bold uppercase tracking-wider text-brown-600 ${className}`}>
       {children}
     </th>
   )
@@ -856,7 +866,7 @@ function TableHead({ children, className = "" }: { children: React.ReactNode; cl
 
 function TableCell({ children, className = "" }: { children?: React.ReactNode; className?: string }) {
   return (
-    <td className={`border-r border-brown-200 px-2 py-2 ${className}`}>
+    <td className={`border-r border-brown-200 px-2 py-2 align-middle ${className}`}>
       {children}
     </td>
   )
