@@ -140,8 +140,11 @@ export default function RequestViewModal({
           <div className="mb-4 flex items-center gap-3">
             {!isExpanded && (
               <>
-                <div className="relative w-10 h-10 rounded-full flex items-center justify-center border-2 border-primary-500 animate-spin">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center bg-primary-600 text-white text-xs font-medium">
+                <div className="relative w-10 h-10 flex items-center justify-center">
+                  {/* Spinning border */}
+                  <div className="absolute inset-0 w-10 h-10 rounded-full border-2 border-primary-500 animate-spin"></div>
+                  {/* Number */}
+                  <div className="relative w-6 h-6 rounded-full flex items-center justify-center bg-primary-600 text-white text-xs font-medium z-10">
                     {currentIndex + 1}
                   </div>
                 </div>
@@ -162,9 +165,20 @@ export default function RequestViewModal({
                   <Fragment key={idx}>
                     <div className="flex items-start mb-6">
                       <div className="relative w-8 h-8 flex-shrink-0 left-[-3.5px]">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium ${idx < currentIndex ? 'bg-primary-600' : idx === currentIndex ? 'bg-primary-500' : 'bg-gray-200'} ${idx === currentIndex ? 'border-2 border-primary-500 animate-spin' : ''}`}>
-                          {idx + 1}
-                        </div>
+                        {idx === currentIndex ? (
+                          <>
+                            {/* Spinning border */}
+                            <div className="absolute inset-0 w-8 h-8 rounded-full border-2 border-primary-500 animate-spin"></div>
+                            {/* Number */}
+                            <div className="relative w-6 h-6 rounded-full flex items-center justify-center bg-primary-600 text-white text-xs font-medium z-10">
+                              {idx + 1}
+                            </div>
+                          </>
+                        ) : (
+                          <div className={`relative w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium ${idx < currentIndex ? 'bg-primary-600' : 'bg-gray-200'}`}>
+                            {idx + 1}
+                          </div>
+                        )}
                       </div>
                       <div className="ml-3">
                         <p className="text-sm font-medium text-gray-700">{step.label}</p>
