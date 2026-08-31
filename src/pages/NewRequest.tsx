@@ -590,13 +590,13 @@ export default function NewRequest() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col space-y-2">
+                        <div className="flex flex-col space-y-1">
                           <img
                             src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
                             alt={item.name}
                             className="h-6 w-6 object-cover rounded"
                           />
-                          <div className="space-y-1">
+                          <div className="space-y-0">
                             <p className="truncate text-xs font-semibold text-brown-900 sm:text-sm">{item.name}</p>
                             {item.isCustom ? (
                               <span className="inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-600">
@@ -617,7 +617,7 @@ export default function NewRequest() {
                       </TableCell>
                       <TableCell className="text-right w-[110px]">
                         <div className="flex items-center gap-1">
-                          <span className="text-[10px] font-semibold text-brown-400 sm:text-xs">PHP</span>
+                          <span className="text-[10px] font-semibold text-brown-400 sm:text-xs">₱</span>
                           <input
                             type="number"
                             min="0"
@@ -630,7 +630,7 @@ export default function NewRequest() {
                         </div>
                       </TableCell>
                       <TableCell className="border-r-0 text-right text-xs font-bold text-brown-900 sm:text-sm w-[120px]">
-                        PHP {(item.quantity * item.unitCost).toFixed(2)}
+                        ₱{(item.quantity * item.unitCost).toFixed(2)}
                       </TableCell>
                     </tr>
                   ))}
