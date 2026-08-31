@@ -140,7 +140,7 @@ export default function RequestViewModal({
           <div className="mb-4 flex items-center gap-3">
             {!isExpanded && (
               <>
-                <div className="relative w-10 h-10 rounded-full flex items-center justify-center border-2 border-primary-500 animate-pulse">
+                <div className="relative w-10 h-10 rounded-full flex items-center justify-center border-2 border-primary-500 animate-spin">
                   <div className="w-6 h-6 rounded-full flex items-center justify-center bg-primary-600 text-white text-xs font-medium">
                     {currentIndex + 1}
                   </div>
@@ -162,7 +162,7 @@ export default function RequestViewModal({
                   <Fragment key={idx}>
                     <div className="flex items-start mb-6">
                       <div className="relative w-8 h-8 flex-shrink-0 left-[-3.5px]">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${idx < currentIndex ? 'bg-primary-600' : idx === currentIndex ? 'bg-primary-500' : 'bg-gray-200'} text-white text-xs font-medium`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium ${idx < currentIndex ? 'bg-primary-600' : idx === currentIndex ? 'bg-primary-500' : 'bg-gray-200'} ${idx === currentIndex ? 'border-2 border-primary-500 animate-spin' : ''}`}>
                           {idx + 1}
                         </div>
                       </div>
