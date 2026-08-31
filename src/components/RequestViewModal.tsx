@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { formatDateLong } from "../lib/date";
 import { XCircleIcon } from "@heroicons/react/24/outline";
 import type { FacultyRequest } from "../types/requests";
+import { api } from "../lib/api";
 
 type CartItem = {
   supplyId: number | null;
@@ -30,6 +31,7 @@ export default function RequestViewModal({
 }: RequestViewModalProps) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [approvalPersonnel, setApprovalPersonnel] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const cartItems: CartItem[] = request.items.map((item) => ({
@@ -47,6 +49,32 @@ export default function RequestViewModal({
     }));
     setItems(cartItems);
   }, [request.items]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadApprovalPersonnel = async () => {
+      try {
+        const roles = "Immediate Head,Resource Planning Officer,Vice President for Finance,College President";
+        const response = await api(`/api/approval-personnel-info.php?roles=${encodeURIComponent(roles)}`);
+        const result = await response.json();
+        if (!response.ok || !result.success) return;
+        if (cancelled) return;
+
+        const map: Record<string, string> = {};
+        for (const p of result.personnel ?? []) {
+          map[p.role] = p.fullName;
+        }
+        setApprovalPersonnel(map);
+      } catch {
+        // Non-fatal — signatures will show empty
+      }
+    };
+
+    void loadApprovalPersonnel();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const grandTotal = request.grandTotal;
   const totalQuantity = request.totalQuantity;
@@ -262,7 +290,6 @@ export default function RequestViewModal({
         </div>
 
         <div className="px-6 py-4 sm:px-10">
-
           <div className="overflow-x-auto rounded-2xl border border-brown-200">
             <table className="w-full border-collapse text-xs sm:text-sm">
               <thead>
@@ -323,24 +350,23 @@ export default function RequestViewModal({
                   </tr>
                 ))}
 
+                <tfoot>
+                  <tr className="bg-white font-bold">
+                    <td colSpan={2} className="border-r border-brown-200 px-3 py-2">
+                      <span className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-brown-600">
+                        SOF:
+                        <span className="inline-block min-w-[120px] border-b border-brown-300">&nbsp;</span>
+                      </span>
+                    </td>
+                    <td className="border-r border-brown-200 px-3 py-2 text-right text-[11px] uppercase tracking-wider text-brown-600">
+                      Grand Total
+                    </td>
+                    <td className="px-3 py-2 text-right text-sm font-black text-brown-900 sm:text-base">
+                      ₱{grandTotal.toFixed(2)}
+                    </td>
+                  </tr>
+                </tfoot>
               </tbody>
-
-              <tfoot>
-                <tr className="bg-white font-bold">
-                  <td colSpan={2} className="border-r border-brown-200 px-3 py-2">
-                    <span className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-brown-600">
-                      SOF:
-                      <span className="inline-block min-w-[120px] border-b border-brown-300">&nbsp;</span>
-                    </span>
-                  </td>
-                  <td className="border-r border-brown-200 px-3 py-2 text-right text-[11px] uppercase tracking-wider text-brown-600">
-                    Grand Total
-                  </td>
-                  <td className="px-3 py-2 text-right text-sm font-black text-brown-900 sm:text-base">
-                    ₱{grandTotal.toFixed(2)}
-                  </td>
-                </tr>
-              </tfoot>
             </table>
           </div>
 
@@ -367,6 +393,14 @@ export default function RequestViewModal({
                     let printedName = "";
                     if (label === "Requested") {
                       printedName = request.requestedByName;
+                    } else if (label === "Recommended") {
+                      printedName = approvalPersonnel["Immediate Head"] ?? "";
+                    } else if (label === "Checked") {
+                      printedName = approvalPersonnel["Resource Planning Officer"] ?? "";
+                    } else if (label === "Noted") {
+                      printedName = approvalPersonnel["Vice President for Finance"] ?? "";
+                    } else if (label === "Approved") {
+                      printedName = approvalPersonnel["College President"] ?? "";
                     }
                     const position = label === "Recommended"
                       ? "Immediate Head"
