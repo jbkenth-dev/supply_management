@@ -291,50 +291,41 @@ export default function RequestViewModal({
                 ) : null}
 
                 {items.map((item, index) => (
-                  <tr key={`${item.itemCode}-${index}`} className="border-b border-brown-200">
-                    <td className="border-r border-brown-200 px-2 py-2 flex items-center gap-1">
-                      <span className="text-xs font-bold text-brown-900">{item.quantity}</span>
+                  <tr key={`${item.itemCode}-${index}`} className="border-b border-brown-200 align-top">
+                    <td className="border-r border-brown-200 px-2 py-3 text-left align-top">
+                      <span className="block text-xs font-bold text-brown-900">{item.quantity}</span>
                     </td>
-                    <td className="border-r border-brown-200 px-2 py-2 flex items-center gap-2">
-                      <img
-                        src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
-                        alt={item.name}
-                        className="h-6 w-6 object-cover rounded"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-semibold text-brown-900 sm:text-sm">{item.name}</p>
-                        {item.isCustom ? (
-                          <span className="inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-600">
-                            Custom
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-medium text-brown-400">{item.itemCode}</span>
-                        )}
+                    <td className="border-r border-brown-200 px-2 py-3 align-top">
+                      <div className="flex min-w-0 items-start gap-2">
+                        <img
+                          src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
+                          alt={item.name}
+                          className="mt-0.5 h-7 w-7 flex-shrink-0 rounded object-cover"
+                        />
+                        <div className="min-w-0">
+                          <p className="break-words text-xs font-semibold leading-5 text-brown-900 sm:text-sm">{item.name}</p>
+                          {item.isCustom ? (
+                            <span className="mt-1 inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-600">
+                              Custom
+                            </span>
+                          ) : (
+                            <span className="mt-1 block text-[10px] font-medium text-brown-400">{item.itemCode}</span>
+                          )}
+                        </div>
                       </div>
                     </td>
-                    <td className="border-r border-brown-200 px-2 py-2 text-right text-[10px] font-semibold text-brown-400 sm:text-xs">
-                      PHP {item.unitCost.toFixed(2)}
+                    <td className="border-r border-brown-200 px-2 py-3 text-right align-top">
+                      <span className="text-[10px] font-bold text-brown-900 sm:text-xs">₱{item.unitCost.toFixed(2)}</span>
                     </td>
-                    <td className="border-r-0 px-2 py-2 text-right text-sm font-bold text-brown-900 sm:text-sm">
-                      PHP {item.totalAmount.toFixed(2)}
+                    <td className="px-2 py-3 text-right align-top">
+                      <span className="text-sm font-black text-brown-900 sm:text-sm">₱{item.totalAmount.toFixed(2)}</span>
                     </td>
                   </tr>
                 ))}
 
-                {items.length > 0 && items.length < 5 ? Array.from({ length: Math.min(5 - items.length, 3) }).map((_, i) => (
-                  <tr key={`empty-${i}`} className="h-8 border-b border-brown-100">
-                    <td colSpan={4} />
-                  </tr>
-                )) : null}
+              </tbody>
 
-                <tr className="border-b border-brown-200 bg-brown-50">
-                  <td colSpan={4} className="px-3 py-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {/* No add item buttons in view mode */}
-                    </div>
-                  </td>
-                </tr>
-
+              <tfoot>
                 <tr className="bg-white font-bold">
                   <td colSpan={2} className="border-r border-brown-200 px-3 py-2">
                     <span className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-brown-600">
@@ -346,10 +337,10 @@ export default function RequestViewModal({
                     Grand Total
                   </td>
                   <td className="px-3 py-2 text-right text-sm font-black text-brown-900 sm:text-base">
-                    PHP {grandTotal.toFixed(2)}
+                    ₱{grandTotal.toFixed(2)}
                   </td>
                 </tr>
-              </tbody>
+              </tfoot>
             </table>
           </div>
 
