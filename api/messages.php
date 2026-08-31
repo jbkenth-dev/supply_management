@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+// Ensure no output before JSON
+ob_start();
+
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/cors.php';
 
@@ -24,10 +27,13 @@ try {
         'success' => false,
         'message' => 'Method not allowed.',
     ]);
-} catch (PDOException $exception) {
+} catch (Throwable $exception) {
+    // Log the error for debugging (optional)
+    error_log($exception);
+
     $message = 'Unable to process messages right now.';
 
-    if ((int) $exception->getCode() === 1049) {
+    if ($exception instanceof PDOException && (int) $exception->getCode() === 1049) {
         $message = 'Database "supply_management" was not found. Import the SQL setup file first.';
     }
 
@@ -171,6 +177,37 @@ function handleSendMessage(PDO $pdo): void
             ]);
         }
 
+        // Validate sender and message ownership
+        if (!$senderUserId || !$messageId) {
+            jsonResponse(422, [
+                'success' => false,
+                'message' => 'Sender ID and Message ID are required.',
+            ]);
+        }
+
+        $sender = findUserById($pdo, (int) $senderUserId);
+        if ($sender === null) {
+            jsonResponse(404, [
+                'success' => false,
+                'message' => 'Sender not found.',
+            ]);
+        }
+
+        $message = fetchMessageById($pdo, (int) $messageId);
+        if ($message === null) {
+            jsonResponse(404, [
+                'success' => false,
+                'message' => 'Message not found.',
+            ]);
+        }
+
+        if ((int) $message['senderUserId'] !== (int) $senderUserId) {
+            jsonResponse(403, [
+                'success' => false,
+                'message' => 'You are not authorized to modify this message.',
+            ]);
+        }
+
         if ($action === 'edit') {
             if ($body === '') {
                 jsonResponse(422, [
@@ -184,24 +221,44 @@ function handleSendMessage(PDO $pdo): void
                     'message' => 'Message body must not exceed 2000 characters.',
                 ]);
             }
+        }
 
-            $update = $pdo->prepare(
-                'UPDATE messages SET body = :body, is_unsent = 0, updated_at = CURRENT_TIMESTAMP WHERE id = :id AND sender_user_id = :sender_id'
-            );
-            $update->execute([
-                'body' => $body,
-                'id' => $messageId,
-                'sender_id' => $senderUserId,
-            ]);
-        } else { // unsend
-            $update = $pdo->prepare(
-                'UPDATE messages SET body = :body, is_unsent = 1, updated_at = CURRENT_TIMESTAMP WHERE id = :id AND sender_user_id = :sender_id'
-            );
-            $update->execute([
-                'body' => '[Unsent message]',
-                'id' => $messageId,
-                'sender_id' => $senderUserId,
-            ]);
+        // Try to add the is_unsent column if it doesn't exist (ignore errors)
+        try {
+            $pdo->exec('ALTER TABLE messages ADD COLUMN is_unsent TINYINT(1) NOT NULL DEFAULT 0');
+        } catch (PDOException $e) {
+            // Ignore any error - we'll handle missing column in the update
+        }
+
+        // Build the SET clause dynamically
+        $set = 'body = :body, updated_at = CURRENT_TIMESTAMP';
+        $params = [
+            'body' => $body,
+            'id' => $messageId,
+            'sender_id' => $senderUserId,
+        ];
+
+        if ($action === 'unsend') {
+            $set .= ', is_unsent = 1';
+        } else { // edit
+            $set .= ', is_unsent = 0';
+        }
+
+        // Try to update with the column
+        try {
+            $update = $pdo->prepare("UPDATE messages SET $set WHERE id = :id AND sender_user_id = :sender_id");
+            $update->execute($params);
+        } catch (PDOException $e) {
+            // If the error is about the column not existing, try without it
+            if (strpos($e->getMessage(), 'Unknown column') !== false) {
+                // Remove the is_unsent part from the set clause
+                $set = str_replace(', is_unsent = 0', '', $set);
+                $set = str_replace(', is_unsent = 1', '', $set);
+                $update = $pdo->prepare("UPDATE messages SET $set WHERE id = :id AND sender_user_id = :sender_id");
+                $update->execute($params);
+            } else {
+                throw $e;
+            }
         }
 
         $updatedMessage = fetchMessageById($pdo, (int) $messageId);
@@ -414,84 +471,163 @@ function handleTypingStatus(PDO $pdo, array $payload): void
 
 function fetchContacts(PDO $pdo, int $userId): array
 {
-    $query = $pdo->prepare(
-        'SELECT
-            u.id,
-            u.role,
-            u.firstname,
-            u.middlename,
-            u.lastname,
-            u.username,
-            u.email,
-            u.profile_image_path,
-            latest.body AS last_message,
-            latest.created_at AS last_message_at,
-            latest.sender_user_id AS last_message_sender_id,
-            COALESCE(unread.unread_count, 0) AS unread_count
-         FROM users u
-         LEFT JOIN (
-            SELECT
-                CASE
-                    WHEN sender_user_id = :user_id_latest THEN recipient_user_id
-                    ELSE sender_user_id
-                END AS contact_user_id,
-                body,
-                created_at,
-                sender_user_id,
-                ROW_NUMBER() OVER (
-                    PARTITION BY CASE
-                        WHEN sender_user_id = :user_id_partition THEN recipient_user_id
+    try {
+        $query = $pdo->prepare(
+            'SELECT
+                u.id,
+                u.role,
+                u.firstname,
+                u.middlename,
+                u.lastname,
+                u.username,
+                u.email,
+                u.profile_image_path,
+                latest.body AS last_message,
+                latest.created_at AS last_message_at,
+                latest.sender_user_id AS last_message_sender_id,
+                COALESCE(unread.unread_count, 0) AS unread_count
+             FROM users u
+             LEFT JOIN (
+                SELECT
+                    CASE
+                        WHEN sender_user_id = :user_id_latest THEN recipient_user_id
                         ELSE sender_user_id
-                    END
-                    ORDER BY created_at DESC, id DESC
-                ) AS row_num
-            FROM messages
-            WHERE sender_user_id = :user_id_sent OR recipient_user_id = :user_id_received
-         ) latest
-            ON latest.contact_user_id = u.id
-           AND latest.row_num = 1
-         LEFT JOIN (
-            SELECT sender_user_id AS contact_user_id, COUNT(*) AS unread_count
-            FROM messages
-            WHERE recipient_user_id = :user_id_unread
-              AND is_read = 0
-              AND is_unsent = 0
-            GROUP BY sender_user_id
-         ) unread
-            ON unread.contact_user_id = u.id
-         WHERE u.id <> :current_user_id
-         ORDER BY
-            CASE WHEN latest.created_at IS NULL THEN 1 ELSE 0 END,
-            latest.created_at DESC,
-            u.lastname ASC,
-            u.firstname ASC'
-    );
-    $query->execute([
-        'user_id_latest' => $userId,
-        'user_id_partition' => $userId,
-        'user_id_sent' => $userId,
-        'user_id_received' => $userId,
-        'user_id_unread' => $userId,
-        'current_user_id' => $userId,
-    ]);
+                    END AS contact_user_id,
+                    body,
+                    created_at,
+                    sender_user_id,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY CASE
+                            WHEN sender_user_id = :user_id_partition THEN recipient_user_id
+                            ELSE sender_user_id
+                        END
+                        ORDER BY created_at DESC, id DESC
+                    ) AS row_num
+                FROM messages
+                WHERE sender_user_id = :user_id_sent OR recipient_user_id = :user_id_received
+             ) latest
+                ON latest.contact_user_id = u.id
+               AND latest.row_num = 1
+             LEFT JOIN (
+                SELECT sender_user_id AS contact_user_id, COUNT(*) AS unread_count
+                FROM messages
+                WHERE recipient_user_id = :user_id_unread
+                  AND is_read = 0
+                  AND is_unsent = 0
+                GROUP BY sender_user_id
+             ) unread
+                ON unread.contact_user_id = u.id
+             WHERE u.id <> :current_user_id
+             ORDER BY
+                CASE WHEN latest.created_at IS NULL THEN 1 ELSE 0 END,
+                latest.created_at DESC,
+                u.lastname ASC,
+                u.firstname ASC'
+        );
+        $query->execute([
+            'user_id_latest' => $userId,
+            'user_id_partition' => $userId,
+            'user_id_sent' => $userId,
+            'user_id_received' => $userId,
+            'user_id_unread' => $userId,
+            'current_user_id' => $userId,
+        ]);
 
-    return array_map(
-        static function (array $row): array {
-            return [
-                'id' => (int) $row['id'],
-                'name' => buildDisplayName($row),
-                'role' => (string) $row['role'],
-                'email' => (string) $row['email'],
-                'username' => (string) $row['username'],
-                'profileImageUrl' => $row['profile_image_path'] !== null ? (string) $row['profile_image_path'] : null,
-                'lastMessage' => $row['last_message'] !== null ? (string) $row['last_message'] : null,
-                'lastMessageAt' => $row['last_message_at'] !== null ? (string) $row['last_message_at'] : null,
-                'lastMessageSenderId' => $row['last_message_sender_id'] !== null ? (int) $row['last_message_sender_id'] : null,
-                'unreadCount' => (int) $row['unread_count'],
-            ];
-        },
-        $query->fetchAll()
-    );
+        $rows = $query->fetchAll();
+        error_log("fetchContacts: userId=$userId, rows=" . count($rows));
+        return array_map(
+            static function (array $row): array {
+                return [
+                    'id' => (int) $row['id'],
+                    'name' => buildDisplayName($row),
+                    'role' => (string) $row['role'],
+                    'email' => (string) $row['email'],
+                    'username' => (string) $row['username'],
+                    'profileImageUrl' => $row['profile_image_path'] !== null ? (string) $row['profile_image_path'] : null,
+                    'lastMessage' => $row['last_message'] !== null ? (string) $row['last_message'] : null,
+                    'lastMessageAt' => $row['last_message_at'] !== null ? (string) $row['last_message_at'] : null,
+                    'lastMessageSenderId' => $row['last_message_sender_id'] !== null ? (int) $row['last_message_sender_id'] : null,
+                    'unreadCount' => (int) $row['unread_count'],
+                ];
+            },
+            $rows
+        );
+    } catch (Throwable $e) {
+        error_log("fetchContacts error: " . $e);
+        // Fallback query without window functions and is_unsent
+        $query = $pdo->prepare(
+            'SELECT
+                u.id,
+                u.role,
+                u.firstname,
+                u.middlename,
+                u.lastname,
+                u.username,
+                u.email,
+                u.profile_image_path,
+                latest.body AS last_message,
+                latest.created_at AS last_message_at,
+                latest.sender_user_id AS last_message_sender_id,
+                COALESCE(unread.unread_count, 0) AS unread_count
+             FROM users u
+             LEFT JOIN (
+                SELECT
+                    CASE
+                        WHEN sender_user_id = :user_id_latest THEN recipient_user_id
+                        ELSE sender_user_id
+                    END AS contact_user_id,
+                    body,
+                    created_at,
+                    sender_user_id
+                FROM messages
+                WHERE sender_user_id = :user_id_sent OR recipient_user_id = :user_id_received
+                ORDER BY created_at DESC, id DESC
+             ) latest
+                ON latest.contact_user_id = u.id
+             LEFT JOIN (
+                SELECT sender_user_id AS contact_user_id, COUNT(*) AS unread_count
+                FROM messages
+                WHERE recipient_user_id = :user_id_unread
+                  AND is_read = 0
+                  AND is_unsent = 0
+                GROUP BY sender_user_id
+             ) unread
+                ON unread.contact_user_id = u.id
+             WHERE u.id <> :current_user_id
+             ORDER BY
+                CASE WHEN latest.created_at IS NULL THEN 1 ELSE 0 END,
+                latest.created_at DESC,
+                u.lastname ASC,
+                u.firstname ASC'
+        );
+        $query->execute([
+            'user_id_latest' => $userId,
+            'user_id_partition' => $userId,
+            'user_id_sent' => $userId,
+            'user_id_received' => $userId,
+            'user_id_unread' => $userId,
+            'current_user_id' => $userId,
+        ]);
+        $rows = $query->fetchAll();
+        error_log("fetchContacts fallback: userId=$userId, rows=" . count($rows));
+        return array_map(
+            static function (array $row): array {
+                return [
+                    'id' => (int) $row['id'],
+                    'name' => buildDisplayName($row),
+                    'role' => (string) $row['role'],
+                    'email' => (string) $row['email'],
+                    'username' => (string) $row['username'],
+                    'profileImageUrl' => $row['profile_image_path'] !== null ? (string) $row['profile_image_path'] : null,
+                    'lastMessage' => $row['last_message'] !== null ? (string) $row['last_message'] : null,
+                    'lastMessageAt' => $row['last_message_at'] !== null ? (string) $row['last_message_at'] : null,
+                    'lastMessageSenderId' => $row['last_message_sender_id'] !== null ? (int) $row['last_message_sender_id'] : null,
+                    'unreadCount' => (int) $row['unread_count'],
+                ];
+            },
+            $rows
+        );
+    }
 }
 
 function fetchConversationMessages(PDO $pdo, int $userId, int $conversationUserId): array
@@ -616,7 +752,7 @@ function normalizeMessageRow(array $row): array
         'isRead' => (bool) $row['is_read'],
         'readAt' => $row['read_at'] !== null ? (string) $row['read_at'] : null,
         'createdAt' => (string) $row['created_at'],
-        'isUnsent' => (bool) $row['is_unsent'],
+        'isUnsent' => (bool) ($row['is_unsent'] ?? false),
     ];
 }
 
@@ -633,7 +769,11 @@ function buildDisplayName(array $user): string
 
 function jsonResponse(int $statusCode, array $body): void
 {
+    // Discard any buffered output (e.g., warnings, notices) and output only JSON
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
     http_response_code($statusCode);
-    echo json_encode($body, JSON_UNESCAPED_SLASHES);
+    echo json_encode($body, JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_IGNORE);
     exit;
 }
