@@ -156,22 +156,24 @@ export default function RequestViewModal({
           )}
           {isExpanded && (
             <>
-              <div className="mb-6 flex items-center gap-2">
+              <div className="relative pl-4">
+                <div className="absolute left-0 top-0 h-full w-0.5 bg-primary-200" />
                 {steps.map((step, idx) => (
                   <Fragment key={idx}>
-                    <div className="relative flex flex-col items-center">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${idx < currentIndex ? 'bg-primary-600' : idx === currentIndex ? 'bg-primary-500' : 'bg-gray-200'} ${idx <= currentIndex ? 'text-white' : 'text-gray-500'}`}>
-                        {idx + 1}
+                    <div className="flex items-start mb-6">
+                      <div className="relative w-8 h-8 flex-shrink-0 left-[-3.5px]">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${idx < currentIndex ? 'bg-primary-600' : idx === currentIndex ? 'bg-primary-500' : 'bg-gray-200'} text-white text-xs font-medium`}>
+                          {idx + 1}
+                        </div>
                       </div>
-                      <div className="mt-1 text-xs font-medium text-gray-600">{step.label}</div>
+                      <div className="ml-3">
+                        <p className="text-sm font-medium text-gray-700">{step.label}</p>
+                      </div>
                     </div>
-                    {idx < steps.length - 1 && (
-                      <div className={`w-8 h-0.5 ${idx < currentIndex ? 'bg-primary-600' : 'bg-gray-200'}`}></div>
-                    )}
                   </Fragment>
                 ))}
               </div>
-              <button onClick={() => setIsExpanded(false)} className="mt-2 text-xs font-semibold text-primary-600 hover:underline">
+              <button onClick={() => setIsExpanded(false)} className="mt-4 text-xs font-semibold text-primary-600 hover:underline">
                 View Less
               </button>
             </>
