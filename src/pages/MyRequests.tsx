@@ -454,7 +454,7 @@ function ConfirmCancelModal({
             {busy ? (
               <>
                 <div className="relative w-4 h-4 flex-shrink-0">
-  <div className="absolute inset-0 w-4 h-4 rounded-full border-2 border-primary-500 animate-spin"></div>
+  <div className="absolute inset-0 w-4 h-4 rounded-full border-3 border-primary-500 animate-spin"></div>
 </div>
                 Cancelling...
               </>
