@@ -176,7 +176,6 @@ export default function RequestViewModal({
               </button>
             </>
           )}
-        </div>
 
           <div className="overflow-x-auto rounded-2xl border border-brown-200">
             <table className="w-full border-collapse text-xs sm:text-sm">
