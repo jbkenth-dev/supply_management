@@ -6,7 +6,6 @@ import {
   ClockIcon,
   CubeIcon,
   FunnelIcon,
-  InboxIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline"
 import AppShell from "../layout/AppShell"
