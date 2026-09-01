@@ -111,7 +111,6 @@ export default function ApprovalPersonnelRequests() {
   const [showSignature, setShowSignature] = useState(false)
   const signatureCanvasRef = useRef<HTMLCanvasElement>(null)
   const [signatureData, setSignatureData] = useState<string | null>(null)
-  const [signatureSubmitting, setSignatureSubmitting] = useState(false)
   const [signatureError, setSignatureError] = useState<string | null>(null)
   const [signatureSubmitting, setSignatureSubmitting] = useState(false)
 
@@ -130,7 +129,49 @@ export default function ApprovalPersonnelRequests() {
     }
   };
 
-  const handleSignatureApprove = async () => {\n    if (signatureSubmitting) return;\n    const signatureUrl = getSignatureDataURL();\n    if (!signatureUrl) {\n      setSignatureError('Please draw a signature before approving.');\n      return;\n    }\n    if (!authUser?.id) {\n      setSignatureError('User not authenticated');\n      setSignatureSubmitting(false);\n      return;\n    }\n    setSignatureSubmitting(true);\n    setSignatureError(null);\n    try {\n      if (!selectedRequest) throw new Error('No request selected');\n      const response = await api('/api/approval-workflow.php', {\n        method: 'POST',\n        headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify({\n          userId: authUser?.id,\n          requestId: selectedRequest.id,\n          action: 'approve',\n          remarks: '', // no remarks for signature approval\n          signature: signatureUrl,\n        }),\n      });\n      const result = await response.json();\n      if (!response.ok || !result.success) {\n        throw new Error(result.message ?? 'Approval failed');\n      }\n      // Success: close signature modal, reset state, reload requests\n      setShowSignature(false);\n      setSignatureData(null);\n      setSignatureError(null);\n      setSignatureSubmitting(false);\n      clearSignature();\n      // Refetch requests\n      void loadRequests();\n    } catch (err: any) {\n      setSignatureError(err.message ?? 'An error occurred');\n      setSignatureSubmitting(false);\n    }\n  };\n\n  const clearSignature = () => {
+  const handleSignatureApprove = async () => {
+    if (signatureSubmitting) return
+    const signatureUrl = getSignatureDataURL()
+    if (!signatureUrl) {
+      setSignatureError("Please draw a signature before approving.")
+      return
+    }
+    if (!authUser?.id) {
+      setSignatureError("User not authenticated")
+      setSignatureSubmitting(false)
+      return
+    }
+    setSignatureSubmitting(true)
+    setSignatureError(null)
+    try {
+      if (!selectedRequest) throw new Error("No request selected")
+      const response = await api("/api/approval-workflow.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: authUser.id,
+          requestId: selectedRequest.id,
+          action: "approve",
+          remarks: "",
+          signature: signatureUrl,
+        }),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) {
+        throw new Error(result.message ?? "Approval failed")
+      }
+      setShowSignature(false)
+      setSignatureData(null)
+      setSignatureError(null)
+      clearSignature()
+      void loadRequests()
+    } catch (err) {
+      setSignatureError(err instanceof Error ? err.message : "An error occurred")
+    } finally {
+      setSignatureSubmitting(false)
+    }
+  }
+  const clearSignature = () => {
     const canvas = signatureCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -197,7 +238,7 @@ export default function ApprovalPersonnelRequests() {
       const getPointerPosition = (e: MouseEvent | TouchEvent): [number, number] => {
         const rect = canvas.getBoundingClientRect();
         let clientX: number, clientY: number;
-        if (e.type.startsWith('touch')) {
+        if (e instanceof TouchEvent) {
           const touch = e.touches[0] || e.changedTouches[0];
           clientX = touch.clientX;
           clientY = touch.clientY;
@@ -224,10 +265,10 @@ export default function ApprovalPersonnelRequests() {
         canvas.removeEventListener('mousemove', draw);
         canvas.removeEventListener('mouseup', stopDrawing);
         canvas.removeEventListener('mouseleave', stopDrawing);
-        canvas.removeEventListener('touchstart', startDrawing as any);
-        canvas.removeEventListener('touchmove', draw as any);
-        canvas.removeEventListener('touchend', stopDrawing as any);
-        canvas.removeEventListener('touchcancel', stopDrawing as any);
+        canvas.removeEventListener('touchstart', startDrawing as EventListener);
+        canvas.removeEventListener('touchmove', draw as EventListener);
+        canvas.removeEventListener('touchend', stopDrawing as EventListener);
+        canvas.removeEventListener('touchcancel', stopDrawing as EventListener);
       };
     }
   }, [showSignature, signatureData]);
