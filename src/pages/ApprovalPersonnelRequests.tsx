@@ -776,31 +776,8 @@ export default function ApprovalPersonnelRequests() {
 
               {/* Action Section */}
               {!actionType ? (
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setActionType("approve")}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-700"
-                  >
-                    <CheckCircleIcon className="h-5 w-5" />
-                    Approve Request
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActionType("reject")}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-6 py-3 text-sm font-bold text-rose-700 transition hover:bg-rose-50"
-                  >
-                    <XCircleIcon className="h-5 w-5" />
-                    Reject Request
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setSelectedRequest(null); setActionType(null); setActionRemarks("") }}
-                    className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 hover:bg-brown-50"
-                  >
-                    Close
-                  </button>
-                </div>
+                <>
+                </>
               ) : (
                 <div className="mt-6 space-y-4 border-t border-brown-200 pt-6">
                   <div>
