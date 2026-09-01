@@ -159,21 +159,21 @@ export default function RequestViewModal({
           <div className="grid gap-x-6 gap-y-3 sm:grid-cols-12">
             <div className="sm:col-span-5">
               <label className="text-[11px] font-bold uppercase tracking-wider text-brown-600">
-                Purpose <span className="text-rose-600">*</span>
+                Purpose
               </label>
               <p className="mt-1 text-sm leading-5 text-brown-700 line-clamp-2">{request.purpose}</p>
             </div>
 
             <div className="sm:col-span-4">
               <label className="text-[11px] font-bold uppercase tracking-wider text-brown-600">
-                Department <span className="text-rose-600">*</span>
+                Department
               </label>
               <p className="mt-1 text-sm font-semibold text-brown-700">{request.department}</p>
             </div>
 
             <div className="sm:col-span-3">
               <label className="text-[11px] font-bold uppercase tracking-wider text-brown-600">
-                Date <span className="text-rose-600">*</span>
+                Date
               </label>
               <p className="mt-1 text-sm font-semibold text-brown-700">
                 {request.dateNeeded ? formatDateLong(request.dateNeeded) : "-"}
