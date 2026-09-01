@@ -194,6 +194,14 @@ export default function ApprovalPersonnelRequests() {
     }
   }
 
+  const handleClose = () => {
+    if (!submitting) {
+      setSelectedRequest(null)
+      setActionType(null)
+      setActionRemarks("")
+    }
+  }
+
   if (!authUser) return null
 
   return (
@@ -386,189 +394,394 @@ export default function ApprovalPersonnelRequests() {
         {selectedRequest && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm"
-            onClick={() => {
-              if (!submitting) {
-                setSelectedRequest(null)
-                setActionType(null)
-                setActionRemarks("")
-              }
-            }}
+            onClick={handleClose}
           >
             <div
-              className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-[2rem] border border-brown-200 bg-white p-6 shadow-2xl sm:p-8"
+              className="relative w-full max-w-[210mm] max-h-[calc(100vh_-_3rem)] overflow-y-auto rounded-[1.75rem] border border-brown-200 bg-white shadow-sm"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary-600">Request Review</p>
-                  <h2 className="mt-2 text-2xl font-black tracking-tight text-brown-900">{selectedRequest.requestNumber}</h2>
-                  <p className="mt-1 text-sm text-brown-500">
-                    Submitted by <span className="font-semibold">{selectedRequest.requestedByName}</span>
-                  </p>
-                </div>
-                <StatusBadge status={selectedRequest.status} />
+              <button onClick={(e) => {
+                  e.stopPropagation();
+                  handleClose();
+                }} className="absolute top-2 right-2 rounded-xl p-2 text-brown-700 hover:text-brown-900 hover:bg-brown-50 transition" aria-label="Close">
+                <XCircleIcon className="h-5 w-5" />
+              </button>
+              <div className="border-b border-brown-200 bg-gradient-to-b from-brown-50 to-white px-6 pb-5 pt-6 text-center sm:px-10">
+                <p className="text-xs font-bold uppercase tracking-[0.25em] text-primary-600">
+                  Saint Francis College, Guihulngan, Negros Oriental, Incorporated
+                </p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-brown-500">
+                  Bateria, Poblacion, Guihulngan City, Negros Oriental
+                </p>
+                <h1 className="mt-2 text-lg font-black uppercase tracking-wide text-brown-900 sm:text-xl">
+                  OFFICE OF THE VICE PRESIDENT FOR FINANCE
+                </h1>
+                <div className="mx-auto my-4 h-0.5 w-24 rounded-full bg-primary-500" />
+                <h2 className="text-base font-black uppercase tracking-[0.15em] text-brown-900 sm:text-lg">
+                  REQUEST FORM
+                </h2>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-brown-500">
+                  (<span className="font-semibold text-brown-800">
+                    {selectedRequest.requestedByName}
+                  </span>)
+                </p>
               </div>
 
-              {/* Request Details */}
-              <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                {selectedRequest.purpose ? (
-                  <div className="rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3 sm:col-span-2">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Purpose</p>
-                    <p className="mt-1.5 text-sm text-brown-700">{selectedRequest.purpose}</p>
+              <div className="border-b border-brown-200 px-6 py-4 sm:px-10">
+                <div className="grid gap-x-6 gap-y-3 sm:grid-cols-12">
+                  <div className="sm:col-span-5">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-brown-600">
+                      Purpose
+                    </label>
+                    <p className="mt-1 text-sm leading-5 text-brown-700 line-clamp-2">{selectedRequest.purpose}</p>
                   </div>
-                ) : null}
-                {selectedRequest.department ? (
-                  <div className="rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Department</p>
-                    <p className="mt-1.5 text-sm font-semibold text-brown-700">{selectedRequest.department}</p>
+
+                  <div className="sm:col-span-4">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-brown-600">
+                      Department
+                    </label>
+                    <p className="mt-1 text-sm font-semibold text-brown-700">{selectedRequest.department}</p>
                   </div>
-                ) : null}
-                {selectedRequest.dateNeeded ? (
-                  <div className="rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Date Needed</p>
-                    <p className="mt-1.5 text-sm font-semibold text-brown-700">{formatDateLong(selectedRequest.dateNeeded)}</p>
+
+                  <div className="sm:col-span-3">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-brown-600">
+                      Date
+                    </label>
+                    <p className="mt-1 text-sm font-semibold text-brown-700">
+                      {selectedRequest.dateNeeded ? formatDateLong(selectedRequest.dateNeeded) : "-"}
+                    </p>
                   </div>
-                ) : null}
-                <div className="rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary-600">Grand Total</p>
-                  <p className="mt-1.5 text-lg font-black text-primary-800">₱{(selectedRequest.grandTotal ?? 0).toFixed(2)}</p>
                 </div>
               </div>
 
-              {/* Items */}
-              <div className="mt-6">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Requested Items</p>
-                <div className="mt-3 space-y-3">
-                  {selectedRequest.items.map((item, i) => (
-                    <div key={i} className="rounded-2xl border border-brown-200 bg-white p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-brown-900">{item.name}</p>
-                          <p className="text-xs text-brown-400">{item.itemCode} · {item.categoryName}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-black text-brown-900">×{item.quantityRequested}</p>
-                          {item.unitCost > 0 ? (
-                            <p className="text-xs text-primary-600">₱{item.unitCost.toFixed(2)}/ea</p>
-                          ) : null}
-                        </div>
+              <div className="border-b border-brown-200 bg-brown-50/60 px-6 py-4 sm:px-10">
+                {!isExpanded ? (
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-4">
+                      <div className="status-orbit-shell shrink-0">
+                        <span className="status-orbit-ring" />
+                        <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-base font-black text-white shadow-sm ring-4 ring-white">
+                          {Math.max(currentIndex + 1, 1)}
+                        </span>
                       </div>
-                      {item.totalAmount > 0 ? (
-                        <div className="mt-2 text-right">
-                          <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-bold text-primary-700">
-                            Subtotal: ₱{item.totalAmount.toFixed(2)}
-                          </span>
-                        </div>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-            </div>
-
-            {/* Approval Trail */}
-            {selectedRequest.approvalLogs.length > 0 ? (
-              <div className="mt-6">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Approval Trail</p>
-                <div className="mt-3 space-y-2">
-                  {selectedRequest.approvalLogs.map((log) => (
-                    <div key={log.id} className="flex items-start gap-3 rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3">
-                      {log.action === "approved" ? (
-                        <CheckCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-500" />
-                      ) : (
-                        <XCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-500" />
-                      )}
-                      <div>
-                        <p className="text-sm font-semibold text-brown-900">
-                          {log.approverName} ({log.approverRole}) —{" "}
-                          <span className={log.action === "approved" ? "text-emerald-600" : "text-rose-600"}>
-                            {log.action}
-                          </span>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brown-500">Current status</p>
+                        <p className="mt-1 text-base font-bold tracking-tight text-brown-900 sm:text-lg">
+                          {currentStatusLabel}
                         </p>
-                        {log.remarks ? (
-                          <p className="mt-0.5 text-sm text-brown-500">"{log.remarks}"</p>
-                        ) : null}
-                        <p className="mt-0.5 text-xs text-brown-400">{formatDateTimeShort(log.createdAt)}</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
+                    <button
+                      type="button"
+                      aria-expanded={isExpanded}
+                      onClick={() => setIsExpanded(true)}
+                      className="inline-flex items-center justify-center rounded-full border border-primary-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-primary-700 transition hover:border-primary-300 hover:bg-primary-50"
+                    >
+                      View More
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-4">
+                        <div className="status-orbit-shell shrink-0">
+                          <span className="status-orbit-ring" />
+                          <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-base font-black text-white shadow-sm ring-4 ring-white">
+                            {Math.max(currentIndex + 1, 1)}
+                          </span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brown-500">Current status</p>
+                          <p className="mt-1 text-base font-bold tracking-tight text-brown-900 sm:text-lg">
+                            {currentStatusLabel}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        aria-expanded={isExpanded}
+                        onClick={() => setIsExpanded(false)}
+                        className="inline-flex items-center justify-center rounded-full border border-primary-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-primary-700 transition hover:border-primary-300 hover:bg-primary-50"
+                      >
+                        View Less
+                      </button>
+                    </div>
 
-            {/* Action Buttons */}
-            {!actionType ? (
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={() => setActionType("approve")}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-700"
-                >
-                  <CheckCircleIcon className="h-5 w-5" />
-                  Approve Request
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActionType("reject")}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-6 py-3 text-sm font-bold text-rose-700 transition hover:bg-rose-50"
-                >
-                  <XCircleIcon className="h-5 w-5" />
-                  Reject Request
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setSelectedRequest(null); setActionType(null); setActionRemarks("") }}
-                  className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 hover:bg-brown-50"
-                >
-                  Close
-                </button>
+                    <div className="relative ml-2 pt-2">
+                      <div className="absolute left-[17px] top-2 h-[calc(100%-0.75rem)] w-px bg-brown-200" aria-hidden="true" />
+                      <div className="space-y-4">
+                        {steps.map((step, idx) => {
+                          const isCurrent = idx === currentIndex;
+                          const isCompleted = idx < currentIndex;
+                          const isUpcoming = idx > currentIndex;
+
+                          return (
+                            <div key={step.value} className="relative flex items-start gap-3">
+                              <div className="relative z-10 mt-0.5 flex h-8 w-8 items-center justify-center shrink-0 rounded-full border bg-white shadow-sm">
+                                {isCurrent ? (
+                                  <div className="status-orbit-shell h-8 w-8">
+                                    <span className="status-orbit-ring ring-1 ring-primary-200" />
+                                    <span className="relative flex h-5 w-5 items-center justify-center rounded-full bg-primary-600 text-[10px] font-bold text-white">
+                                      {idx + 1}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span
+                                    className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
+                                      isCompleted
+                                        ? "bg-brown-200 text-brown-600"
+                                        : isUpcoming
+                                          ? "bg-brown-100 text-brown-400"
+                                          : "bg-primary-100 text-primary-700"
+                                    }`}
+                                  >
+                                    {idx + 1}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1 pt-0.5">
+                                <p
+                                  className={`text-sm font-semibold ${
+                                    isCurrent
+                                      ? "text-brown-900"
+                                      : isCompleted
+                                        ? "text-brown-500"
+                                        : "text-brown-400"
+                                  }`}
+                                >
+                                  {step.label}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
-            ) : (
-              <div className="mt-6 space-y-4 border-t border-brown-200 pt-6">
-                <div>
-                  <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-brown-500">
-                    <ChatBubbleLeftRightIcon className="h-4 w-4" />
-                    Remarks {actionType === "reject" ? <span className="text-rose-500">* (required for rejection)</span> : null}
-                  </label>
-                  <textarea
-                    value={actionRemarks}
-                    onChange={(e) => setActionRemarks(e.target.value)}
-                    rows={3}
-                    placeholder={actionType === "reject" ? "Provide a reason for rejection..." : "Optional remarks..."}
-                    className="mt-3 w-full rounded-xl border border-brown-200 bg-white px-4 py-3 text-sm text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                  />
+
+              <div className="px-6 py-4 sm:px-10">
+                <div className="overflow-x-auto rounded-2xl border border-brown-200">
+                  <table className="w-full border-collapse table-fixed text-xs sm:text-sm">
+                    <thead>
+                      <tr className="border-b border-brown-200 bg-brown-100">
+                        <th className="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[40px]">
+                          Qty
+                        </th>
+                        <th className="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600">
+                          Item / Description
+                        </th>
+                        <th className="border-r border-brown-200 px-3 py-2 text-right text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[110px]">
+                          Unit Cost
+                        </th>
+                        <th className="border-r-0 px-3 py-2 text-right text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[120px]">
+                          Total Amount
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.length === 0 ? (
+                        <tr className="border-b border-brown-200">
+                          <td colSpan={4} className="px-4 py-8 text-center text-sm italic text-brown-400">
+                            No items in this request.
+                          </td>
+                        </tr>
+                      ) : null}
+
+                      {items.map((item, index) => (
+                        <tr key={`${item.itemCode}-${index}`} className="border-b border-brown-200 align-top">
+                          <td className="border-r border-brown-200 px-2 py-3 text-right align-top sm:w-[40px]">
+                            <span className="block text-xs font-bold text-brown-900">{item.quantity}</span>
+                          </td>
+                          <td className="border-r border-brown-200 px-2 py-3 align-top">
+                            <div className="flex min-w-0 items-start gap-2">
+                              <img
+                                src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
+                                alt={item.name}
+                                className="mt-0.5 h-7 w-7 flex-shrink-0 rounded object-cover"
+                              />
+                              <div className="min-w-0">
+                                <p className="break-words text-xs font-semibold leading-5 text-brown-900 sm:text-sm">{item.name}</p>
+                                {item.isCustom ? (
+                                  <span className="mt-1 inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-600">
+                                    Custom
+                                  </span>
+                                ) : (
+                                  <span className="mt-1 block text-[10px] font-medium text-brown-400">{item.itemCode}</span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="border-r border-brown-200 px-2 py-3 text-right align-top">
+                            <span className="text-[10px] font-bold text-brown-900 sm:text-xs">₱{item.unitCost.toFixed(2)}</span>
+                          </td>
+                          <td className="px-2 py-3 text-right align-top">
+                            <span className="text-sm font-black text-brown-900 sm:text-sm">₱{item.totalAmount.toFixed(2)}</span>
+                          </td>
+                        </tr>
+                      ))}
+
+                      <tfoot>
+                        <tr className="bg-white font-bold">
+                          <td colSpan={2} className="border-r border-brown-200 px-3 py-2">
+                            <span className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-brown-600">
+                              SOF:
+                              <span className="inline-block min-w-[120px] border-b border-brown-300">&nbsp;</span>
+                            </span>
+                          </td>
+                          <td className="border-r border-brown-200 px-3 py-2 text-right text-[11px] uppercase tracking-wider text-brown-600">
+                            Grand Total
+                          </td>
+                          <td className="px-3 py-2 text-right text-sm font-black text-brown-900 sm:text-base">
+                            ₱{grandTotal.toFixed(2)}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </tbody>
+                  </table>
                 </div>
-                <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+
+                <p className="mt-3 text-[10px] uppercase tracking-wider text-brown-400">
+                  Total Items: {totalItems} | Total Quantity: {totalQuantity}
+                </p>
+              </div>
+
+              <div className="border-t border-brown-200 px-6 py-4 sm:px-10">
+                <div className="overflow-x-auto rounded-2xl border border-brown-200">
+                  <table className="w-full border-collapse text-[10px] sm:text-xs">
+                    <thead>
+                      <tr className="border-b border-brown-200 bg-brown-100">
+                        {["Requested By", "Recommended By", "Checked By", "Noted By", "Approved By"].map((label) => (
+                          <th key={label} className="border-r border-brown-200 px-2 py-2 text-center font-bold uppercase tracking-wider text-brown-600 last:border-r-0">
+                            {label}
+                          </th>
+                        ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      {["Requested", "Recommended", "Checked", "Noted", "Approved"].map((label) => {
+                        let printedName = "";
+                        if (label === "Requested") {
+                          printedName = selectedRequest.requestedByName;
+                        } else if (label === "Recommended") {
+                          printedName = approvalPersonnel["Immediate Head"] ?? "";
+                        } else if (label === "Checked") {
+                          printedName = approvalPersonnel["Resource Planning Officer"] ?? "";
+                        } else if (label === "Noted") {
+                          printedName = approvalPersonnel["Vice President for Finance"] ?? "";
+                        } else if (label === "Approved") {
+                          printedName = approvalPersonnel["College President"] ?? "";
+                        }
+                        const position = label === "Recommended"
+                          ? "Immediate Head"
+                          : label === "Checked"
+                            ? "Resource Planning Officer"
+                            : label === "Noted"
+                              ? "Vice President for Finance"
+                              : label === "Approved"
+                                ? "College President"
+                                : "";
+                        return (
+                          <td key={label} className="border-r border-brown-200 px-2 py-4 text-center last:border-r-0">
+                            <div className="mx-auto mb-2 h-px w-3/4 border-t border-brown-300" />
+                            <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Signature</p>
+                            <p className="mt-3 text-[10px] sm:text-xs">{printedName}</p>
+                            <div className="mx-auto mt-1 h-px w-full border-t border-brown-300" />
+                            <p className="mt-1 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Printed Name</p>
+                          <p className="mt-2 text-[10px] sm:text-xs">{position}</p>
+                          <div className="mx-auto mt-1 h-px w-full border-t border-brown-300" />
+                            <p className="mt-1 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Position / Designation</p>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="border-t border-brown-200 px-6 py-4 sm:px-10">
+                <div className="mb-4">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-brown-600">Notes / Remarks</label>
+                  <p className="mt-1 text-sm leading-6 text-brown-600">{selectedRequest.notes}</p>
+                </div>
+              </div>
+
+              {/* Action Section */}
+              {!actionType ? (
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
                   <button
                     type="button"
-                    onClick={() => void handleAction()}
-                    disabled={submitting || (actionType === "reject" && !actionRemarks.trim())}
-                    className={`inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                      actionType === "approve" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"
-                    }`}
+                    onClick={() => setActionType("approve")}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-700"
                   >
-                    {submitting ? (
-                      <>Processing...</>
-                    ) : (
-                      <>
-                        {actionType === "approve" ? <CheckCircleIcon className="h-5 w-5" /> : <XCircleIcon className="h-5 w-5" />}
-                        Confirm {actionType === "approve" ? "Approval" : "Rejection"}
-                      </>
-                    )}
+                    <CheckCircleIcon className="h-5 w-5" />
+                    Approve Request
                   </button>
                   <button
                     type="button"
-                    onClick={() => setActionType(null)}
-                    disabled={submitting}
-                    className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    onClick={() => setActionType("reject")}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-6 py-3 text-sm font-bold text-rose-700 transition hover:bg-rose-50"
                   >
-                    Back
+                    <XCircleIcon className="h-5 w-5" />
+                    Reject Request
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedRequest(null); setActionType(null); setActionRemarks("") }}
+                    className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 hover:bg-brown-50"
+                  >
+                    Close
                   </button>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="mt-6 space-y-4 border-t border-brown-200 pt-6">
+                  <div>
+                    <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-brown-500">
+                      <ChatBubbleLeftRightIcon className="h-4 w-4" />
+                      Remarks {actionType === "reject" ? <span className="text-rose-500">* (required for rejection)</span> : null}
+                    </label>
+                    <textarea
+                      value={actionRemarks}
+                      onChange={(e) => setActionRemarks(e.target.value)}
+                      rows={3}
+                      placeholder={actionType === "reject" ? "Provide a reason for rejection..." : "Optional remarks..."}
+                      className="mt-3 w-full rounded-xl border border-brown-200 bg-white px-4 py-3 text-sm text-brown-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={() => void handleAction()}
+                      disabled={submitting || (actionType === "reject" && !actionRemarks.trim())}
+                      className={`inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                        actionType === "approve" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"
+                      }`}
+                    >
+                      {submitting ? (
+                        <>Processing...</>
+                      ) : (
+                        <>
+                          {actionType === "approve" ? <CheckCircleIcon className="h-5 w-5" /> : <XCircleIcon className="h-5 w-5" />}
+                          Confirm {actionType === "approve" ? "Approval" : "Rejection"}
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActionType(null)}
+                      disabled={submitting}
+                      className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Back
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </StaggerContainer>
     </ApprovalPersonnelShell>
   )
