@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, useLocation } from "react"
-import { useNavigate } from "react-router-dom"
+import { useEffect, useMemo, useState } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
   ArrowPathIcon,
@@ -108,13 +108,11 @@ export default function ApprovalPersonnelRequests() {
       const params = new URLSearchParams({
         userId: String(authUser.id),
         role: authUser.role,
-        // Add showAll parameter when on the all-request page
-        showAll: location.pathname === "/approval-personnel/all-request" ? "true" : undefined,
       })
-      // Filter out undefined values
-      const paramEntries = Array.from(params.entries()).filter(([_, value]) => value !== undefined)
-      const filteredParams = new URLSearchParams(paramEntries)
-      const res = await api(`/api/approval-workflow.php?${filteredParams.toString()}`)
+      if (location.pathname === "/approval-personnel/all-request") {
+        params.set("showAll", "true")
+      }
+      const res = await api(`/api/approval-workflow.php?${params.toString()}`)
       const result = (await res.json()) as ApprovalApiResponse
       if (result.success) {
         setRequests(result.requests ?? [])
@@ -555,6 +553,7 @@ export default function ApprovalPersonnelRequests() {
           </div>
         </div>
       )}
+      </StaggerContainer>
     </ApprovalPersonnelShell>
   )
 }
