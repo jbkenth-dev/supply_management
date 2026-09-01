@@ -69,17 +69,6 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
   const [editMode, setEditMode] = useState(false)
   const [editDraft, setEditDraft] = useState("")
 
-  // Debug logging
-  useEffect(() => {
-    console.log('MessageCenter debug:', {
-      authUser: authUser ? { id: authUser.id, role: authUser.role } : null,
-      loading,
-      error,
-      contactsLength: contacts.length,
-      selectedConversationUserId,
-      messagesLength: messages.length,
-    })
-  }, [authUser, loading, error, contacts, selectedConversationUserId, messages])
 
   const filteredContacts = (() => {
     const term = searchTerm.trim().toLowerCase()
