@@ -263,14 +263,41 @@ export default function NewRequest() {
     setItems((current) => current.filter((_, i) => i !== index))
   }
 
+  const clampQuantity = (nextQuantity: number, maxStock: number | null) => {
+    const minimumQuantity = 1
+    const maximumQuantity = maxStock !== null ? maxStock : Number.MAX_SAFE_INTEGER
+    return Math.min(Math.max(nextQuantity, minimumQuantity), maximumQuantity)
+  }
+
   const updateItemQuantity = (index: number, nextQuantity: number) => {
     setItems((current) =>
       current.map((item, itemIndex) => {
         if (itemIndex !== index) return item
 
-        const minimumQuantity = 1
-        const maxQuantity = item.maxStock !== null ? item.maxStock : Number.MAX_SAFE_INTEGER
-        const safeQuantity = Math.min(Math.max(nextQuantity, minimumQuantity), maxQuantity)
+        const safeQuantity = clampQuantity(nextQuantity, item.maxStock)
+
+        return {
+          ...item,
+          quantity: safeQuantity,
+          totalAmount: safeQuantity * item.unitCost,
+        }
+      })
+    )
+  }
+
+  const handleManualQuantityInput = (index: number, rawValue: string) => {
+    const trimmedValue = rawValue.trim()
+    if (!trimmedValue) return
+
+    const parsedValue = Number(trimmedValue)
+    if (!Number.isFinite(parsedValue)) return
+
+    setItems((current) =>
+      current.map((item, itemIndex) => {
+        if (itemIndex !== index) return item
+
+        const maximumQuantity = item.maxStock !== null ? item.maxStock : Number.MAX_SAFE_INTEGER
+        const safeQuantity = parsedValue < 1 ? 1 : parsedValue > maximumQuantity ? maximumQuantity : parsedValue
 
         return {
           ...item,
@@ -508,7 +535,7 @@ export default function NewRequest() {
                             min={1}
                             max={item.maxStock ?? undefined}
                             value={item.quantity}
-                            onChange={(e) => updateItemQuantity(index, Number(e.target.value) || 1)}
+                            onChange={(e) => handleManualQuantityInput(index, e.target.value)}
                             className="qty-input w-[28px] min-w-[28px] border-0 bg-transparent px-0 py-0 text-center text-xs font-bold text-brown-900 outline-none"
                             aria-label={`Quantity for ${item.name}`}
                           />
@@ -521,6 +548,11 @@ export default function NewRequest() {
                             +
                           </button>
                         </div>
+                        {item.maxStock !== null && item.quantity >= item.maxStock ? (
+                          <div className="mt-1 text-center text-[9px] font-bold uppercase tracking-wider text-amber-700">
+                            Reached Max {item.maxStock}
+                          </div>
+                        ) : null}
                       </TableCell>
                       <TableCell className="min-w-0 py-2 align-middle">
                         <div className="flex w-full min-w-0 items-center justify-between gap-2 overflow-hidden">
