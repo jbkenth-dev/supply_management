@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import type { ReactNode } from "react"
-import { formatDateTime, formatDateLong } from "../../lib/date"
+import { formatDateTime as manilaFormatDateTime } from "../../lib/date"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import {
@@ -16,6 +16,7 @@ import { api } from "../../lib/api"
 import { MessageModal } from "../ui/MessageModal"
 import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
 import RequestViewModal from "../../components/RequestViewModal"
+import type { RequestStatus } from "../../types/requests"
 
 type RequestItem = {
   requestItemId: number
@@ -39,9 +40,13 @@ type AdminRequestRecord = {
   requestedByIdNumber: string
   requestedByEmail: string
   requestedByProfileImageUrl: string | null
+  purpose: string
+  department: string
+  dateNeeded: string | null
+  grandTotal: number
   reviewedByName: string
   fulfilledByName: string
-  status: string
+  status: RequestStatus
   notes: string
   reviewNotes: string
   totalItems: number
@@ -654,6 +659,8 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
               requestedByName: selectedRequest.requestedByName,
               requestedByIdNumber: selectedRequest.requestedByIdNumber ?? "",
               requestedByEmail: selectedRequest.requestedByEmail ?? "",
+              reviewNotes: selectedRequest.reviewNotes ?? "",
+              reviewedAt: selectedRequest.reviewedAt ?? null,
               items: selectedRequest.items.map(item => ({
                 supplyId: item.supplyId,
                 customItemName: null,
@@ -665,6 +672,9 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                 description: item.description,
                 imagePath: item.imagePath,
                 quantityRequested: item.quantityRequested,
+                quantityApproved: item.quantityApproved,
+                quantityFulfilled: item.quantityFulfilled,
+                quantityOnHand: item.quantityOnHand,
               })),
               approvalLogs: []
             };
@@ -878,15 +888,6 @@ function ModalShell({
         </div>
         {children}
       </div>
-    </div>
-  )
-}
-
-function InfoBlock({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">{label}</p>
-      <p className="mt-2 text-sm leading-6 text-brown-700">{value}</p>
     </div>
   )
 }
