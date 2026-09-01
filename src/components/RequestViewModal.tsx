@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { formatDateLong } from "../lib/date";
-import { XCircleIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import type { FacultyRequest } from "../types/requests";
 import { api } from "../lib/api";
 
@@ -242,11 +242,16 @@ export default function RequestViewModal({
                     const isCurrent = idx === currentIndex;
                     const isCompleted = idx < currentIndex;
                     const isUpcoming = idx > currentIndex;
-
+                    const displayLabel = step.label.replace(/^Pending\s+/, "");
+ 
                     return (
                       <div key={step.value} className="relative flex items-start gap-3">
                         <div className="relative z-10 mt-0.5 flex h-8 w-8 items-center justify-center shrink-0 rounded-full border bg-white shadow-sm">
-                          {isCurrent ? (
+                          {isCompleted ? (
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                              <CheckIcon className="h-4 w-4" />
+                            </span>
+                          ) : isCurrent ? (
                             <div className="status-orbit-shell h-8 w-8">
                               <span className="status-orbit-ring ring-1 ring-primary-200" />
                               <span className="relative flex h-5 w-5 items-center justify-center rounded-full bg-primary-600 text-[10px] font-bold text-white">
@@ -256,11 +261,7 @@ export default function RequestViewModal({
                           ) : (
                             <span
                               className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-                                isCompleted
-                                  ? "bg-brown-200 text-brown-600"
-                                  : isUpcoming
-                                    ? "bg-brown-100 text-brown-400"
-                                    : "bg-primary-100 text-primary-700"
+                                isUpcoming ? "bg-brown-100 text-brown-400" : "bg-primary-100 text-primary-700"
                               }`}
                             >
                               {idx + 1}
@@ -273,11 +274,11 @@ export default function RequestViewModal({
                               isCurrent
                                 ? "text-brown-900"
                                 : isCompleted
-                                  ? "text-brown-500"
+                                  ? "text-emerald-700"
                                   : "text-brown-400"
                             }`}
                           >
-                            {step.label}
+                            {isCompleted ? displayLabel : step.label}
                           </p>
                         </div>
                       </div>
