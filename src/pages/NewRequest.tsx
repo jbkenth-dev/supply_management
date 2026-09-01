@@ -475,10 +475,10 @@ export default function NewRequest() {
               <table className="w-full border-collapse table-fixed text-xs sm:text-sm">
                 <thead>
                   <tr className="border-b border-brown-200 bg-brown-100">
-                    <TableHead className="w-[60px]">Qty</TableHead>
-                    <TableHead>Item / Description</TableHead>
-                    <TableHead className="text-right w-[110px]">Unit Cost</TableHead>
-                    <TableHead className="border-r-0 text-right w-[120px]">Total Amount</TableHead>
+                    <TableHead className="w-[130px] text-center">Qty</TableHead>
+                    <TableHead className="min-w-0">Item / Description</TableHead>
+                    <TableHead className="w-[110px] text-right">Unit Cost</TableHead>
+                    <TableHead className="w-[120px] border-r-0 text-right">Total Amount</TableHead>
                   </tr>
                 </thead>
 
@@ -493,8 +493,8 @@ export default function NewRequest() {
 
                   {items.map((item, index) => (
                     <tr key={`${item.itemCode}-${index}`} className="border-b border-brown-200">
-                      <TableCell className="w-[112px] py-2 align-middle">
-                        <div className="mx-auto inline-flex w-[96px] min-w-[96px] items-center justify-between gap-1.5 rounded-xl border border-brown-200 bg-white p-1 shadow-sm">
+                      <TableCell className="w-[130px] py-2 align-middle">
+                        <div className="mx-auto flex w-[100px] items-center justify-between gap-1.5 rounded-xl border border-brown-200 bg-white p-1 shadow-sm">
                           <button
                             type="button"
                             onClick={() => updateItemQuantity(index, item.quantity - 1)}
@@ -509,7 +509,7 @@ export default function NewRequest() {
                             max={item.maxStock ?? undefined}
                             value={item.quantity}
                             onChange={(e) => updateItemQuantity(index, Number(e.target.value) || 1)}
-                            className="qty-input w-[32px] min-w-[32px] border-0 bg-transparent px-0 py-0 text-center text-xs font-bold text-brown-900 outline-none"
+                            className="qty-input w-[28px] min-w-[28px] border-0 bg-transparent px-0 py-0 text-center text-xs font-bold text-brown-900 outline-none"
                             aria-label={`Quantity for ${item.name}`}
                           />
                           <button
@@ -522,22 +522,22 @@ export default function NewRequest() {
                           </button>
                         </div>
                       </TableCell>
-                      <TableCell className="py-2 align-middle">
-                        <div className="flex w-full items-center justify-between gap-2">
-                          <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <TableCell className="min-w-0 py-2 align-middle">
+                        <div className="flex w-full min-w-0 items-center justify-between gap-2 overflow-hidden">
+                          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
                             <img
                               src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
                               alt={item.name}
-                              className="h-9 w-9 flex-shrink-0 rounded border border-brown-200 bg-brown-100 object-cover"
+                              className="h-8 w-8 flex-shrink-0 rounded border border-brown-200 bg-brown-100 object-cover"
                             />
-                            <div className="min-w-0 text-left leading-tight">
+                            <div className="min-w-0 flex-1 overflow-hidden text-left leading-tight">
                               <p className="truncate text-[11px] font-bold uppercase tracking-[0.04em] text-brown-900">{item.name}</p>
                               {item.isCustom ? (
                                 <span className="mt-0.5 inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary-600">
                                   Custom
                                 </span>
                               ) : (
-                                <span className="mt-0.5 block text-[9px] font-medium text-brown-400">{item.itemCode}</span>
+                                <span className="mt-0.5 block truncate text-[9px] font-medium text-brown-400">{item.itemCode}</span>
                               )}
                             </div>
                           </div>
