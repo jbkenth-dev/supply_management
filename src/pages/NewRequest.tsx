@@ -243,7 +243,7 @@ export default function NewRequest() {
         supplyId: null,
         name,
         itemCode: "CUSTOM",
-        imagePath: "",
+        imagePath: "/sfcg-logo.jpg",
         categoryName: "Other",
         quantity: customQty,
         unitCost: customCost,
