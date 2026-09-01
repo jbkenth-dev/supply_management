@@ -21,6 +21,7 @@ type DashboardStats = {
   totalUsers: number
   administrators: number
   custodians: number
+  approvalPersonnel: number
   facultyStaff: number
   categories: number
   supplies: number
@@ -41,6 +42,7 @@ const emptyStats: DashboardStats = {
   totalUsers: 0,
   administrators: 0,
   custodians: 0,
+  approvalPersonnel: 0,
   facultyStaff: 0,
   categories: 0,
   supplies: 0,
@@ -173,7 +175,7 @@ export default function AdminDashboard() {
               <div className="mt-6 grid gap-4 md:grid-cols-2">
                 <SoftStat label="Total Users" value={stats.totalUsers} helper="All user accounts" />
                 <SoftStat label="Administrators" value={stats.administrators} helper="Accounts with full admin access" />
-                <SoftStat label="Custodians" value={stats.custodians} helper="Property custodian accounts" />
+                <SoftStat label="Approval Personnel" value={stats.approvalPersonnel} helper="Approval Personnel accounts" />
                 <SoftStat label="Faculty Staff" value={stats.facultyStaff} helper="Faculty and staff requester accounts" />
               </div>
             </section>

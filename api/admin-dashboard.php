@@ -45,6 +45,7 @@ try {
             'totalUsers' => $userCounts['totalUsers'],
             'administrators' => $userCounts['administrators'],
             'custodians' => $userCounts['custodians'],
+            'approvalPersonnel' => $userCounts['approvalPersonnel'],
             'facultyStaff' => $userCounts['facultyStaff'],
             'categories' => count($inventorySnapshot['categories']),
             'supplies' => count($supplies),
@@ -69,6 +70,7 @@ function getUserCounts(PDO $pdo): array
             COUNT(*) AS total_users,
             SUM(CASE WHEN role = 'Administrator' THEN 1 ELSE 0 END) AS administrators,
             SUM(CASE WHEN role = 'Property Custodian' THEN 1 ELSE 0 END) AS custodians,
+            SUM(CASE WHEN role IN ('Immediate Head', 'Resource Planning Officer', 'Vice President for Finance', 'College President') THEN 1 ELSE 0 END) AS approval_personnel,
             SUM(CASE WHEN role = 'Faculty Staff' THEN 1 ELSE 0 END) AS faculty_staff
          FROM users"
     );
@@ -79,6 +81,7 @@ function getUserCounts(PDO $pdo): array
         'totalUsers' => (int) ($counts['total_users'] ?? 0),
         'administrators' => (int) ($counts['administrators'] ?? 0),
         'custodians' => (int) ($counts['custodians'] ?? 0),
+        'approvalPersonnel' => (int) ($counts['approval_personnel'] ?? 0),
         'facultyStaff' => (int) ($counts['faculty_staff'] ?? 0),
     ];
 }
