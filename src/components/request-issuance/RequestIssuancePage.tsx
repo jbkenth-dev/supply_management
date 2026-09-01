@@ -524,36 +524,6 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                     </div>
                   </div>
 
-                  <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                    {request.items.map((item) => (
-                      <div key={item.requestItemId} className="rounded-2xl border border-brown-200 bg-white p-4">
-                        <div className="flex items-start gap-4">
-                          <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-brown-200 bg-brown-50">
-                            <img
-                              src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop"}
-                              alt={item.name}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-brown-900">{item.name}</p>
-                            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-brown-400">
-                              {item.itemCode} • {item.categoryName}
-                            </p>
-                            <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                              <span className="rounded-full bg-brown-100 px-3 py-1 text-brown-700">Requested: {item.quantityRequested}</span>
-                              {item.quantityApproved !== null ? (
-                                <span className="rounded-full bg-primary-50 px-3 py-1 text-primary-700">Approved: {item.quantityApproved}</span>
-                              ) : null}
-                              {item.quantityFulfilled > 0 ? (
-                                <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">Issued: {item.quantityFulfilled}</span>
-                              ) : null}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </article>
               ))
             )}
