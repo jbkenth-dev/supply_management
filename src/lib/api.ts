@@ -16,9 +16,9 @@
  * Otherwise, the base URL is derived from the app's base URL (import.meta.env.BASE_URL)
  * with any trailing slash removed, so that API calls with a leading slash can be safely made.
  */
-const BASE_URL: string =
-  import.meta.env.VITE_API_BASE_URL ??
-  import.meta.env.BASE_URL.replace(/\/+$/, '')
+const BASE_URL: string = import.meta.env.DEV
+  ? (import.meta.env.VITE_API_BASE_URL ?? '')
+  : ''
 
 export function api(input: string, init?: RequestInit): Promise<Response> {
   return fetch(`${BASE_URL}${input}`, init)
