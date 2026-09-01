@@ -263,6 +263,24 @@ export default function NewRequest() {
     setItems((current) => current.filter((_, i) => i !== index))
   }
 
+  const updateItemQuantity = (index: number, nextQuantity: number) => {
+    setItems((current) =>
+      current.map((item, itemIndex) => {
+        if (itemIndex !== index) return item
+
+        const minimumQuantity = 1
+        const maxQuantity = item.maxStock !== null ? item.maxStock : Number.MAX_SAFE_INTEGER
+        const safeQuantity = Math.min(Math.max(nextQuantity, minimumQuantity), maxQuantity)
+
+        return {
+          ...item,
+          quantity: safeQuantity,
+          totalAmount: safeQuantity * item.unitCost,
+        }
+      })
+    )
+  }
+
   const grandTotal = useMemo(() => {
     return items.reduce((sum, item) => sum + item.quantity * item.unitCost, 0)
   }, [items])
@@ -475,9 +493,33 @@ export default function NewRequest() {
 
                   {items.map((item, index) => (
                     <tr key={`${item.itemCode}-${index}`} className="border-b border-brown-200">
-                      <TableCell className="w-[60px] text-right">
-                        <div className="text-xs font-bold text-brown-900">
-                          {item.quantity}
+                      <TableCell className="w-[80px] text-center">
+                        <div className="inline-flex items-center justify-center gap-1 rounded-xl border border-brown-200 bg-white p-1">
+                          <button
+                            type="button"
+                            onClick={() => updateItemQuantity(index, item.quantity - 1)}
+                            className="flex h-6 w-6 items-center justify-center rounded-lg text-sm font-bold text-brown-700 transition hover:bg-brown-100"
+                            aria-label={`Decrease quantity for ${item.name}`}
+                          >
+                            −
+                          </button>
+                          <input
+                            type="number"
+                            min={1}
+                            max={item.maxStock ?? undefined}
+                            value={item.quantity}
+                            onChange={(e) => updateItemQuantity(index, Number(e.target.value) || 1)}
+                            className="qty-input w-10 border-0 bg-transparent px-1 py-1 text-center text-xs font-bold text-brown-900 outline-none"
+                            aria-label={`Quantity for ${item.name}`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => updateItemQuantity(index, item.quantity + 1)}
+                            className="flex h-6 w-6 items-center justify-center rounded-lg text-sm font-bold text-brown-700 transition hover:bg-brown-100"
+                            aria-label={`Increase quantity for ${item.name}`}
+                          >
+                            +
+                          </button>
                         </div>
                       </TableCell>
                       <TableCell>
