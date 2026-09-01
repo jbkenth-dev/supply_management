@@ -493,12 +493,12 @@ export default function NewRequest() {
 
                   {items.map((item, index) => (
                     <tr key={`${item.itemCode}-${index}`} className="border-b border-brown-200">
-                      <TableCell className="w-[80px] text-center">
-                        <div className="inline-flex items-center justify-center gap-1 rounded-xl border border-brown-200 bg-white p-1">
+                      <TableCell className="w-[90px] py-2 text-center align-middle">
+                        <div className="inline-flex items-center justify-center gap-1 rounded-lg border border-brown-200 bg-white p-1 shadow-sm">
                           <button
                             type="button"
                             onClick={() => updateItemQuantity(index, item.quantity - 1)}
-                            className="flex h-6 w-6 items-center justify-center rounded-lg text-sm font-bold text-brown-700 transition hover:bg-brown-100"
+                            className="flex h-5 w-5 items-center justify-center rounded text-xs font-bold text-brown-700 transition hover:bg-brown-100"
                             aria-label={`Decrease quantity for ${item.name}`}
                           >
                             −
@@ -509,35 +509,35 @@ export default function NewRequest() {
                             max={item.maxStock ?? undefined}
                             value={item.quantity}
                             onChange={(e) => updateItemQuantity(index, Number(e.target.value) || 1)}
-                            className="qty-input w-10 border-0 bg-transparent px-1 py-1 text-center text-xs font-bold text-brown-900 outline-none"
+                            className="qty-input w-8 border-0 bg-transparent px-0 py-0 text-center text-xs font-bold text-brown-900 outline-none"
                             aria-label={`Quantity for ${item.name}`}
                           />
                           <button
                             type="button"
                             onClick={() => updateItemQuantity(index, item.quantity + 1)}
-                            className="flex h-6 w-6 items-center justify-center rounded-lg text-sm font-bold text-brown-700 transition hover:bg-brown-100"
+                            className="flex h-5 w-5 items-center justify-center rounded text-xs font-bold text-brown-700 transition hover:bg-brown-100"
                             aria-label={`Increase quantity for ${item.name}`}
                           >
                             +
                           </button>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex w-full items-center justify-between gap-3">
-                          <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <TableCell className="py-2 align-middle">
+                        <div className="flex w-full items-center justify-between gap-2">
+                          <div className="flex min-w-0 flex-1 items-center gap-2">
                             <img
                               src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
                               alt={item.name}
-                              className="h-10 w-10 flex-shrink-0 rounded-md border border-brown-200 bg-brown-100 object-cover"
+                              className="h-9 w-9 flex-shrink-0 rounded border border-brown-200 bg-brown-100 object-cover"
                             />
-                            <div className="min-w-0 text-left">
-                              <p className="truncate text-xs font-semibold text-brown-900">{item.name}</p>
+                            <div className="min-w-0 text-left leading-tight">
+                              <p className="truncate text-[11px] font-bold uppercase tracking-[0.04em] text-brown-900">{item.name}</p>
                               {item.isCustom ? (
-                                <span className="inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-600">
+                                <span className="mt-0.5 inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary-600">
                                   Custom
                                 </span>
                               ) : (
-                                <span className="text-[10px] font-medium text-brown-400">{item.itemCode}</span>
+                                <span className="mt-0.5 block text-[9px] font-medium text-brown-400">{item.itemCode}</span>
                               )}
                             </div>
                           </div>
