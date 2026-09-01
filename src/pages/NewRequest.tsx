@@ -724,7 +724,7 @@ export default function NewRequest() {
                               onClick={() => setCustomRowOpen(true)}
                               className="inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-primary-700"
                             >
-                              <img src="/sfcg-logo.jpg" alt="Add custom item" className="h-4 w-4 rounded-sm object-cover" />
+                              <span aria-hidden="true" className="text-base leading-none">＋</span>
                               Add Custom Item
                             </button>
                           </>
