@@ -80,7 +80,8 @@ async function readApprovalResponse(response: Response): Promise<ApprovalApiResp
   } catch {
     const plainText = new DOMParser().parseFromString(responseText, "text/html").body.textContent?.trim()
     const serverMessage = plainText || responseText.trim() || "The server returned an empty response."
-    throw new Error(`Approval API returned invalid JSON (HTTP ${response.status} ${response.statusText}). Cause: ${serverMessage}`)
+    const statusLabel = response.statusText ? `${response.status} ${response.statusText}` : String(response.status)
+    throw new Error(`Approval API returned invalid JSON (HTTP ${statusLabel}). Cause: ${serverMessage}`)
   }
 
   if (!response.ok || !result.success) {
