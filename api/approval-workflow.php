@@ -37,6 +37,7 @@ function handleApprovalWorkflowFetch(PDO $pdo): void
     $userId = filter_input(INPUT_GET, 'userId', FILTER_VALIDATE_INT);
     $role = trim((string) ($_GET['role'] ?? ''));
     $designation = trim((string) ($_GET['designation'] ?? ''));
+    $showAll = filter_input(INPUT_GET, 'showAll', FILTER_VALIDATE_BOOL);
 
     if (!$userId) {
         jsonResponse(422, ['success' => false, 'message' => 'Valid user ID is required.']);
@@ -44,6 +45,30 @@ function handleApprovalWorkflowFetch(PDO $pdo): void
 
     // Find the user
     $user = findApprovalUser($pdo, $userId);
+
+    // If showAll is true, we check if the user is an approval personnel before showing all requests
+    if ($showAll) {
+        // Check if user has an approval designation
+        $isApprovalPersonnel = getApproverTargetStatus($designation) !== null;
+
+        if (!$isApprovalPersonnel) {
+            jsonResponse(403, [
+                'success' => false,
+                'message' => 'Access denied. Approval personnel only.',
+            ]);
+            return;
+        }
+
+        $requests = fetchAllApprovalRequests($pdo);
+        $approvalHistory = fetchApprovalHistory($pdo, $userId);
+
+        jsonResponse(200, [
+            'success' => true,
+            'requests' => $requests,
+            'approvalHistory' => $approvalHistory,
+        ]);
+        return;
+    }
 
     // Determine which statuses this approver can see
     $targetStatus = getApproverTargetStatus($designation ?: $user['designation']);
@@ -212,8 +237,11 @@ function getNextApprovalStatus(string $currentStatus): string
     return $flow[$currentStatus] ?? $currentStatus;
 }
 
-function fetchApprovalQueue(PDO $pdo, string $status): array
+function fetchAllApprovalRequests(PDO $pdo): array
 {
+    // Fetch all requests that are still in the approval workflow (not finalized)
+    // Final statuses: Rejected, Completed, Fulfilled, Cancelled
+    // We include Approved so approvers can see what they've approved
     $stmt = $pdo->prepare(
         'SELECT sr.id, sr.request_number, sr.purpose, sr.department, sr.date_needed, sr.grand_total,
                 sr.status, sr.total_items, sr.total_quantity, sr.notes, sr.created_at, sr.updated_at,
@@ -222,10 +250,12 @@ function fetchApprovalQueue(PDO $pdo, string $status): array
                 u.email AS requested_by_email
          FROM supply_requests sr
          INNER JOIN users u ON u.id = sr.requested_by_user_id
-         WHERE sr.status = :status
+         WHERE sr.status NOT IN (
+             "Rejected", "Completed", "Fulfilled", "Cancelled"
+         )
          ORDER BY sr.created_at ASC, sr.id ASC'
     );
-    $stmt->execute(['status' => $status]);
+    $stmt->execute();
     $requests = $stmt->fetchAll();
 
     if ($requests === []) {
@@ -415,6 +445,7 @@ function getNextApproverDesignation(string $nextStatus): ?string
         'Pending VP Finance' => 'VP Finance',
         'Pending College President' => 'College President',
     ];
+
     return $map[$nextStatus] ?? null;
 }
 
@@ -426,6 +457,7 @@ function getApproverPath(string $status): string
         'Pending College President' => '/approval/president',
         'Approved' => '/approval/completed',
     ];
+
     return $map[$status] ?? '/dashboard';
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useLocation } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
@@ -74,6 +74,7 @@ const REQUESTS_PER_PAGE = 8
 export default function ApprovalPersonnelRequests() {
   const authUser = getStoredAuthUser()
   const navigate = useNavigate()
+  const location = useLocation()
   const [requests, setRequests] = useState<ApprovalRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -107,8 +108,13 @@ export default function ApprovalPersonnelRequests() {
       const params = new URLSearchParams({
         userId: String(authUser.id),
         role: authUser.role,
+        // Add showAll parameter when on the all-request page
+        showAll: location.pathname === "/approval-personnel/all-request" ? "true" : undefined,
       })
-      const res = await api(`/api/approval-workflow.php?${params.toString()}`)
+      // Filter out undefined values
+      const paramEntries = Array.from(params.entries()).filter(([_, value]) => value !== undefined)
+      const filteredParams = new URLSearchParams(paramEntries)
+      const res = await api(`/api/approval-workflow.php?${filteredParams.toString()}`)
       const result = (await res.json()) as ApprovalApiResponse
       if (result.success) {
         setRequests(result.requests ?? [])
@@ -125,7 +131,7 @@ export default function ApprovalPersonnelRequests() {
 
   useEffect(() => {
     void loadRequests()
-  }, [authUser?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [authUser?.id, location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const sortedRequests = useMemo(() => {
     return [...requests].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
@@ -192,9 +198,15 @@ export default function ApprovalPersonnelRequests() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Approval Personnel</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-brown-900">All Requests</h1>
+              {location.pathname === "/approval-personnel/all-request" ? (
+                <h1 className="mt-2 text-3xl font-black tracking-tight text-brown-900">All Pending Requests</h1>
+              ) : (
+                <h1 className="mt-2 text-3xl font-black tracking-tight text-brown-900">All Requests</h1>
+              )}
               <p className="mt-2 max-w-3xl text-sm leading-6 text-brown-500">
-                Review and process all supply requests pending your approval.
+                {location.pathname === "/approval-personnel/all-request"
+                  ? "Review and process all supply requests pending approval."
+                  : "Review and process all supply requests pending your approval."}
               </p>
             </div>
             <button
@@ -215,7 +227,9 @@ export default function ApprovalPersonnelRequests() {
               <ClipboardDocumentCheckIcon className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Pending Approval</p>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">
+                {location.pathname === "/approval-personnel/all-request" ? "Pending Approval" : "Pending Approval"}
+              </p>
               <p className="text-2xl font-black tracking-tight text-brown-900">
                 {sortedRequests.length} {sortedRequests.length === 1 ? "request" : "requests"}
               </p>
@@ -353,88 +367,87 @@ export default function ApprovalPersonnelRequests() {
             ) : null}
           </section>
         </StaggerItem>
-      </StaggerContainer>
 
-      {/* Detail / Action Modal */}
-      {selectedRequest && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm"
-          onClick={() => {
-            if (!submitting) {
-              setSelectedRequest(null)
-              setActionType(null)
-              setActionRemarks("")
-            }
-          }}
-        >
+        {/* Detail / Action Modal */}
+        {selectedRequest && (
           <div
-            className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-[2rem] border border-brown-200 bg-white p-6 shadow-2xl sm:p-8"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm"
+            onClick={() => {
+              if (!submitting) {
+                setSelectedRequest(null)
+                setActionType(null)
+                setActionRemarks("")
+              }
+            }}
           >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary-600">Request Review</p>
-                <h2 className="mt-2 text-2xl font-black tracking-tight text-brown-900">{selectedRequest.requestNumber}</h2>
-                <p className="mt-1 text-sm text-brown-500">
-                  Submitted by <span className="font-semibold">{selectedRequest.requestedByName}</span>
-                </p>
+            <div
+              className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-[2rem] border border-brown-200 bg-white p-6 shadow-2xl sm:p-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary-600">Request Review</p>
+                  <h2 className="mt-2 text-2xl font-black tracking-tight text-brown-900">{selectedRequest.requestNumber}</h2>
+                  <p className="mt-1 text-sm text-brown-500">
+                    Submitted by <span className="font-semibold">{selectedRequest.requestedByName}</span>
+                  </p>
+                </div>
+                <StatusBadge status={selectedRequest.status} />
               </div>
-              <StatusBadge status={selectedRequest.status} />
-            </div>
 
-            {/* Request Details */}
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
-              {selectedRequest.purpose ? (
-                <div className="rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3 sm:col-span-2">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Purpose</p>
-                  <p className="mt-1.5 text-sm text-brown-700">{selectedRequest.purpose}</p>
-                </div>
-              ) : null}
-              {selectedRequest.department ? (
-                <div className="rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Department</p>
-                  <p className="mt-1.5 text-sm font-semibold text-brown-700">{selectedRequest.department}</p>
-                </div>
-              ) : null}
-              {selectedRequest.dateNeeded ? (
-                <div className="rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Date Needed</p>
-                  <p className="mt-1.5 text-sm font-semibold text-brown-700">{formatDateLong(selectedRequest.dateNeeded)}</p>
-                </div>
-              ) : null}
-              <div className="rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3">
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary-600">Grand Total</p>
-                <p className="mt-1.5 text-lg font-black text-primary-800">₱{(selectedRequest.grandTotal ?? 0).toFixed(2)}</p>
-              </div>
-            </div>
-
-            {/* Items */}
-            <div className="mt-6">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Requested Items</p>
-              <div className="mt-3 space-y-3">
-                {selectedRequest.items.map((item, i) => (
-                  <div key={i} className="rounded-2xl border border-brown-200 bg-white p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-brown-900">{item.name}</p>
-                        <p className="text-xs text-brown-400">{item.itemCode} · {item.categoryName}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-black text-brown-900">×{item.quantityRequested}</p>
-                        {item.unitCost > 0 ? (
-                          <p className="text-xs text-primary-600">₱{item.unitCost.toFixed(2)}/ea</p>
-                        ) : null}
-                      </div>
-                    </div>
-                    {item.totalAmount > 0 ? (
-                      <div className="mt-2 text-right">
-                        <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-bold text-primary-700">
-                          Subtotal: ₱{item.totalAmount.toFixed(2)}
-                        </span>
-                      </div>
-                    ) : null}
+              {/* Request Details */}
+              <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                {selectedRequest.purpose ? (
+                  <div className="rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3 sm:col-span-2">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Purpose</p>
+                    <p className="mt-1.5 text-sm text-brown-700">{selectedRequest.purpose}</p>
                   </div>
-                ))}
+                ) : null}
+                {selectedRequest.department ? (
+                  <div className="rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Department</p>
+                    <p className="mt-1.5 text-sm font-semibold text-brown-700">{selectedRequest.department}</p>
+                  </div>
+                ) : null}
+                {selectedRequest.dateNeeded ? (
+                  <div className="rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">Date Needed</p>
+                    <p className="mt-1.5 text-sm font-semibold text-brown-700">{formatDateLong(selectedRequest.dateNeeded)}</p>
+                  </div>
+                ) : null}
+                <div className="rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary-600">Grand Total</p>
+                  <p className="mt-1.5 text-lg font-black text-primary-800">₱{(selectedRequest.grandTotal ?? 0).toFixed(2)}</p>
+                </div>
+              </div>
+
+              {/* Items */}
+              <div className="mt-6">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Requested Items</p>
+                <div className="mt-3 space-y-3">
+                  {selectedRequest.items.map((item, i) => (
+                    <div key={i} className="rounded-2xl border border-brown-200 bg-white p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-brown-900">{item.name}</p>
+                          <p className="text-xs text-brown-400">{item.itemCode} · {item.categoryName}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-black text-brown-900">×{item.quantityRequested}</p>
+                          {item.unitCost > 0 ? (
+                            <p className="text-xs text-primary-600">₱{item.unitCost.toFixed(2)}/ea</p>
+                          ) : null}
+                        </div>
+                      </div>
+                      {item.totalAmount > 0 ? (
+                        <div className="mt-2 text-right">
+                          <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-bold text-primary-700">
+                            Subtotal: ₱{item.totalAmount.toFixed(2)}
+                          </span>
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
               </div>
             </div>
 
