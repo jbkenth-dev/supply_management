@@ -636,7 +636,7 @@ export default function NewRequest() {
                         <div className="flex w-full min-w-0 items-center justify-between gap-2 overflow-hidden">
                           <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
                             <img
-                              src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
+                              src={item.isCustom ? "/sfcg-logo.jpg" : item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
                               alt={item.name}
                               className="h-8 w-8 flex-shrink-0 rounded border border-brown-200 bg-brown-100 object-cover"
                             />
