@@ -122,11 +122,6 @@ function handleApprovalWorkflowAction(PDO $pdo)
         jsonResponse(422, ['success' => false, 'message' => 'Invalid request parameters.']);
     }
 
-    // For approve action, signature is required
-    if ($action === 'approve' && (empty($signature) || $signature === '')) {
-        jsonResponse(422, ['success' => false, 'message' => 'Signature is required for approval.']);
-    }
-
     $user = findApprovalUser($pdo, $userId);
     $designation = (string) ($user['designation'] ?? $user['role']);
 
@@ -507,6 +502,7 @@ function fetchUsersByDesignation(PDO $pdo, string $designation): array
         ];
     }
     return $result;
+}
 
 function ensureSignatureColumn(PDO $pdo)
 {
@@ -519,7 +515,5 @@ function ensureSignatureColumn(PDO $pdo)
     } catch (Exception $e) {
         error_log('Signature column ensure failed: ' . $e->getMessage());
     }
-}
-
 }
 ?>

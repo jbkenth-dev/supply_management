@@ -127,6 +127,7 @@ export default function ApprovalPersonnelRequests() {
 
   const handleApprovalConfirm = async () => {
     if (!authUser?.id) {
+      setShowApprovalConfirmation(false)
       pushMessage("Approval Failed", "User not authenticated", "error")
       return
     }
@@ -147,8 +148,12 @@ export default function ApprovalPersonnelRequests() {
       if (!response.ok || !result.success) {
         throw new Error(result.message ?? "Approval failed")
       }
+      setShowApprovalConfirmation(false)
+      setSelectedRequest(null)
+      pushMessage("Approval Successful", result.message ?? "Request approved successfully.", "success")
       void loadRequests()
     } catch (err) {
+      setShowApprovalConfirmation(false)
       pushMessage("Approval Failed", err instanceof Error ? err.message : "An error occurred", "error")
     } finally {
       setSubmitting(false)
@@ -916,9 +921,10 @@ export default function ApprovalPersonnelRequests() {
                       setShowApprovalConfirmation(false)
                       void handleApprovalConfirm()
                     }}
-                    className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700"
+                    disabled={submitting}
+                    className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Yes, Approve
+                    {submitting ? "Approving..." : "Yes, Approve"}
                   </button>
                 </div>
               </div>
