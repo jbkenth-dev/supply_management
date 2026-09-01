@@ -523,14 +523,14 @@ export default function NewRequest() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col items-start space-y-3">
-                          <div className="flex items-start space-x-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex min-w-0 items-start gap-3">
                             <img
                               src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
                               alt={item.name}
-                              className="h-8 w-8 object-cover rounded flex-shrink-0"
+                              className="h-8 w-8 flex-shrink-0 rounded object-cover"
                             />
-                            <div className="space-y-1 text-left">
+                            <div className="min-w-0 text-left">
                               <p className="truncate text-xs font-semibold text-brown-900">{item.name}</p>
                               {item.isCustom ? (
                                 <span className="inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-600">
@@ -544,9 +544,10 @@ export default function NewRequest() {
                           <button
                             type="button"
                             onClick={() => removeItem(index)}
-                            className="flex h-6 w-6 items-center justify-center rounded-lg border border-brown-200 text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-brown-200 text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                            aria-label={`Remove ${item.name}`}
                           >
-                            <TrashIcon className="h-3 w-3" />
+                            <TrashIcon className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </TableCell>
