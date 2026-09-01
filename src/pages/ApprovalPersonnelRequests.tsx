@@ -71,6 +71,25 @@ type ApprovalApiResponse = {
 
 const REQUESTS_PER_PAGE = 8
 
+async function readApprovalResponse(response: Response): Promise<ApprovalApiResponse> {
+  const responseText = await response.text()
+  let result: ApprovalApiResponse | null = null
+
+  try {
+    result = JSON.parse(responseText) as ApprovalApiResponse
+  } catch {
+    const plainText = new DOMParser().parseFromString(responseText, "text/html").body.textContent?.trim()
+    const serverMessage = plainText || responseText.trim() || "The server returned an empty response."
+    throw new Error(`Approval API returned invalid JSON (HTTP ${response.status} ${response.statusText}). Cause: ${serverMessage}`)
+  }
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.message ?? `Approval API request failed (HTTP ${response.status} ${response.statusText}).`)
+  }
+
+  return result
+}
+
 export default function ApprovalPersonnelRequests() {
   const authUser = getStoredAuthUser()
   const navigate = useNavigate()
@@ -113,13 +132,9 @@ export default function ApprovalPersonnelRequests() {
         params.set("showAll", "true")
       }
       const res = await api(`/api/approval-workflow.php?${params.toString()}`)
-      const result = (await res.json()) as ApprovalApiResponse
-      if (result.success) {
-        setRequests(result.requests ?? [])
-        setPage(1)
-      } else {
-        throw new Error(result.message ?? 'Unknown error')
-      }
+      const result = await readApprovalResponse(res)
+      setRequests(result.requests ?? [])
+      setPage(1)
     } catch (error) {
       pushMessage("Load Failed", error instanceof Error ? error.message : "Unable to load requests.", "error")
     } finally {
