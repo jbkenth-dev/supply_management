@@ -184,7 +184,15 @@ export default function ApprovalPersonnelRequests() {
   const getSignatureDataURL = () => {
     const canvas = signatureCanvasRef.current;
     if (!canvas) return null;
-    return canvas.toDataURL('image/png');
+    const context = canvas.getContext("2d");
+    if (!context) return null;
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    for (let index = 3; index < pixels.length; index += 4) {
+      if (pixels[index] > 0) {
+        return canvas.toDataURL("image/png");
+      }
+    }
+    return null;
   };
 
   
@@ -234,6 +242,7 @@ export default function ApprovalPersonnelRequests() {
       };
       const stopDrawing = () => {
         isDrawing = false;
+        setSignatureData(canvas.toDataURL("image/png"));
       };
       const getPointerPosition = (e: MouseEvent | TouchEvent): [number, number] => {
         const rect = canvas.getBoundingClientRect();
@@ -1027,15 +1036,17 @@ export default function ApprovalPersonnelRequests() {
               <span className="text-sm text-brown-600">Saving...</span>
             </div>
           )}
-          {!signatureSubmitting && !signatureError && (
-            <div className="mt-6 flex justify-between px-4">
+          {!signatureSubmitting && (
+            <div className="mt-6 flex flex-col-reverse gap-3 px-4 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <button
+                type="button"
                 onClick={clearSignature}
                 className="inline-flex items-center gap-2 rounded-xl border border-brown-200 bg-white px-4 py-2 text-xs font-semibold text-brown-700 hover:bg-brown-50"
               >
                 Reset
               </button>
               <button
+                type="button"
                 onClick={handleSignatureApprove}
                 className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
               >
