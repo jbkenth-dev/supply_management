@@ -393,7 +393,7 @@ function MetricCard({
 function StatusBadge({ status }: { status: string }) {
   const colorMap: Record<string, string> = {
     "Pending Immediate Head": "bg-amber-100 text-amber-700",
-    "Pending Budget Officer": "bg-amber-200 text-amber-800",
+    "Pending Resource Planning Officer": "bg-amber-200 text-amber-800",
     "Pending VP Finance": "bg-amber-200 text-amber-800",
     "Pending College President": "bg-amber-300 text-amber-900",
     "Approved": "bg-emerald-100 text-emerald-700",

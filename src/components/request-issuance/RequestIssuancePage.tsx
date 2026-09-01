@@ -750,7 +750,7 @@ function StatusBadge({ status }: { status: string }) {
   const className =
     status === "Pending" || status === "Pending Immediate Head"
       ? "bg-amber-100 text-amber-700"
-      : ["Pending Budget Officer", "Pending VP Finance", "Pending College President"].includes(status)
+      : ["Pending Resource Planning Officer", "Pending VP Finance", "Pending College President"].includes(status)
         ? "bg-amber-200 text-amber-800"
         : status === "Approved" || status === "Completed"
           ? "bg-emerald-100 text-emerald-700"

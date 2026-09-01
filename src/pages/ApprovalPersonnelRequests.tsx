@@ -115,7 +115,7 @@ export default function ApprovalPersonnelRequests() {
     switch (status) {
       case "Pending Immediate Head":
         return ["Immediate Head"];
-      case "Pending Budget Officer":
+      case "Pending Resource Planning Officer":
         return ["Resource Planning Officer"];
       case "Pending VP Finance":
         return ["Vice President for Finance"];
@@ -289,7 +289,7 @@ export default function ApprovalPersonnelRequests() {
   const selectedItems = selectedRequest?.items ?? []
   const steps = [
     { label: "Pending Immediate Head", value: "Pending Immediate Head" },
-    { label: "Pending Budget Officer", value: "Pending Budget Officer" },
+    { label: "Pending Resource Planning Officer", value: "Pending Resource Planning Officer" },
     { label: "Pending VP Finance", value: "Pending VP Finance" },
     { label: "Pending College President", value: "Pending College President" },
     { label: "Approved", value: "Approved" },
@@ -305,8 +305,8 @@ export default function ApprovalPersonnelRequests() {
     switch (selectedRequest?.status) {
       case "Pending Immediate Head":
         return "Pending — Immediate Head"
-      case "Pending Budget Officer":
-        return "Pending — Budget Officer"
+      case "Pending Resource Planning Officer":
+        return "Pending — Resource Planning Officer"
       case "Pending VP Finance":
         return "Pending — VP Finance"
       case "Pending College President":
@@ -939,7 +939,7 @@ export default function ApprovalPersonnelRequests() {
 function StatusBadge({ status }: { status: string }) {
   const colorMap: Record<string, string> = {
     "Pending Immediate Head": "bg-amber-100 text-amber-700",
-    "Pending Budget Officer": "bg-amber-200 text-amber-800",
+    "Pending Resource Planning Officer": "bg-amber-200 text-amber-800",
     "Pending VP Finance": "bg-amber-200 text-amber-800",
     "Pending College President": "bg-amber-300 text-amber-900",
     "Approved": "bg-emerald-100 text-emerald-700",

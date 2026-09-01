@@ -695,7 +695,7 @@ function getStatusClass(status: string) {
   const info: Record<string, string> = {
     "Pending": "bg-amber-50 text-amber-700",
     "Pending Immediate Head": "bg-amber-50 text-amber-700",
-    "Pending Budget Officer": "bg-amber-100 text-amber-800",
+    "Pending Resource Planning Officer": "bg-amber-100 text-amber-800",
     "Pending VP Finance": "bg-amber-100 text-amber-800",
     "Pending College President": "bg-amber-100 text-amber-800",
     "Approved": "bg-emerald-50 text-emerald-700",

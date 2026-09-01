@@ -225,7 +225,7 @@ CREATE TABLE `supply_requests` (
   `department` varchar(100) DEFAULT NULL,
   `date_needed` date DEFAULT NULL,
   `notes` varchar(500) DEFAULT NULL,
-  `status` enum('Pending','Pending Immediate Head','Pending Budget Officer','Pending VP Finance','Pending College President','Approved','Waiting Purchase','Purchased','Ready for Release','Released','Received','Completed','Rejected','Fulfilled','Cancelled') NOT NULL DEFAULT 'Pending Immediate Head',
+  `status` enum('Pending','Pending Immediate Head','Pending Resource Planning Officer','Pending VP Finance','Pending College President','Approved','Waiting Purchase','Purchased','Ready for Release','Released','Received','Completed','Rejected','Fulfilled','Cancelled') NOT NULL DEFAULT 'Pending Immediate Head',
   `total_items` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `total_quantity` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `grand_total` decimal(12,2) NOT NULL DEFAULT 0.00,

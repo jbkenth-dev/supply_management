@@ -14,7 +14,7 @@ export type FacultyRequestItem = {
   quantityOnHand: number
 }
 
-export type RequestStatus = "Pending" | "Pending Immediate Head" | "Pending Budget Officer" | "Pending VP Finance" | "Pending College President" | "Approved" | "Waiting Purchase" | "Purchased" | "Ready for Release" | "Released" | "Received" | "Completed" | "Rejected" | "Fulfilled" | "Cancelled"
+export type RequestStatus = "Pending" | "Pending Immediate Head" | "Pending Resource Planning Officer" | "Pending VP Finance" | "Pending College President" | "Approved" | "Waiting Purchase" | "Purchased" | "Ready for Release" | "Released" | "Received" | "Completed" | "Rejected" | "Fulfilled" | "Cancelled"
 
 export type FacultyRequest = {
   id: number

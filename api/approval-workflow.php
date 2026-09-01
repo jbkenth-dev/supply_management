@@ -227,7 +227,7 @@ function getApproverTargetStatus(string $designation): ?string
     $map = [
         'Immediate Head'          => 'Pending Immediate Head',
         'Department Head'         => 'Pending Immediate Head',
-        'Budget Officer'          => 'Pending Budget Officer',
+        'Resource Planning Officer'          => 'Pending Resource Planning Officer',
         'VP Finance'              => 'Pending VP Finance',
         'Vice President for Finance'=> 'Pending VP Finance',
         'College President'       => 'Pending College President',
@@ -239,8 +239,8 @@ function getApproverTargetStatus(string $designation): ?string
 function getNextApprovalStatus(string $currentStatus): string
 {
     $flow = [
-        'Pending Immediate Head' => 'Pending Budget Officer',
-        'Pending Budget Officer' => 'Pending VP Finance',
+        'Pending Immediate Head' => 'Pending Resource Planning Officer',
+        'Pending Resource Planning Officer' => 'Pending VP Finance',
         'Pending VP Finance'     => 'Pending College President',
         'Pending College President'=> 'Approved',
     ];
@@ -459,7 +459,7 @@ function notifyApprovalAction(PDO $pdo, array $request, array $approver, string 
 function getNextApproverDesignation(string $nextStatus): ?string
 {
     $map = [
-        'Pending Budget Officer' => 'Budget Officer',
+        'Pending Resource Planning Officer' => 'Resource Planning Officer',
         'Pending VP Finance'     => 'VP Finance',
         'Pending College President'=> 'College President',
     ];
@@ -469,7 +469,7 @@ function getNextApproverDesignation(string $nextStatus): ?string
 function getApproverPath(string $status): string
 {
     $map = [
-        'Pending Budget Officer' => '/approval/budget-officer',
+        'Pending Resource Planning Officer' => '/approval/budget-officer',
         'Pending VP Finance'     => '/approval/vp-finance',
         'Pending College President'=> '/approval/president',
         'Approved'               => '/approval/completed',

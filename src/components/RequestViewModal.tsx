@@ -82,7 +82,7 @@ export default function RequestViewModal({
 
   const steps = [
     { label: "Pending Immediate Head", value: "Pending Immediate Head" },
-    { label: "Pending Budget Officer", value: "Pending Budget Officer" },
+    { label: "Pending Resource Planning Officer", value: "Pending Resource Planning Officer" },
     { label: "Pending VP Finance", value: "Pending VP Finance" },
     { label: "Pending College President", value: "Pending College President" },
     { label: "Approved", value: "Approved" },
@@ -104,8 +104,8 @@ export default function RequestViewModal({
     switch (request.status) {
       case "Pending Immediate Head":
         return "Pending — Immediate Head";
-      case "Pending Budget Officer":
-        return "Pending — Budget Officer";
+      case "Pending Resource Planning Officer":
+        return "Pending — Resource Planning Officer";
       case "Pending VP Finance":
         return "Pending — VP Finance";
       case "Pending College President":

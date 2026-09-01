@@ -193,7 +193,7 @@ export default function MyRequests() {
             >
               <option value="All">All Statuses</option>
               <option value="Pending Immediate Head">Pending Immediate Head</option>
-              <option value="Pending Budget Officer">Pending Budget Officer</option>
+              <option value="Pending Resource Planning Officer">Pending Resource Planning Officer</option>
               <option value="Pending VP Finance">Pending VP Finance</option>
               <option value="Pending College President">Pending College President</option>
               <option value="Waiting Purchase">Waiting Purchase</option>

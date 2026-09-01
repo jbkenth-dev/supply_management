@@ -406,7 +406,7 @@ function ensureFacultyRequestTables(PDO $pdo): void
                 department VARCHAR(100) NULL,
                 date_needed DATE NULL,
                 notes VARCHAR(500) NULL,
-                status ENUM("Pending","Pending Immediate Head","Pending Budget Officer","Pending VP Finance","Pending College President","Approved","Waiting Purchase","Purchased","Ready for Release","Released","Received","Completed","Rejected","Fulfilled","Cancelled") NOT NULL DEFAULT "Pending Immediate Head",
+                status ENUM("Pending","Pending Immediate Head","Pending Resource Planning Officer","Pending VP Finance","Pending College President","Approved","Waiting Purchase","Purchased","Ready for Release","Released","Received","Completed","Rejected","Fulfilled","Cancelled") NOT NULL DEFAULT "Pending Immediate Head",
                 total_items INT UNSIGNED NOT NULL DEFAULT 0,
                 total_quantity INT UNSIGNED NOT NULL DEFAULT 0,
                 grand_total DECIMAL(12,2) NOT NULL DEFAULT 0.00,
@@ -536,7 +536,7 @@ function ensureFacultyRequestTables(PDO $pdo): void
 
     // Ensure status column has correct ENUM (best effort)
     try {
-        $pdo->exec("ALTER TABLE supply_requests MODIFY COLUMN status ENUM('Pending','Pending Immediate Head','Pending Budget Officer','Pending VP Finance','Pending College President','Approved','Waiting Purchase','Purchased','Ready for Release','Released','Received','Completed','Rejected','Fulfilled','Cancelled') NOT NULL DEFAULT 'Pending Immediate Head'");
+        $pdo->exec("ALTER TABLE supply_requests MODIFY COLUMN status ENUM('Pending','Pending Immediate Head','Pending Resource Planning Officer','Pending VP Finance','Pending College President','Approved','Waiting Purchase','Purchased','Ready for Release','Released','Received','Completed','Rejected','Fulfilled','Cancelled') NOT NULL DEFAULT 'Pending Immediate Head'");
     } catch (PDOException $e) {
         // If fails, keep existing
     }
@@ -668,7 +668,7 @@ function generateFacultyRequestNumber(): string
 
 function buildFacultyRequestSummary(array $requests): array
 {
-    $pendingStatuses = ['Pending', 'Pending Immediate Head', 'Pending Budget Officer', 'Pending VP Finance', 'Pending College President'];
+    $pendingStatuses = ['Pending', 'Pending Immediate Head', 'Pending Resource Planning Officer', 'Pending VP Finance', 'Pending College President'];
     return [
         'totalRequests' => count($requests),
         'pendingRequests' => count(array_filter($requests, static fn (array $request): bool => in_array($request['status'], $pendingStatuses, true))),
