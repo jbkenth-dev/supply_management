@@ -729,7 +729,7 @@ export default function ApprovalPersonnelRequests() {
                           <td className="border-r border-brown-200 px-2 py-3 align-top">
                             <div className="flex min-w-0 items-start gap-2">
                               <img
-                                src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
+                                src={item.supplyId === null ? "/sfcg-logo.jpg" : item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
                                 alt={item.name}
                                 className="mt-0.5 h-7 w-7 flex-shrink-0 rounded object-cover"
                               />
