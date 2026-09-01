@@ -291,7 +291,7 @@ export default function RequestViewModal({
 
         <div className="px-6 py-4 sm:px-10">
           <div className="overflow-x-auto rounded-2xl border border-brown-200">
-            <table className="w-full border-collapse text-xs sm:text-sm">
+            <table className="w-full border-collapse table-fixed text-xs sm:text-sm">
               <thead>
                 <tr className="border-b border-brown-200 bg-brown-100">
                   <th className="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[40px]">
@@ -319,7 +319,7 @@ export default function RequestViewModal({
 
                 {items.map((item, index) => (
                   <tr key={`${item.itemCode}-${index}`} className="border-b border-brown-200 align-top">
-                    <td className="border-r border-brown-200 px-2 py-3 text-right align-top w-[40px]">
+                    <td className="border-r border-brown-200 px-2 py-3 text-right align-top sm:w-[40px]">
                       <span className="block text-xs font-bold text-brown-900">{item.quantity}</span>
                     </td>
                     <td className="border-r border-brown-200 px-2 py-3 align-top">
