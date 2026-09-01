@@ -86,6 +86,7 @@ export default function NewRequest() {
   const [modalMessage, setModalMessage] = useState("")
   const [modalType, setModalType] = useState<"success" | "error">("error")
   const [approvalPersonnel, setApprovalPersonnel] = useState<Record<string, string>>({})
+  const [qtyDrafts, setQtyDrafts] = useState<Record<string, string>>({})
 
   const pushMessage = (title: string, message: string, type: "success" | "error") => {
     setModalTitle(title)
@@ -270,6 +271,12 @@ export default function NewRequest() {
   }
 
   const updateItemQuantity = (index: number, nextQuantity: number) => {
+    setQtyDrafts((current) => {
+      const next = { ...current }
+      delete next[`qty-${index}`]
+      return next
+    })
+
     setItems((current) =>
       current.map((item, itemIndex) => {
         if (itemIndex !== index) return item
@@ -286,18 +293,86 @@ export default function NewRequest() {
   }
 
   const handleManualQuantityInput = (index: number, rawValue: string) => {
+    const draftKey = `qty-${index}`
+
+    if (rawValue === "") {
+      setQtyDrafts((current) => ({ ...current, [draftKey]: "" }))
+      return
+    }
+
     const trimmedValue = rawValue.trim()
-    if (!trimmedValue) return
+    if (!trimmedValue) {
+      setQtyDrafts((current) => ({ ...current, [draftKey]: "" }))
+      return
+    }
 
     const parsedValue = Number(trimmedValue)
     if (!Number.isFinite(parsedValue)) return
+
+    setQtyDrafts((current) => ({ ...current, [draftKey]: trimmedValue }))
 
     setItems((current) =>
       current.map((item, itemIndex) => {
         if (itemIndex !== index) return item
 
-        const maximumQuantity = item.maxStock !== null ? item.maxStock : Number.MAX_SAFE_INTEGER
-        const safeQuantity = parsedValue < 1 ? 1 : parsedValue > maximumQuantity ? maximumQuantity : parsedValue
+        return {
+          ...item,
+          quantity: parsedValue,
+          totalAmount: parsedValue * item.unitCost,
+        }
+      })
+    )
+  }
+
+  const commitManualQuantity = (index: number) => {
+    const draftKey = `qty-${index}`
+    const rawDraft = qtyDrafts[draftKey]
+
+    setQtyDrafts((current) => {
+      const next = { ...current }
+      delete next[draftKey]
+      return next
+    })
+
+    if (rawDraft === undefined) return
+
+    const trimmedDraft = rawDraft.trim()
+    if (trimmedDraft === "") {
+      setItems((current) =>
+        current.map((item, itemIndex) => {
+          if (itemIndex !== index) return item
+          const fallbackQuantity = clampQuantity(item.quantity, item.maxStock)
+          return {
+            ...item,
+            quantity: fallbackQuantity,
+            totalAmount: fallbackQuantity * item.unitCost,
+          }
+        })
+      )
+      return
+    }
+
+    const parsedValue = Number(trimmedDraft)
+    if (!Number.isFinite(parsedValue)) {
+      setItems((current) =>
+        current.map((item, itemIndex) => {
+          if (itemIndex !== index) return item
+          const fallbackQuantity = clampQuantity(item.quantity, item.maxStock)
+          return {
+            ...item,
+            quantity: fallbackQuantity,
+            totalAmount: fallbackQuantity * item.unitCost,
+          }
+        })
+      )
+      return
+    }
+
+    setItems((current) =>
+      current.map((item, itemIndex) => {
+        if (itemIndex !== index) return item
+
+        const safeQuantity = clampQuantity(parsedValue < 1 ? 1 : parsedValue, item.maxStock)
 
         return {
           ...item,
@@ -534,8 +609,12 @@ export default function NewRequest() {
                             type="number"
                             min={1}
                             max={item.maxStock ?? undefined}
-                            value={item.quantity}
+                            value={qtyDrafts[`qty-${index}`] ?? item.quantity}
+                            onFocus={() => {
+                              setQtyDrafts((current) => ({ ...current, [`qty-${index}`]: String(item.quantity) }))
+                            }}
                             onChange={(e) => handleManualQuantityInput(index, e.target.value)}
+                            onBlur={() => commitManualQuantity(index)}
                             className="qty-input w-[28px] min-w-[28px] border-0 bg-transparent px-0 py-0 text-center text-xs font-bold text-brown-900 outline-none"
                             aria-label={`Quantity for ${item.name}`}
                           />
@@ -548,7 +627,7 @@ export default function NewRequest() {
                             +
                           </button>
                         </div>
-                        {item.maxStock !== null && item.quantity >= item.maxStock ? (
+                        {item.maxStock !== null && qtyDrafts[`qty-${index}`] === undefined && item.quantity >= item.maxStock ? (
                           <div className="mt-1 text-center text-[9px] font-bold uppercase tracking-wider text-amber-700">
                             Reached Max {item.maxStock}
                           </div>
