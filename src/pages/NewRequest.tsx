@@ -493,12 +493,12 @@ export default function NewRequest() {
 
                   {items.map((item, index) => (
                     <tr key={`${item.itemCode}-${index}`} className="border-b border-brown-200">
-                      <TableCell className="w-[90px] py-2 text-center align-middle">
-                        <div className="inline-flex items-center justify-center gap-1 rounded-lg border border-brown-200 bg-white p-1 shadow-sm">
+                      <TableCell className="w-[112px] py-2 align-middle">
+                        <div className="mx-auto inline-flex w-[96px] min-w-[96px] items-center justify-between gap-1.5 rounded-xl border border-brown-200 bg-white p-1 shadow-sm">
                           <button
                             type="button"
                             onClick={() => updateItemQuantity(index, item.quantity - 1)}
-                            className="flex h-5 w-5 items-center justify-center rounded text-xs font-bold text-brown-700 transition hover:bg-brown-100"
+                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-base font-bold text-brown-700 transition hover:bg-brown-100"
                             aria-label={`Decrease quantity for ${item.name}`}
                           >
                             −
@@ -509,13 +509,13 @@ export default function NewRequest() {
                             max={item.maxStock ?? undefined}
                             value={item.quantity}
                             onChange={(e) => updateItemQuantity(index, Number(e.target.value) || 1)}
-                            className="qty-input w-8 border-0 bg-transparent px-0 py-0 text-center text-xs font-bold text-brown-900 outline-none"
+                            className="qty-input w-[32px] min-w-[32px] border-0 bg-transparent px-0 py-0 text-center text-xs font-bold text-brown-900 outline-none"
                             aria-label={`Quantity for ${item.name}`}
                           />
                           <button
                             type="button"
                             onClick={() => updateItemQuantity(index, item.quantity + 1)}
-                            className="flex h-5 w-5 items-center justify-center rounded text-xs font-bold text-brown-700 transition hover:bg-brown-100"
+                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-base font-bold text-brown-700 transition hover:bg-brown-100"
                             aria-label={`Increase quantity for ${item.name}`}
                           >
                             +
