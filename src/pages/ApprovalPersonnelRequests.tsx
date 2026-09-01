@@ -15,7 +15,7 @@ import ApprovalPersonnelShell from "../layout/ApprovalPersonnelShell"
 import { MessageModal } from "../components/ui/MessageModal"
 import { StaggerContainer, StaggerItem } from "../components/ui/animations"
 import { api } from "../lib/api"
-import { formatDateTime, formatDateLong, formatDateTimeShort } from "../lib/date"
+import { formatDateTime, formatDateLong } from "../lib/date"
 import { getStoredAuthUser } from "../lib/auth"
 import type { RequestStatus } from "../types/requests"
 
@@ -106,6 +106,33 @@ export default function ApprovalPersonnelRequests() {
   const [modalTitle, setModalTitle] = useState("")
   const [modalMessage, setModalMessage] = useState("")
   const [modalType, setModalType] = useState<"success" | "error">("error")
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [approvalPersonnel, setApprovalPersonnel] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    setIsExpanded(false)
+  }, [selectedRequest?.id])
+
+  useEffect(() => {
+    let cancelled = false
+    const loadApprovalPersonnel = async () => {
+      const roles = "Immediate Head,Resource Planning Officer,Vice President for Finance,College President"
+      const response = await api(`/api/approval-personnel-info.php?roles=${encodeURIComponent(roles)}`)
+      const result = await response.json()
+      if (!response.ok || !result.success || cancelled) return
+
+      const map: Record<string, string> = {}
+      for (const personnel of result.personnel ?? []) {
+        map[personnel.role] = personnel.fullName
+      }
+      setApprovalPersonnel(map)
+    }
+
+    void loadApprovalPersonnel()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     if (!authUser?.id || !authUser.role) {
@@ -201,6 +228,43 @@ export default function ApprovalPersonnelRequests() {
       setActionRemarks("")
     }
   }
+
+  const selectedItems = selectedRequest?.items ?? []
+  const steps = [
+    { label: "Pending Immediate Head", value: "Pending Immediate Head" },
+    { label: "Pending Budget Officer", value: "Pending Budget Officer" },
+    { label: "Pending VP Finance", value: "Pending VP Finance" },
+    { label: "Pending College President", value: "Pending College President" },
+    { label: "Approved", value: "Approved" },
+    { label: "Waiting Purchase", value: "Waiting Purchase" },
+    { label: "Purchased", value: "Purchased" },
+    { label: "Ready for Release", value: "Ready for Release" },
+    { label: "Released", value: "Released" },
+    { label: "Received", value: "Received" },
+    { label: "Completed", value: "Completed" },
+  ]
+  const currentIndex = steps.findIndex((step) => step.value === selectedRequest?.status)
+  const currentStatusLabel = (() => {
+    switch (selectedRequest?.status) {
+      case "Pending Immediate Head":
+        return "Pending — Immediate Head"
+      case "Pending Budget Officer":
+        return "Pending — Budget Officer"
+      case "Pending VP Finance":
+        return "Pending — VP Finance"
+      case "Pending College President":
+        return "Pending — College President"
+      case "Waiting Purchase":
+        return "Waiting — Purchase"
+      case "Ready for Release":
+        return "Ready — Release"
+      default:
+        return selectedRequest?.status ?? ""
+    }
+  })()
+  const grandTotal = selectedRequest?.grandTotal ?? 0
+  const totalItems = selectedRequest?.totalItems ?? 0
+  const totalQuantity = selectedRequest?.totalQuantity ?? 0
 
   if (!authUser) return null
 
@@ -581,7 +645,7 @@ export default function ApprovalPersonnelRequests() {
                       </tr>
                     </thead>
                     <tbody>
-                      {items.length === 0 ? (
+                      {selectedItems.length === 0 ? (
                         <tr className="border-b border-brown-200">
                           <td colSpan={4} className="px-4 py-8 text-center text-sm italic text-brown-400">
                             No items in this request.
@@ -589,10 +653,10 @@ export default function ApprovalPersonnelRequests() {
                         </tr>
                       ) : null}
 
-                      {items.map((item, index) => (
+                      {selectedItems.map((item, index) => (
                         <tr key={`${item.itemCode}-${index}`} className="border-b border-brown-200 align-top">
                           <td className="border-r border-brown-200 px-2 py-3 text-right align-top sm:w-[40px]">
-                            <span className="block text-xs font-bold text-brown-900">{item.quantity}</span>
+                            <span className="block text-xs font-bold text-brown-900">{item.quantityRequested}</span>
                           </td>
                           <td className="border-r border-brown-200 px-2 py-3 align-top">
                             <div className="flex min-w-0 items-start gap-2">
@@ -603,7 +667,7 @@ export default function ApprovalPersonnelRequests() {
                               />
                               <div className="min-w-0">
                                 <p className="break-words text-xs font-semibold leading-5 text-brown-900 sm:text-sm">{item.name}</p>
-                                {item.isCustom ? (
+                                {item.supplyId === null ? (
                                   <span className="mt-1 inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-600">
                                     Custom
                                   </span>
@@ -699,6 +763,8 @@ export default function ApprovalPersonnelRequests() {
                     </tr>
                   </tbody>
                 </table>
+              </div>
+
               </div>
 
               <div className="border-t border-brown-200 px-6 py-4 sm:px-10">
