@@ -20,7 +20,7 @@ import type { RequestStatus } from "../../types/requests"
 
 type RequestItem = {
   requestItemId: number
-  supplyId: number
+  supplyId: number | null
   itemCode: string
   name: string
   categoryName: string
@@ -30,6 +30,8 @@ type RequestItem = {
   quantityApproved: number | null
   quantityFulfilled: number
   quantityOnHand: number
+  unitCost: number
+  totalAmount: number
 }
 
 type AdminRequestRecord = {
@@ -664,8 +666,8 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
               items: selectedRequest.items.map(item => ({
                 supplyId: item.supplyId,
                 customItemName: null,
-                unitCost: 0,
-                totalAmount: 0,
+                unitCost: item.unitCost,
+                totalAmount: item.totalAmount,
                 itemCode: item.itemCode,
                 name: item.name,
                 categoryName: item.categoryName,
