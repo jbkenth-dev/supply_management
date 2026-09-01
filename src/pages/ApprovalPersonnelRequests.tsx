@@ -109,6 +109,21 @@ export default function ApprovalPersonnelRequests() {
   const [isExpanded, setIsExpanded] = useState(false)
   const [approvalPersonnel, setApprovalPersonnel] = useState<Record<string, string>>({})
 
+  const getAllowedRolesForStatus = (status: RequestStatus): string[] => {
+    switch (status) {
+      case "Pending Immediate Head":
+        return ["Immediate Head"];
+      case "Pending Budget Officer":
+        return ["Resource Planning Officer"];
+      case "Pending VP Finance":
+        return ["Vice President for Finance"];
+      case "Pending College President":
+        return ["College President"];
+      default:
+        return [];
+    }
+  };
+
   useEffect(() => {
     setIsExpanded(false)
   }, [selectedRequest?.id])
@@ -399,22 +414,32 @@ export default function ApprovalPersonnelRequests() {
                           <EyeIcon className="h-4 w-4" />
                           View Details
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => { setSelectedRequest(request); setActionType("approve") }}
-                          className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
-                        >
-                          <CheckCircleIcon className="h-4 w-4" />
-                          Approve
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setSelectedRequest(request); setActionType("reject") }}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-white px-4 py-2 text-xs font-bold text-rose-700 transition hover:bg-rose-50"
-                        >
-                          <XCircleIcon className="h-4 w-4" />
-                          Reject
-                        </button>
+                        {(() => {
+                          const allowedRoles = getAllowedRolesForStatus(request.status);
+                          if (!authUser?.role || !allowedRoles.includes(authUser.role)) {
+                            return null;
+                          }
+                          return (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => { setSelectedRequest(request); setActionType("approve") }}
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
+                              >
+                                <CheckCircleIcon className="h-4 w-4" />
+                                Approve
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => { setSelectedRequest(request); setActionType("reject") }}
+                                className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-white px-4 py-2 text-xs font-bold text-rose-700 transition hover:bg-rose-50"
+                              >
+                                <XCircleIcon className="h-4 w-4" />
+                                Reject
+                              </button>
+                            </>
+                          );
+                        })()}
                       </div>
                     </motion.div>
                   ))}
