@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useEffect, useMemo, useState, useLocation } from "react"
+import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
   ArrowPathIcon,
@@ -108,11 +108,13 @@ export default function ApprovalPersonnelRequests() {
       const params = new URLSearchParams({
         userId: String(authUser.id),
         role: authUser.role,
+        // Add showAll parameter when on the all-request page
+        showAll: location.pathname === "/approval-personnel/all-request" ? "true" : undefined,
       })
-      if (location.pathname === "/approval-personnel/all-request") {
-        params.set("showAll", "true")
-      }
-      const res = await api(`/api/approval-workflow.php?${params.toString()}`)
+      // Filter out undefined values
+      const paramEntries = Array.from(params.entries()).filter(([_, value]) => value !== undefined)
+      const filteredParams = new URLSearchParams(paramEntries)
+      const res = await api(`/api/approval-workflow.php?${filteredParams.toString()}`)
       const result = (await res.json()) as ApprovalApiResponse
       if (result.success) {
         setRequests(result.requests ?? [])
@@ -435,17 +437,17 @@ export default function ApprovalPersonnelRequests() {
                           {item.unitCost > 0 ? (
                             <p className="text-xs text-primary-600">₱{item.unitCost.toFixed(2)}/ea</p>
                           ) : null}
-                        </div>
+                        }
                       </div>
                       {item.totalAmount > 0 ? (
                         <div className="mt-2 text-right">
                           <span className="rounded-full bg-primary-50 px-3 py-1 text-xs font-bold text-primary-700">
                             Subtotal: ₱{item.totalAmount.toFixed(2)}
                           </span>
-                        </div>
+                        )
                       ) : null}
                     </div>
-                  ))}
+                  )}
               </div>
             </div>
 
@@ -474,7 +476,7 @@ export default function ApprovalPersonnelRequests() {
                         <p className="mt-0.5 text-xs text-brown-400">{formatDateTimeShort(log.createdAt)}</p>
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             ) : null}
@@ -553,7 +555,6 @@ export default function ApprovalPersonnelRequests() {
           </div>
         </div>
       )}
-      </StaggerContainer>
     </ApprovalPersonnelShell>
   )
 }
