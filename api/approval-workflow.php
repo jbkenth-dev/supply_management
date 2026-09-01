@@ -66,7 +66,9 @@ function handleApprovalWorkflowFetch(PDO $pdo)
     if ($showAll) {
         $effectiveDesignation = $designation !== '' ? $designation : (string) ($user['designation'] ?? $user['role'] ?? '');
         $isApprovalPersonnel = getApproverTargetStatus($effectiveDesignation) !== null;
-        if (!$isApprovalPersonnel) {
+        // Also allow specific approval personnel roles to view all requests
+        $allowedRolesForShowAll = ['Immediate Head', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
+        if (!$isApprovalPersonnel && !in_array($user['role'] ?? '', $allowedRolesForShowAll, true)) {
             jsonResponse(403, [
                 'success' => false,
                 'message' => 'Access denied. Approval personnel only.',
@@ -106,14 +108,23 @@ function handleApprovalWorkflowFetch(PDO $pdo)
 
 function handleApprovalWorkflowAction(PDO $pdo)
 {
+    // Ensure signature column exists
+    ensureSignatureColumn($pdo);
+
     $payload = getRequestData();
     $userId  = isset($payload['userId']) ? (int) $payload['userId'] : 0;
     $requestId = isset($payload['requestId']) ? (int) $payload['requestId'] : 0;
     $action  = trim((string) ($payload['action'] ?? ''));
     $remarks = trim((string) ($payload['remarks'] ?? ''));
+    $signature = isset($payload['signature']) ? (string) $payload['signature'] : null;
 
     if (!$userId || !$requestId || !in_array($action, ['approve', 'reject'], true)) {
         jsonResponse(422, ['success' => false, 'message' => 'Invalid request parameters.']);
+    }
+
+    // For approve action, signature is required
+    if ($action === 'approve' && (empty($signature) || $signature === '')) {
+        jsonResponse(422, ['success' => false, 'message' => 'Signature is required for approval.']);
     }
 
     $user = findApprovalUser($pdo, $userId);
@@ -133,7 +144,7 @@ function handleApprovalWorkflowAction(PDO $pdo)
         ]);
     }
 
-    // Prevent double‑approval
+    // Prevent double‑approval (check if already approved by this user)
     $logCheck = $pdo->prepare(
         'SELECT id FROM approval_log WHERE request_id = :request_id AND approver_user_id = :user_id AND action = :action LIMIT 1'
     );
@@ -163,8 +174,8 @@ function handleApprovalWorkflowAction(PDO $pdo)
         ]);
 
         $logStmt = $pdo->prepare(
-            'INSERT INTO approval_log (request_id, approver_user_id, approver_role, action, remarks)
-             VALUES (:request_id, :approver_user_id, :approver_role, :action, :remarks)'
+            'INSERT INTO approval_log (request_id, approver_user_id, approver_role, action, remarks, signature_data)
+             VALUES (:request_id, :approver_user_id, :approver_role, :action, :remarks, :signature)'
         );
         $logStmt->execute([
             'request_id' => $requestId,
@@ -172,6 +183,7 @@ function handleApprovalWorkflowAction(PDO $pdo)
             'approver_role'    => $designation,
             'action'           => $action === 'approve' ? 'approved' : 'rejected',
             'remarks'          => $remarks !== '' ? $remarks : null,
+            'signature'        => $action === 'approve' ? $signature : null,
         ]);
 
         $pdo->commit();
@@ -495,5 +507,19 @@ function fetchUsersByDesignation(PDO $pdo, string $designation): array
         ];
     }
     return $result;
+
+function ensureSignatureColumn(PDO $pdo)
+{
+    try {
+        $stmt = $pdo->query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'approval_log' AND COLUMN_NAME = 'signature_data'");
+        $exists = $stmt->fetch();
+        if (!$exists) {
+            $pdo->exec("ALTER TABLE approval_log ADD COLUMN signature_data LONGTEXT NULL AFTER remarks");
+        }
+    } catch (Exception $e) {
+        error_log('Signature column ensure failed: ' . $e->getMessage());
+    }
+}
+
 }
 ?>

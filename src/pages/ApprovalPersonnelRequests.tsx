@@ -113,6 +113,7 @@ export default function ApprovalPersonnelRequests() {
   const [signatureData, setSignatureData] = useState<string | null>(null)
   const [signatureError, setSignatureError] = useState<string | null>(null)
   const [signatureSubmitting, setSignatureSubmitting] = useState(false)
+  const [showApprovalConfirmation, setShowApprovalConfirmation] = useState(false)
 
   const getAllowedRolesForStatus = (status: RequestStatus): string[] => {
     switch (status) {
@@ -136,6 +137,7 @@ export default function ApprovalPersonnelRequests() {
       setSignatureError("Please draw a signature before approving.")
       return
     }
+
     if (!authUser?.id) {
       setSignatureError("User not authenticated")
       setSignatureSubmitting(false)
@@ -171,6 +173,16 @@ export default function ApprovalPersonnelRequests() {
       setSignatureSubmitting(false)
     }
   }
+
+  const requestSignatureApproval = () => {
+    if (!getSignatureDataURL()) {
+      setSignatureError("Please draw a signature before approving.")
+      return
+    }
+    setSignatureError(null)
+    setShowApprovalConfirmation(true)
+  }
+
   const clearSignature = () => {
     const canvas = signatureCanvasRef.current;
     if (!canvas) return;
@@ -1018,7 +1030,7 @@ export default function ApprovalPersonnelRequests() {
       <div className="fixed inset-0 z-50 bg-white" onClick={e => e.stopPropagation()}>
         <div className="relative h-full flex flex-col">
           <div className="relative p-4">
-            <button onClick={() => { setShowSignature(false); clearSignature(); }} className="absolute top-2 right-2 text-brown-500 hover:text-brown-700">
+            <button onClick={() => { setShowSignature(false); setShowApprovalConfirmation(false); clearSignature(); }} className="absolute top-2 right-2 text-brown-500 hover:text-brown-700">
               <XCircleIcon className="h-5 w-5" />
             </button>
             <h2 className="mt-4 text-center text-xl font-bold text-brown-900">Sign Approval</h2>
@@ -1047,7 +1059,7 @@ export default function ApprovalPersonnelRequests() {
               </button>
               <button
                 type="button"
-                onClick={handleSignatureApprove}
+                onClick={requestSignatureApproval}
                 className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
               >
                 <CheckCircleIcon className="h-4 w-4" />
@@ -1055,6 +1067,43 @@ export default function ApprovalPersonnelRequests() {
               </button>
             </div>
           )}
+          {showApprovalConfirmation && selectedRequest ? (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm" role="presentation">
+              <div
+                className="w-full max-w-md rounded-2xl border border-brown-200 bg-white p-6 shadow-2xl"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="approval-confirmation-title"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <h3 id="approval-confirmation-title" className="text-lg font-black text-brown-900">
+                  Confirm Approval
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-brown-600">
+                  Are you sure you want to approve <span className="font-bold text-brown-900">{selectedRequest.requestNumber}</span>?
+                </p>
+                <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowApprovalConfirmation(false)}
+                    className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-2.5 text-sm font-semibold text-brown-700 transition hover:bg-brown-50"
+                  >
+                    No
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowApprovalConfirmation(false)
+                      void handleSignatureApprove()
+                    }}
+                    className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700"
+                  >
+                    Yes, Approve
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     )}
