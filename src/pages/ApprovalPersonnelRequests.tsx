@@ -1028,7 +1028,13 @@ export default function ApprovalPersonnelRequests() {
             </div>
           )}
           {!signatureSubmitting && !signatureError && (
-            <div className="mt-6 flex justify-end px-4">
+            <div className="mt-6 flex justify-between px-4">
+              <button
+                onClick={clearSignature}
+                className="inline-flex items-center gap-2 rounded-xl border border-brown-200 bg-white px-4 py-2 text-xs font-semibold text-brown-700 hover:bg-brown-50"
+              >
+                Reset
+              </button>
               <button
                 onClick={handleSignatureApprove}
                 className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
