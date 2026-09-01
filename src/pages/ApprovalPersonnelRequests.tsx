@@ -108,14 +108,35 @@ export default function ApprovalPersonnelRequests() {
         userId: String(authUser.id),
         role: authUser.role,
       })
-      const res = await api(`/api/approval-workflow.php?${params.toString()}`)
-      const result = (await res.json()) as ApprovalApiResponse
-      if (result.success) {
-        setRequests(result.requests ?? [])
-        setPage(1)
+
+      // Try multiple base URLs in case of deployment subdirectory differences
+      const baseUrls = ['/api/approval-workflow.php', '/supply_management/api/approval-workflow.php']
+      let lastError: unknown = null
+
+      for (const baseUrl of baseUrls) {
+        try {
+          const res = await api(`${baseUrl}?${params.toString()}`)
+          const result = (await res.json()) as ApprovalApiResponse
+          if (result.success) {
+            setRequests(result.requests ?? [])
+            setPage(1)
+            return // Success, exit early
+          } else {
+            // API returned an error payload; treat as failure for this baseUrl
+            throw new Error(result.message ?? 'Unknown error')
+          }
+        } catch (err) {
+          lastError = err
+          // Continue to next baseUrl
+        }
       }
-    } catch {
-      pushMessage("Load Failed", "Unable to load requests.", "error")
+
+      // If we reach here, all attempts failed
+      throw lastError
+    } catch (error) {
+      // Show error message from the API if available, otherwise generic
+      const message = error instanceof Error ? error.message : "Unable to load requests."
+      pushMessage("Load Failed", message, "error")
     } finally {
       setLoading(false)
     }
