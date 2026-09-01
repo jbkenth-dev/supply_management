@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
@@ -108,6 +108,12 @@ export default function ApprovalPersonnelRequests() {
   const [modalType, setModalType] = useState<"success" | "error">("error")
   const [isExpanded, setIsExpanded] = useState(false)
   const [approvalPersonnel, setApprovalPersonnel] = useState<Record<string, string>>({})
+  const [showSignature, setShowSignature] = useState(false)
+  const signatureCanvasRef = useRef<HTMLCanvasElement>(null)
+  const [signatureData, setSignatureData] = useState<string | null>(null)
+  const [signatureSubmitting, setSignatureSubmitting] = useState(false)
+  const [signatureError, setSignatureError] = useState<string | null>(null)
+  const [signatureSubmitting, setSignatureSubmitting] = useState(false)
 
   const getAllowedRolesForStatus = (status: RequestStatus): string[] => {
     switch (status) {
@@ -123,6 +129,108 @@ export default function ApprovalPersonnelRequests() {
         return [];
     }
   };
+
+  const handleSignatureApprove = async () => {\n    if (signatureSubmitting) return;\n    const signatureUrl = getSignatureDataURL();\n    if (!signatureUrl) {\n      setSignatureError('Please draw a signature before approving.');\n      return;\n    }\n    if (!authUser?.id) {\n      setSignatureError('User not authenticated');\n      setSignatureSubmitting(false);\n      return;\n    }\n    setSignatureSubmitting(true);\n    setSignatureError(null);\n    try {\n      if (!selectedRequest) throw new Error('No request selected');\n      const response = await api('/api/approval-workflow.php', {\n        method: 'POST',\n        headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify({\n          userId: authUser?.id,\n          requestId: selectedRequest.id,\n          action: 'approve',\n          remarks: '', // no remarks for signature approval\n          signature: signatureUrl,\n        }),\n      });\n      const result = await response.json();\n      if (!response.ok || !result.success) {\n        throw new Error(result.message ?? 'Approval failed');\n      }\n      // Success: close signature modal, reset state, reload requests\n      setShowSignature(false);\n      setSignatureData(null);\n      setSignatureError(null);\n      setSignatureSubmitting(false);\n      clearSignature();\n      // Refetch requests\n      void loadRequests();\n    } catch (err: any) {\n      setSignatureError(err.message ?? 'An error occurred');\n      setSignatureSubmitting(false);\n    }\n  };\n\n  const clearSignature = () => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setSignatureData(null);
+    setSignatureError(null);
+  };
+
+  const getSignatureDataURL = () => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return null;
+    return canvas.toDataURL('image/png');
+  };
+
+  
+  useEffect(() => {
+    // Initialize drawing canvas when signature modal opens
+    if (showSignature) {
+      const canvas = signatureCanvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      // Set canvas size to fill available space (we'll set via CSS, but ensure drawing works)
+      // We'll set width/height based on canvas's displayed size (using window.devicePixelRatio for crispness)
+      const resizeCanvas = () => {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        // Clear and redraw existing signature if any
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (signatureData) {
+          const img = new Image();
+          img.src = signatureData;
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0, rect.width, rect.height);
+          };
+        }
+      };
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      // Drawing state
+      let isDrawing = false;
+      const startDrawing = (e: MouseEvent | TouchEvent) => {
+        isDrawing = true;
+        const [x, y] = getPointerPosition(e);
+        ctx.moveTo(x, y);
+        ctx.beginPath();
+        ctx.lineWidth = 2 * (window.devicePixelRatio || 1);
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000';
+      };
+      const draw = (e: MouseEvent | TouchEvent) => {
+        if (!isDrawing) return;
+        const [x, y] = getPointerPosition(e);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      };
+      const stopDrawing = () => {
+        isDrawing = false;
+      };
+      const getPointerPosition = (e: MouseEvent | TouchEvent): [number, number] => {
+        const rect = canvas.getBoundingClientRect();
+        let clientX: number, clientY: number;
+        if (e.type.startsWith('touch')) {
+          const touch = e.touches[0] || e.changedTouches[0];
+          clientX = touch.clientX;
+          clientY = touch.clientY;
+        } else {
+          clientX = e.clientX;
+          clientY = e.clientY;
+        }
+        return [(clientX - rect.left) * (canvas.width / rect.width),
+                (clientY - rect.top) * (canvas.height / rect.height)];
+      };
+      // Event listeners
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('mouseleave', stopDrawing);
+      canvas.addEventListener('touchstart', startDrawing, { passive: false });
+      canvas.addEventListener('touchmove', draw, { passive: false });
+      canvas.addEventListener('touchend', stopDrawing);
+      canvas.addEventListener('touchcancel', stopDrawing);
+      // Cleanup
+      return () => {
+        window.removeEventListener('resize', resizeCanvas);
+        canvas.removeEventListener('mousedown', startDrawing);
+        canvas.removeEventListener('mousemove', draw);
+        canvas.removeEventListener('mouseup', stopDrawing);
+        canvas.removeEventListener('mouseleave', stopDrawing);
+        canvas.removeEventListener('touchstart', startDrawing as any);
+        canvas.removeEventListener('touchmove', draw as any);
+        canvas.removeEventListener('touchend', stopDrawing as any);
+        canvas.removeEventListener('touchcancel', stopDrawing as any);
+      };
+    }
+  }, [showSignature, signatureData]);
 
   useEffect(() => {
     setIsExpanded(false)
@@ -423,7 +531,12 @@ export default function ApprovalPersonnelRequests() {
                             <>
                               <button
                                 type="button"
-                                onClick={() => { setSelectedRequest(request); setActionType("approve") }}
+                                onClick={() => {
+    setSelectedRequest(request);
+    setShowSignature(true);
+    setSignatureData(null);
+    setSignatureError(null);
+}}
                                 className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
                               >
                                 <CheckCircleIcon className="h-4 w-4" />
@@ -851,6 +964,42 @@ export default function ApprovalPersonnelRequests() {
           </div>
         )}
       </StaggerContainer>
+      {showSignature && (
+      <div className="fixed inset-0 z-50 bg-white" onClick={e => e.stopPropagation()}>
+        <div className="relative h-full flex flex-col">
+          <div className="relative p-4">
+            <button onClick={() => { setShowSignature(false); clearSignature(); }} className="absolute top-2 right-2 text-brown-500 hover:text-brown-700">
+              <XCircleIcon className="h-5 w-5" />
+            </button>
+            <h2 className="mt-4 text-center text-xl font-bold text-brown-900">Sign Approval</h2>
+          </div>
+          <div className="flex-1 relative">
+            <canvas ref={signatureCanvasRef} className="w-full h-full cursor-crosshair" />
+          </div>
+          {signatureError && (
+            <div className="mt-4 p-2 text-sm text-red-600 bg-red-50 rounded mx-4">
+              {signatureError}
+            </div>
+          )}
+          {signatureSubmitting && (
+            <div className="mt-4 flex items-center justify-center">
+              <span className="text-sm text-brown-600">Saving...</span>
+            </div>
+          )}
+          {!signatureSubmitting && !signatureError && (
+            <div className="mt-6 flex justify-end px-4">
+              <button
+                onClick={handleSignatureApprove}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
+              >
+                <CheckCircleIcon className="h-4 w-4" />
+                Approve
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
     </ApprovalPersonnelShell>
   )
 }
