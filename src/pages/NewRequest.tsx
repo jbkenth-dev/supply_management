@@ -523,12 +523,12 @@ export default function NewRequest() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex min-w-0 items-start gap-3">
+                        <div className="flex w-full items-center justify-between gap-3">
+                          <div className="flex min-w-0 flex-1 items-center gap-3">
                             <img
                               src={item.imagePath || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop"}
                               alt={item.name}
-                              className="h-8 w-8 flex-shrink-0 rounded object-cover"
+                              className="h-10 w-10 flex-shrink-0 rounded-md border border-brown-200 bg-brown-100 object-cover"
                             />
                             <div className="min-w-0 text-left">
                               <p className="truncate text-xs font-semibold text-brown-900">{item.name}</p>
@@ -544,7 +544,7 @@ export default function NewRequest() {
                           <button
                             type="button"
                             onClick={() => removeItem(index)}
-                            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-brown-200 text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-brown-200 bg-white text-brown-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
                             aria-label={`Remove ${item.name}`}
                           >
                             <TrashIcon className="h-3.5 w-3.5" />
