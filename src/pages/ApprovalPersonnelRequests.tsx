@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
@@ -108,11 +108,6 @@ export default function ApprovalPersonnelRequests() {
   const [modalType, setModalType] = useState<"success" | "error">("error")
   const [isExpanded, setIsExpanded] = useState(false)
   const [approvalPersonnel, setApprovalPersonnel] = useState<Record<string, string>>({})
-  const [showSignature, setShowSignature] = useState(false)
-  const signatureCanvasRef = useRef<HTMLCanvasElement>(null)
-  const [signatureData, setSignatureData] = useState<string | null>(null)
-  const [signatureError, setSignatureError] = useState<string | null>(null)
-  const [signatureSubmitting, setSignatureSubmitting] = useState(false)
   const [showApprovalConfirmation, setShowApprovalConfirmation] = useState(false)
 
   const getAllowedRolesForStatus = (status: RequestStatus): string[] => {
@@ -130,21 +125,12 @@ export default function ApprovalPersonnelRequests() {
     }
   };
 
-  const handleSignatureApprove = async () => {
-    if (signatureSubmitting) return
-    const signatureUrl = getSignatureDataURL()
-    if (!signatureUrl) {
-      setSignatureError("Please draw a signature before approving.")
-      return
-    }
-
+  const handleApprovalConfirm = async () => {
     if (!authUser?.id) {
-      setSignatureError("User not authenticated")
-      setSignatureSubmitting(false)
+      pushMessage("Approval Failed", "User not authenticated", "error")
       return
     }
-    setSignatureSubmitting(true)
-    setSignatureError(null)
+    setSubmitting(true)
     try {
       if (!selectedRequest) throw new Error("No request selected")
       const response = await api("/api/approval-workflow.php", {
@@ -155,144 +141,24 @@ export default function ApprovalPersonnelRequests() {
           requestId: selectedRequest.id,
           action: "approve",
           remarks: "",
-          signature: signatureUrl,
         }),
       })
       const result = await response.json()
       if (!response.ok || !result.success) {
         throw new Error(result.message ?? "Approval failed")
       }
-      setShowSignature(false)
-      setSignatureData(null)
-      setSignatureError(null)
-      clearSignature()
       void loadRequests()
     } catch (err) {
-      setSignatureError(err instanceof Error ? err.message : "An error occurred")
+      pushMessage("Approval Failed", err instanceof Error ? err.message : "An error occurred", "error")
     } finally {
-      setSignatureSubmitting(false)
+      setSubmitting(false)
     }
   }
 
-  const requestSignatureApproval = () => {
-    if (!getSignatureDataURL()) {
-      setSignatureError("Please draw a signature before approving.")
-      return
-    }
-    setSignatureError(null)
+  const requestApprovalConfirmation = (request: ApprovalRequest) => {
+    setSelectedRequest(request)
     setShowApprovalConfirmation(true)
   }
-
-  const clearSignature = () => {
-    const canvas = signatureCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    setSignatureData(null);
-    setSignatureError(null);
-  };
-
-  const getSignatureDataURL = () => {
-    const canvas = signatureCanvasRef.current;
-    if (!canvas) return null;
-    const context = canvas.getContext("2d");
-    if (!context) return null;
-    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
-    for (let index = 3; index < pixels.length; index += 4) {
-      if (pixels[index] > 0) {
-        return canvas.toDataURL("image/png");
-      }
-    }
-    return null;
-  };
-
-  
-  useEffect(() => {
-    // Initialize drawing canvas when signature modal opens
-    if (showSignature) {
-      const canvas = signatureCanvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      // Set canvas size to fill available space (we'll set via CSS, but ensure drawing works)
-      // We'll set width/height based on canvas's displayed size (using window.devicePixelRatio for crispness)
-      const resizeCanvas = () => {
-        const dpr = window.devicePixelRatio || 1;
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        ctx.scale(dpr, dpr);
-        // Clear and redraw existing signature if any
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (signatureData) {
-          const img = new Image();
-          img.src = signatureData;
-          img.onload = () => {
-            ctx.drawImage(img, 0, 0, rect.width, rect.height);
-          };
-        }
-      };
-      resizeCanvas();
-      window.addEventListener('resize', resizeCanvas);
-      // Drawing state
-      let isDrawing = false;
-      const startDrawing = (e: MouseEvent | TouchEvent) => {
-        isDrawing = true;
-        const [x, y] = getPointerPosition(e);
-        ctx.moveTo(x, y);
-        ctx.beginPath();
-        ctx.lineWidth = 2 * (window.devicePixelRatio || 1);
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#000';
-      };
-      const draw = (e: MouseEvent | TouchEvent) => {
-        if (!isDrawing) return;
-        const [x, y] = getPointerPosition(e);
-        ctx.lineTo(x, y);
-        ctx.stroke();
-      };
-      const stopDrawing = () => {
-        isDrawing = false;
-        setSignatureData(canvas.toDataURL("image/png"));
-      };
-      const getPointerPosition = (e: MouseEvent | TouchEvent): [number, number] => {
-        const rect = canvas.getBoundingClientRect();
-        let clientX: number, clientY: number;
-        if (e instanceof TouchEvent) {
-          const touch = e.touches[0] || e.changedTouches[0];
-          clientX = touch.clientX;
-          clientY = touch.clientY;
-        } else {
-          clientX = e.clientX;
-          clientY = e.clientY;
-        }
-        return [(clientX - rect.left) * (canvas.width / rect.width),
-                (clientY - rect.top) * (canvas.height / rect.height)];
-      };
-      // Event listeners
-      canvas.addEventListener('mousedown', startDrawing);
-      canvas.addEventListener('mousemove', draw);
-      canvas.addEventListener('mouseup', stopDrawing);
-      canvas.addEventListener('mouseleave', stopDrawing);
-      canvas.addEventListener('touchstart', startDrawing, { passive: false });
-      canvas.addEventListener('touchmove', draw, { passive: false });
-      canvas.addEventListener('touchend', stopDrawing);
-      canvas.addEventListener('touchcancel', stopDrawing);
-      // Cleanup
-      return () => {
-        window.removeEventListener('resize', resizeCanvas);
-        canvas.removeEventListener('mousedown', startDrawing);
-        canvas.removeEventListener('mousemove', draw);
-        canvas.removeEventListener('mouseup', stopDrawing);
-        canvas.removeEventListener('mouseleave', stopDrawing);
-        canvas.removeEventListener('touchstart', startDrawing as EventListener);
-        canvas.removeEventListener('touchmove', draw as EventListener);
-        canvas.removeEventListener('touchend', stopDrawing as EventListener);
-        canvas.removeEventListener('touchcancel', stopDrawing as EventListener);
-      };
-    }
-  }, [showSignature, signatureData]);
 
   useEffect(() => {
     setIsExpanded(false)
@@ -593,12 +459,7 @@ export default function ApprovalPersonnelRequests() {
                             <>
                               <button
                                 type="button"
-                                onClick={() => {
-    setSelectedRequest(request);
-    setShowSignature(true);
-    setSignatureData(null);
-    setSignatureError(null);
-}}
+                                onClick={() => requestApprovalConfirmation(request)}
                                 className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
                               >
                                 <CheckCircleIcon className="h-4 w-4" />
@@ -1026,48 +887,7 @@ export default function ApprovalPersonnelRequests() {
           </div>
         )}
       </StaggerContainer>
-      {showSignature && (
-      <div className="fixed inset-0 z-50 bg-white" onClick={e => e.stopPropagation()}>
-        <div className="relative h-full flex flex-col">
-          <div className="relative p-4">
-            <button onClick={() => { setShowSignature(false); setShowApprovalConfirmation(false); clearSignature(); }} className="absolute top-2 right-2 text-brown-500 hover:text-brown-700">
-              <XCircleIcon className="h-5 w-5" />
-            </button>
-            <h2 className="mt-4 text-center text-xl font-bold text-brown-900">Sign Approval</h2>
-          </div>
-          <div className="flex-1 relative">
-            <canvas ref={signatureCanvasRef} className="w-full h-full cursor-crosshair" />
-          </div>
-          {signatureError && (
-            <div className="mt-4 p-2 text-sm text-red-600 bg-red-50 rounded mx-4">
-              {signatureError}
-            </div>
-          )}
-          {signatureSubmitting && (
-            <div className="mt-4 flex items-center justify-center">
-              <span className="text-sm text-brown-600">Saving...</span>
-            </div>
-          )}
-          {!signatureSubmitting && (
-            <div className="mt-6 flex flex-col-reverse gap-3 px-4 pb-4 sm:flex-row sm:items-center sm:justify-between">
-              <button
-                type="button"
-                onClick={clearSignature}
-                className="inline-flex items-center gap-2 rounded-xl border border-brown-200 bg-white px-4 py-2 text-xs font-semibold text-brown-700 hover:bg-brown-50"
-              >
-                Reset
-              </button>
-              <button
-                type="button"
-                onClick={requestSignatureApproval}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
-              >
-                <CheckCircleIcon className="h-4 w-4" />
-                Approve
-              </button>
-            </div>
-          )}
-          {showApprovalConfirmation && selectedRequest ? (
+      {showApprovalConfirmation && selectedRequest ? (
             <div className="fixed inset-0 z-[60] flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm" role="presentation">
               <div
                 className="w-full max-w-md rounded-2xl border border-brown-200 bg-white p-6 shadow-2xl"
@@ -1094,7 +914,7 @@ export default function ApprovalPersonnelRequests() {
                     type="button"
                     onClick={() => {
                       setShowApprovalConfirmation(false)
-                      void handleSignatureApprove()
+                      void handleApprovalConfirm()
                     }}
                     className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700"
                   >
@@ -1104,9 +924,6 @@ export default function ApprovalPersonnelRequests() {
               </div>
             </div>
           ) : null}
-        </div>
-      </div>
-    )}
     </ApprovalPersonnelShell>
   )
 }
