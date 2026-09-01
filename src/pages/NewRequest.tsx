@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
   MagnifyingGlassIcon,
-  PlusIcon,
   XMarkIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline"
@@ -725,7 +724,7 @@ export default function NewRequest() {
                               onClick={() => setCustomRowOpen(true)}
                               className="inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-primary-700"
                             >
-                              <PlusIcon className="h-3.5 w-3.5" />
+                              <img src="/sfcg-logo.jpg" alt="Add custom item" className="h-4 w-4 rounded-sm object-cover" />
                               Add Custom Item
                             </button>
                           </>
