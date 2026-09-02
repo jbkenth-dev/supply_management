@@ -48,6 +48,7 @@ type AdminRequestRecord = {
   grandTotal: number
   reviewedByName: string
   reviewedByRole: string
+  rejectionReason?: string
   fulfilledByName: string
   status: RequestStatus
   notes: string
@@ -689,7 +690,8 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
               requestedByName: selectedRequest.requestedByName,
               requestedByIdNumber: selectedRequest.requestedByIdNumber ?? "",
               requestedByEmail: selectedRequest.requestedByEmail ?? "",
-              reviewNotes: selectedRequest.reviewNotes ?? "",
+              reviewNotes: selectedRequest.rejectionReason ?? selectedRequest.reviewNotes ?? "",
+              rejectionReason: selectedRequest.rejectionReason ?? undefined,
               reviewedAt: selectedRequest.reviewedAt ?? null,
               reviewedByRole: selectedRequest.reviewedByRole ?? undefined,
               items: selectedRequest.items.map(item => ({

@@ -819,6 +819,9 @@ function fetchAllRequestsForAdmin(PDO $pdo): array
         $reviewedByRole = $rejectionLog !== null
             ? trim((string) ($rejectionLog['approver_role'] ?? ''))
             : trim((string) ($request['reviewed_by_role'] ?? ''));
+        $rejectionReason = $rejectionLog !== null
+            ? trim((string) ($rejectionLog['remarks'] ?? ''))
+            : '';
 
         return [
             'id' => $requestId,
@@ -835,6 +838,7 @@ function fetchAllRequestsForAdmin(PDO $pdo): array
             'requestedByProfileImageUrl' => $request['requested_by_profile_image_path'] !== null ? (string) $request['requested_by_profile_image_path'] : null,
             'reviewedByName' => $reviewedByName,
             'reviewedByRole' => $reviewedByRole,
+            'rejectionReason' => $rejectionReason,
             'fulfilledByName' => trim((string) ($request['fulfilled_by_name'] ?? '')),
             'reviewedByUserId' => $request['reviewed_by_user_id'] !== null ? (int) $request['reviewed_by_user_id'] : null,
             'status' => (string) $request['status'],

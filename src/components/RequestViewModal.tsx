@@ -480,9 +480,10 @@ export default function RequestViewModal({
             <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-600">Rejection Details</p>
               <p className="mt-2 text-sm font-semibold text-brown-900">Rejected by: {rejectionRole || "Unknown"}</p>
-              {request.reviewNotes?.trim() ? (
+              {(request.rejectionReason?.trim() || request.reviewNotes?.trim()) ? (
                 <p className="mt-2 text-sm leading-6 text-brown-700">
-                  <span className="font-bold text-brown-900">Reason:</span> {request.reviewNotes.trim()}
+                  <span className="font-bold text-brown-900">Reason:</span>{" "}
+                  {(request.rejectionReason?.trim() || request.reviewNotes?.trim())}
                 </p>
               ) : null}
             </div>

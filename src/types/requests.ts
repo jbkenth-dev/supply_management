@@ -28,6 +28,7 @@ export type FacultyRequest = {
   notes: string
   reviewNotes: string
   reviewedByRole?: string
+  rejectionReason?: string
   totalItems: number
   totalQuantity: number
   createdAt: string
