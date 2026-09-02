@@ -5,6 +5,7 @@ declare(strict_types=1);
 function ensureUserProfileColumns(PDO $pdo): void
 {
     $columns = [
+        'designation' => 'ALTER TABLE users ADD COLUMN designation VARCHAR(60) NULL AFTER role',
         'id_number' => 'ALTER TABLE users ADD COLUMN id_number VARCHAR(50) NULL AFTER role',
         'contact_number' => 'ALTER TABLE users ADD COLUMN contact_number VARCHAR(20) NULL AFTER email',
         'address' => 'ALTER TABLE users ADD COLUMN address VARCHAR(255) NULL AFTER contact_number',
@@ -120,4 +121,3 @@ function ensureRoleColumnAcceptsAllManagedRoles(PDO $pdo): void
         );
     }
 }
-

@@ -72,8 +72,17 @@ function handleApprovalWorkflowFetch(PDO $pdo)
         ]);
     }
 
+    $storedRole = (string) ($user['role'] ?? '');
+    $storedDesignation = (string) ($user['designation'] ?? '');
+    if ($role !== '' && $role !== $storedRole && $role !== $storedDesignation) {
+        jsonResponse(403, [
+            'success' => false,
+            'message' => 'The requested approval role does not match your account.',
+        ]);
+    }
+
     if ($showAll) {
-        $effectiveDesignation = $designation !== '' ? $designation : (string) ($user['designation'] ?? $user['role'] ?? '');
+        $effectiveDesignation = getApprovalDesignation($user);
         $isApprovalPersonnel = getApproverTargetStatus($effectiveDesignation) !== null;
         // Also allow specific approval personnel roles to view all requests
         $allowedRolesForShowAll = ['Immediate Head', 'Resource Planning Officer', 'Vice President for Finance', 'College President'];
@@ -97,7 +106,7 @@ function handleApprovalWorkflowFetch(PDO $pdo)
         return;
     }
 
-    $targetStatus = getApproverTargetStatus($designation ?: $user['designation']);
+    $targetStatus = getApproverTargetStatus(getApprovalDesignation($user));
     if ($targetStatus === null) {
         jsonResponse(200, [
             'success' => true,
@@ -136,7 +145,7 @@ function handleApprovalWorkflowAction(PDO $pdo)
     }
 
     $user = findApprovalUser($pdo, $userId);
-    $designation = (string) ($user['designation'] ?? $user['role']);
+    $designation = getApprovalDesignation($user);
 
     $request = findRequestForApproval($pdo, $requestId);
     if ($request === null) {
@@ -247,6 +256,16 @@ function getApproverTargetStatus(string $designation): ?string
         'President'               => 'Pending College President',
     ];
     return $map[$designation] ?? null;
+}
+
+function getApprovalDesignation(array $user): string
+{
+    $designation = trim((string) ($user['designation'] ?? ''));
+    if ($designation !== '' && getApproverTargetStatus($designation) !== null) {
+        return $designation;
+    }
+
+    return trim((string) ($user['role'] ?? ''));
 }
 
 function getNextApprovalStatus(string $currentStatus): string

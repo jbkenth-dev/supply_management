@@ -99,19 +99,25 @@ export default function ApprovalPersonnelDashboard() {
         role: authUser.role,
       })
       const res = await api(`/api/approval-workflow.php?${params.toString()}`)
-      const result = (await res.json()) as ApprovalApiResponse
+      const responseText = await res.text()
+      let result: ApprovalApiResponse
+      try {
+        result = JSON.parse(responseText) as ApprovalApiResponse
+      } catch {
+        throw new Error(`Approval API returned invalid JSON (HTTP ${res.status}).`)
+      }
       if (!res.ok || !result.success) {
         throw new Error(result.message ?? "Unable to load dashboard data.")
       }
       setRequests(result.requests)
       setApprovalHistory(result.approvalHistory)
       setApprovalStats(result.approvalStats)
-    } catch {
+    } catch (error) {
       setRequests([])
       setApprovalHistory([])
       setApprovalStats({ approved: 0, rejected: 0 })
       setModalTitle("Load Failed")
-      setModalMessage("Unable to load dashboard data.")
+      setModalMessage(error instanceof Error ? error.message : "Unable to load dashboard data.")
       setModalType("error")
       setShowModal(true)
     } finally {
