@@ -476,6 +476,17 @@ export default function RequestViewModal({
         </div>
 
         <div className="border-t border-brown-200 px-6 py-4 sm:px-10">
+          {normalizeStatus(request.status) === "rejected" ? (
+            <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-600">Rejection Details</p>
+              <p className="mt-2 text-sm font-semibold text-brown-900">Rejected by: {rejectionRole || "Unknown"}</p>
+              {request.reviewNotes?.trim() ? (
+                <p className="mt-2 text-sm leading-6 text-brown-700">
+                  <span className="font-bold text-brown-900">Reason:</span> {request.reviewNotes.trim()}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           <div className="mb-4">
             <label className="text-[11px] font-bold uppercase tracking-wider text-brown-600">Notes / Remarks</label>
             <p className="mt-1 text-sm leading-6 text-brown-600">{request.notes}</p>

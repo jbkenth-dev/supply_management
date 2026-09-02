@@ -112,6 +112,15 @@ export default function MyRequests() {
     return requests.filter((request) => request.status === statusFilter)
   }, [requests, statusFilter])
 
+  function getDisplayStatusLabel(status: string, reviewedByRole?: string) {
+    if (status === "Rejected") {
+      const role = reviewedByRole?.trim()
+      return role ? `Rejected by ${role}` : "Rejected"
+    }
+
+    return status
+  }
+
   const totalPages = Math.max(1, Math.ceil(filteredRequests.length / REQUESTS_PER_PAGE))
   const paginatedRequests = useMemo(
     () => filteredRequests.slice((page - 1) * REQUESTS_PER_PAGE, page * REQUESTS_PER_PAGE),
@@ -258,7 +267,7 @@ export default function MyRequests() {
                           {request.requestNumber}
                         </td>
                         <td className="border-r border-brown-200 px-2 py-2 text-left text-sm">
-                          {request.status}
+                          {getDisplayStatusLabel(request.status, request.reviewedByRole)}
                         </td>
                         <td className="border-r-0 px-2 py-2 text-right text-sm">
                           <div className="flex items-center justify-end gap-2">

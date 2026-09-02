@@ -554,7 +554,7 @@ export default function Dashboard() {
                         </p>
                       </div>
                       <div className={getStatusClass(request.status)}>
-                        {request.status}
+                        {getDisplayStatusLabel(request.status, request.reviewedByRole)}
                       </div>
                     </div>
 
@@ -661,15 +661,18 @@ function ProgressRow({
 }
 
 function buildNotifications(requests: FacultyRequest[], contacts: MessageContact[], currentUserId: number): Notification[] {
-  const requestNotifications = requests.map((request) => ({
-    id: `request-${request.id}`,
-    title: getRequestNotificationTitle(request.status),
-    message: `${request.requestNumber} is currently ${request.status.toLowerCase()}.`,
-    type: getRequestNotificationType(request.status),
-    time: formatRelativeDate(request.updatedAt),
-    read: request.status === "Pending",
-    sortTime: toTimestamp(request.updatedAt),
-  }))
+  const requestNotifications = requests.map((request) => {
+    const displayStatus = getDisplayStatusLabel(request.status, request.reviewedByRole)
+    return {
+      id: `request-${request.id}`,
+      title: getRequestNotificationTitle(request.status, request.reviewedByRole),
+      message: `${request.requestNumber} is currently ${displayStatus.toLowerCase()}.`,
+      type: getRequestNotificationType(request.status),
+      time: formatRelativeDate(request.updatedAt),
+      read: request.status === "Pending",
+      sortTime: toTimestamp(request.updatedAt),
+    }
+  })
 
   const messageNotifications = contacts
     .filter((contact) => contact.unreadCount > 0 && contact.lastMessage)
@@ -712,13 +715,23 @@ function getStatusClass(status: string) {
   return info[status] ?? "bg-brown-200 text-brown-700"
 }
 
-function getRequestNotificationTitle(status: string) {
+function getDisplayStatusLabel(status: string, reviewedByRole?: string) {
+  if (status === "Rejected") {
+    const role = reviewedByRole?.trim()
+    return role ? `Rejected by ${role}` : "Rejected"
+  }
+
+  return status
+}
+
+function getRequestNotificationTitle(status: string, reviewedByRole?: string) {
   if (["Approved", "Completed", "Fulfilled", "Received"].includes(status)) {
     return "Request Approved"
   }
 
   if (status === "Rejected") {
-    return "Request Rejected"
+    const role = reviewedByRole?.trim()
+    return role ? `Request Rejected by ${role}` : "Request Rejected"
   }
 
   if (["Purchased", "Ready for Release", "Released"].includes(status)) {

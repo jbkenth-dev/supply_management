@@ -714,6 +714,23 @@ function fetchFacultyRequests(PDO $pdo, int $userId): array
     $itemsStatement->execute($requestIds);
     $items = $itemsStatement->fetchAll();
 
+    $rejectionLogsStatement = $pdo->prepare(
+        'SELECT request_id, approver_role
+         FROM approval_log
+         WHERE request_id IN (' . $placeholders . ') AND action = :action
+         ORDER BY created_at DESC, id DESC'
+    );
+    $rejectionLogsStatement->execute([...$requestIds, 'rejected']);
+    $rejectionLogs = $rejectionLogsStatement->fetchAll();
+
+    $rejectionRoleByRequestId = [];
+    foreach ($rejectionLogs as $log) {
+        $requestId = (int) $log['request_id'];
+        if (!isset($rejectionRoleByRequestId[$requestId])) {
+            $rejectionRoleByRequestId[$requestId] = trim((string) ($log['approver_role'] ?? ''));
+        }
+    }
+
     $itemsByRequestId = [];
 
     foreach ($items as $item) {
@@ -735,8 +752,11 @@ function fetchFacultyRequests(PDO $pdo, int $userId): array
         ];
     }
 
-    return array_map(static function (array $request) use ($itemsByRequestId): array {
+    return array_map(static function (array $request) use ($itemsByRequestId, $rejectionRoleByRequestId): array {
         $requestId = (int) $request['id'];
+        $status = (string) $request['status'];
+        $rejectionRole = $status === 'Rejected' ? ($rejectionRoleByRequestId[$requestId] ?? '') : '';
+
         return [
             'id' => $requestId,
             'requestNumber' => (string) $request['request_number'],
@@ -745,7 +765,8 @@ function fetchFacultyRequests(PDO $pdo, int $userId): array
             'department' => $request['department'] !== null ? (string) $request['department'] : '',
             'dateNeeded' => $request['date_needed'] !== null ? (string) $request['date_needed'] : null,
             'grandTotal' => (float) ($request['grand_total'] ?? 0),
-            'status' => (string) $request['status'],
+            'status' => $status,
+            'reviewedByRole' => $rejectionRole,
             'notes' => $request['notes'] !== null ? (string) $request['notes'] : '',
             'reviewNotes' => $request['review_notes'] !== null ? (string) $request['review_notes'] : '',
             'totalItems' => (int) $request['total_items'],
