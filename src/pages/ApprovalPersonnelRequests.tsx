@@ -301,6 +301,13 @@ export default function ApprovalPersonnelRequests() {
     { label: "Completed", value: "Completed" },
   ]
   const currentIndex = steps.findIndex((step) => step.value === selectedRequest?.status)
+  
+  // Special handling for "Approved" status:
+  // When status is "Approved", we want to show "Approved" as completed (checkmark)
+  // and "Waiting Purchase" as the current/in-progress step (loading animation)
+  const isApprovedStatus = selectedRequest?.status === "Approved";
+  const effectiveCurrentIndex = isApprovedStatus ? currentIndex + 1 : currentIndex; // Move to "Waiting Purchase" when Approved
+  
   const currentStatusLabel = (() => {
     switch (selectedRequest?.status) {
       case "Pending Immediate Head":
@@ -592,7 +599,7 @@ export default function ApprovalPersonnelRequests() {
                       <div className="status-orbit-shell shrink-0">
                         <span className="status-orbit-ring" />
                         <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-base font-black text-white shadow-sm ring-4 ring-white">
-                          {Math.max(currentIndex + 1, 1)}
+                                        {Math.max(effectiveCurrentIndex + 1, 1)}
                         </span>
                       </div>
                       <div className="min-w-0">
@@ -618,7 +625,7 @@ export default function ApprovalPersonnelRequests() {
                         <div className="status-orbit-shell shrink-0">
                           <span className="status-orbit-ring" />
                           <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-base font-black text-white shadow-sm ring-4 ring-white">
-                            {Math.max(currentIndex + 1, 1)}
+                                          {Math.max(effectiveCurrentIndex + 1, 1)}
                           </span>
                         </div>
                         <div className="min-w-0">
@@ -642,9 +649,9 @@ export default function ApprovalPersonnelRequests() {
                       <div className="absolute left-[17px] top-2 h-[calc(100%-0.75rem)] w-px bg-brown-200" aria-hidden="true" />
                       <div className="space-y-4">
                         {steps.map((step, idx) => {
-                          const isCurrent = idx === currentIndex;
-                          const isCompleted = idx < currentIndex;
-                          const isUpcoming = idx > currentIndex;
+                                        const isCurrent = idx === effectiveCurrentIndex;
+                                        const isCompleted = idx < effectiveCurrentIndex;
+                                        const isUpcoming = idx > effectiveCurrentIndex;
                           const displayLabel = step.label.replace(/^Pending\s+/, "");
 
                           return (
