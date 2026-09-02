@@ -495,6 +495,11 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                             {request.requestNumber}
                           </span>
                           <StatusBadge status={request.status} />
+                          {request.status === "Approved" && (
+                            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-medium text-amber-700 whitespace-nowrap">
+                              Please purchase or update the status. Please view details for more info.
+                            </span>
+                          )}
                           {request.issuanceSlipNo ? (
                             <span className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-700">
                               {request.issuanceSlipNo}
