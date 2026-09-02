@@ -201,7 +201,6 @@ const SignUp = () => {
                   className="w-full pl-11 pr-4 py-3.5 bg-brown-50 border border-brown-200 rounded-xl text-brown-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all appearance-none"
                 >
                   <option value="Faculty Staff">Faculty Staff</option>
-                  <option value="Property Custodian">Property Custodian</option>
                 </select>
               </div>
               {errors.role && <p className="mt-2 text-xs font-semibold text-rose-600">{errors.role}</p>}
