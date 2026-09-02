@@ -27,6 +27,7 @@ export type FacultyRequest = {
   status: RequestStatus
   notes: string
   reviewNotes: string
+  reviewedByRole?: string
   totalItems: number
   totalQuantity: number
   createdAt: string

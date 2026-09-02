@@ -739,6 +739,7 @@ function fetchAllRequestsForAdmin(PDO $pdo): array
                 requester.email AS requested_by_email,
                 requester.profile_image_path AS requested_by_profile_image_path,
                 CONCAT_WS(" ", reviewer.firstname, reviewer.lastname) AS reviewed_by_name,
+                reviewer.role AS reviewed_by_role,
                 CONCAT_WS(" ", fulfiller.firstname, fulfiller.lastname) AS fulfilled_by_name
          FROM supply_requests sr
          INNER JOIN users requester ON requester.id = sr.requested_by_user_id
@@ -806,6 +807,7 @@ function fetchAllRequestsForAdmin(PDO $pdo): array
             'requestedByEmail' => $request['requested_by_email'] !== null ? (string) $request['requested_by_email'] : '',
             'requestedByProfileImageUrl' => $request['requested_by_profile_image_path'] !== null ? (string) $request['requested_by_profile_image_path'] : null,
             'reviewedByName' => trim((string) ($request['reviewed_by_name'] ?? '')),
+            'reviewedByRole' => trim((string) ($request['reviewed_by_role'] ?? '')),
             'fulfilledByName' => trim((string) ($request['fulfilled_by_name'] ?? '')),
             'reviewedByUserId' => $request['reviewed_by_user_id'] !== null ? (int) $request['reviewed_by_user_id'] : null,
             'status' => (string) $request['status'],

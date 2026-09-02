@@ -79,6 +79,7 @@ export default function RequestViewModal({
   const grandTotal = request.grandTotal;
   const totalQuantity = request.totalQuantity;
   const totalItems = request.totalItems;
+  const rejectionRole = (request as { reviewedByRole?: string } | undefined)?.reviewedByRole?.trim();
 
   const steps = [
     { label: "Pending Immediate Head", value: "Pending Immediate Head" },
@@ -129,6 +130,8 @@ export default function RequestViewModal({
         return "Completed ✓";
       case "cancelled":
         return "Cancelled";
+      case "rejected":
+        return rejectionRole ? `Rejected by ${rejectionRole}` : "Rejected";
       default:
         return request.status;
     }

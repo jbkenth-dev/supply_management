@@ -47,6 +47,7 @@ type AdminRequestRecord = {
   dateNeeded: string | null
   grandTotal: number
   reviewedByName: string
+  reviewedByRole: string
   fulfilledByName: string
   status: RequestStatus
   notes: string
@@ -540,7 +541,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                           <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brown-500">
                             {request.requestNumber}
                           </span>
-                          <StatusBadge status={request.status} />
+                          <StatusBadge status={request.status} reviewedByRole={request.reviewedByRole} />
                           {request.status === "Approved" && (
                             <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-medium text-amber-700 whitespace-nowrap">
                               Please purchase or update the status. Please view details for more info.
@@ -690,6 +691,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
               requestedByEmail: selectedRequest.requestedByEmail ?? "",
               reviewNotes: selectedRequest.reviewNotes ?? "",
               reviewedAt: selectedRequest.reviewedAt ?? null,
+              reviewedByRole: selectedRequest.reviewedByRole ?? undefined,
               items: selectedRequest.items.map(item => ({
                 supplyId: item.supplyId,
                 customItemName: null,
@@ -858,7 +860,11 @@ function SummaryCard({ label, value, tone }: { label: string; value: number; ton
   )
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, reviewedByRole }: { status: string; reviewedByRole?: string }) {
+  const label = status === "Rejected" && reviewedByRole?.trim()
+    ? `Rejected by ${reviewedByRole.trim()}`
+    : status
+
   const className =
     status === "Pending" || status === "Pending Immediate Head"
       ? "bg-amber-100 text-amber-700"
@@ -874,7 +880,7 @@ function StatusBadge({ status }: { status: string }) {
                 ? "bg-rose-100 text-rose-700"
                 : "bg-brown-200 text-brown-700"
 
-  return <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${className}`}>{status}</span>
+  return <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${className}`}>{label}</span>
 }
 
 function ActionButton({
