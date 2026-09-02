@@ -760,7 +760,9 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
           <div className="space-y-5">
             <div className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-brown-400">Current Status</p>
-              <p className="mt-2 text-lg font-black text-brown-900">{getDisplayStatusLabel(statusUpdateRequest.status)}</p>
+              <p className="mt-2 text-lg font-black text-brown-900">
+                {getDisplayStatusLabel(statusUpdateRequest.status, statusUpdateRequest.reviewedByRole)}
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -815,7 +817,9 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
 
             <div className="rounded-2xl border border-brown-200 bg-brown-50 p-4 text-sm text-brown-600">
               <span className="font-bold uppercase tracking-[0.18em] text-brown-400">Current Status</span>
-              <p className="mt-2 font-semibold text-brown-900">{getDisplayStatusLabel(statusUpdateRequest.status)}</p>
+              <p className="mt-2 font-semibold text-brown-900">
+                {getDisplayStatusLabel(statusUpdateRequest.status, statusUpdateRequest.reviewedByRole)}
+              </p>
             </div>
 
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -1105,8 +1109,13 @@ function getStatusUpdateOptions(status: string) {
   }))
 }
 
-function getDisplayStatusLabel(status: string): string {
+function getDisplayStatusLabel(status: string, reviewedByRole?: string): string {
   const normalized = normalizeRequestStatus(status)
+
+  if (normalized === "Rejected") {
+    const role = reviewedByRole?.trim()
+    return role ? `Rejected by ${role}` : "Rejected"
+  }
 
   if (normalized === "Purchased") {
     return "Purchased or In Stock"

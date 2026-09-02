@@ -790,8 +790,35 @@ function fetchAllRequestsForAdmin(PDO $pdo): array
         ];
     }
 
-    return array_map(static function (array $request) use ($itemsByRequestId): array {
+    $rejectionLogsStatement = $pdo->prepare(
+        'SELECT al.request_id, al.approver_user_id, al.approver_role,
+                CONCAT_WS(" ", approver.firstname, approver.lastname) AS approver_name
+         FROM approval_log al
+         LEFT JOIN users approver ON approver.id = al.approver_user_id
+         WHERE al.request_id IN (' . $placeholders . ') AND LOWER(al.action) = ?
+         ORDER BY al.created_at DESC, al.id DESC'
+    );
+    $rejectionLogsStatement->execute([...$requestIds, 'rejected']);
+    $rejectionByRequestId = [];
+
+    foreach ($rejectionLogsStatement->fetchAll() as $rejectionLog) {
+        $requestId = (int) $rejectionLog['request_id'];
+        if (!isset($rejectionByRequestId[$requestId])) {
+            $rejectionByRequestId[$requestId] = $rejectionLog;
+        }
+    }
+
+    return array_map(static function (array $request) use ($itemsByRequestId, $rejectionByRequestId): array {
         $requestId = (int) $request['id'];
+        $rejectionLog = (string) $request['status'] === 'Rejected'
+            ? ($rejectionByRequestId[$requestId] ?? null)
+            : null;
+        $reviewedByName = $rejectionLog !== null
+            ? trim((string) ($rejectionLog['approver_name'] ?? ''))
+            : trim((string) ($request['reviewed_by_name'] ?? ''));
+        $reviewedByRole = $rejectionLog !== null
+            ? trim((string) ($rejectionLog['approver_role'] ?? ''))
+            : trim((string) ($request['reviewed_by_role'] ?? ''));
 
         return [
             'id' => $requestId,
@@ -806,8 +833,8 @@ function fetchAllRequestsForAdmin(PDO $pdo): array
             'requestedByIdNumber' => $request['requested_by_id_number'] !== null ? (string) $request['requested_by_id_number'] : '',
             'requestedByEmail' => $request['requested_by_email'] !== null ? (string) $request['requested_by_email'] : '',
             'requestedByProfileImageUrl' => $request['requested_by_profile_image_path'] !== null ? (string) $request['requested_by_profile_image_path'] : null,
-            'reviewedByName' => trim((string) ($request['reviewed_by_name'] ?? '')),
-            'reviewedByRole' => trim((string) ($request['reviewed_by_role'] ?? '')),
+            'reviewedByName' => $reviewedByName,
+            'reviewedByRole' => $reviewedByRole,
             'fulfilledByName' => trim((string) ($request['fulfilled_by_name'] ?? '')),
             'reviewedByUserId' => $request['reviewed_by_user_id'] !== null ? (int) $request['reviewed_by_user_id'] : null,
             'status' => (string) $request['status'],
