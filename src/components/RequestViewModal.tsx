@@ -94,8 +94,10 @@ export default function RequestViewModal({
     { label: "Completed", value: "Completed" },
   ];
 
+  const normalizeStatus = (status?: string) => status?.trim().toLowerCase() ?? "";
+
   const statusToIndex = (status: FacultyRequest["status"]) => {
-    const idx = steps.findIndex(s => s.value === status);
+    const idx = steps.findIndex(s => normalizeStatus(s.value) === normalizeStatus(status));
     return idx >= 0 ? idx : -1;
   };
 
@@ -104,26 +106,29 @@ export default function RequestViewModal({
   // Special handling for "Approved" status:
   // When status is "Approved", we want to show "Approved" as completed (checkmark)
   // and "Waiting Purchase" as the current/in-progress step (loading animation)
-  const isCompletedStatus = request.status === "Completed";
-  const isApprovedStatus = request.status === "Approved";
+  const isCompletedStatus = normalizeStatus(request.status) === "completed";
+  const isCancelledStatus = normalizeStatus(request.status) === "cancelled";
+  const isApprovedStatus = normalizeStatus(request.status) === "approved";
   const effectiveCurrentIndex = isApprovedStatus ? currentIndex + 1 : currentIndex; // Move to "Waiting Purchase" when Approved
   
   const currentStatusLabel = (() => {
-    switch (request.status) {
-      case "Pending Immediate Head":
+    switch (normalizeStatus(request.status)) {
+      case "pending immediate head":
         return "Pending — Immediate Head";
-      case "Pending Resource Planning Officer":
+      case "pending resource planning officer":
         return "Pending — Resource Planning Officer";
-      case "Pending VP Finance":
+      case "pending vp finance":
         return "Pending — VP Finance";
-      case "Pending College President":
+      case "pending college president":
         return "Pending — College President";
-      case "Waiting Purchase":
+      case "waiting purchase":
         return "Waiting — Purchase";
-      case "Ready for Release":
+      case "ready for release":
         return "Ready — Release";
-      case "Completed":
+      case "completed":
         return "Completed ✓";
+      case "cancelled":
+        return "Cancelled";
       default:
         return request.status;
     }
@@ -196,7 +201,11 @@ export default function RequestViewModal({
           {!isExpanded ? (
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-4">
-                {isCompletedStatus ? (
+                {isCancelledStatus ? (
+                  <div className="relative flex h-10 w-10 items-center justify-center rounded-full border border-red-200 bg-red-50 text-lg font-bold text-red-600 shadow-sm ring-4 ring-white">
+                    <span aria-hidden="true">✕</span>
+                  </div>
+                ) : isCompletedStatus ? (
                   <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shadow-sm ring-4 ring-white">
                     <CheckIcon className="h-5 w-5" />
                   </div>
@@ -210,7 +219,7 @@ export default function RequestViewModal({
                 )}
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brown-500">Current status</p>
-                  <p className="mt-1 text-base font-bold tracking-tight text-brown-900 sm:text-lg">
+                  <p className={`mt-1 text-base font-bold tracking-tight sm:text-lg ${isCancelledStatus ? "text-red-700" : "text-brown-900"}`}>
                     {currentStatusLabel}
                   </p>
                 </div>
@@ -228,7 +237,11 @@ export default function RequestViewModal({
             <>
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-4">
-                  {isCompletedStatus ? (
+                  {isCancelledStatus ? (
+                    <div className="relative flex h-10 w-10 items-center justify-center rounded-full border border-red-200 bg-red-50 text-lg font-bold text-red-600 shadow-sm ring-4 ring-white">
+                      <span aria-hidden="true">✕</span>
+                    </div>
+                  ) : isCompletedStatus ? (
                     <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shadow-sm ring-4 ring-white">
                       <CheckIcon className="h-5 w-5" />
                     </div>
@@ -242,7 +255,7 @@ export default function RequestViewModal({
                   )}
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brown-500">Current status</p>
-                    <p className="mt-1 text-base font-bold tracking-tight text-brown-900 sm:text-lg">
+                    <p className={`mt-1 text-base font-bold tracking-tight sm:text-lg ${isCancelledStatus ? "text-red-700" : "text-brown-900"}`}>
                       {currentStatusLabel}
                     </p>
                   </div>
@@ -258,18 +271,22 @@ export default function RequestViewModal({
               </div>
 
               <div className="relative ml-2 pt-2">
-                <div className="absolute left-[17px] top-2 h-[calc(100%-0.75rem)] w-px bg-brown-200" aria-hidden="true" />
+                <div className={`absolute left-[17px] top-2 h-[calc(100%-0.75rem)] w-px ${isCancelledStatus ? "bg-red-200" : "bg-brown-200"}`} aria-hidden="true" />
                 <div className="space-y-4">
                   {steps.map((step, idx) => {
-                             const isCurrent = idx === effectiveCurrentIndex && !isCompletedStatus;
-                             const isCompleted = idx < effectiveCurrentIndex || (isCompletedStatus && idx === effectiveCurrentIndex);
-                              const isUpcoming = idx > effectiveCurrentIndex;
+                    const isCurrent = !isCancelledStatus && idx === effectiveCurrentIndex && !isCompletedStatus;
+                    const isCompleted = !isCancelledStatus && (idx < effectiveCurrentIndex || (isCompletedStatus && idx === effectiveCurrentIndex));
+                    const isUpcoming = !isCancelledStatus && idx > effectiveCurrentIndex;
                     const displayLabel = step.label.replace(/^Pending\s+/, "");
- 
+
                     return (
                       <div key={step.value} className="relative flex items-start gap-3">
                         <div className="relative z-10 mt-0.5 flex h-8 w-8 items-center justify-center shrink-0 rounded-full border bg-white shadow-sm">
-                          {isCompleted ? (
+                          {isCancelledStatus ? (
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full border border-red-200 bg-red-50 text-sm font-bold text-red-600">
+                              ✕
+                            </span>
+                          ) : isCompleted ? (
                             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                               <CheckIcon className="h-4 w-4" />
                             </span>
@@ -293,14 +310,16 @@ export default function RequestViewModal({
                         <div className="min-w-0 flex-1 pt-0.5">
                           <p
                             className={`text-sm font-semibold ${
-                              isCurrent
-                                ? "text-brown-900"
-                                : isCompleted
-                                  ? "text-emerald-700"
-                                  : "text-brown-400"
+                              isCancelledStatus
+                                ? "text-red-700"
+                                : isCurrent
+                                  ? "text-brown-900"
+                                  : isCompleted
+                                    ? "text-emerald-700"
+                                    : "text-brown-400"
                             }`}
                           >
-                            {isCompleted ? displayLabel : step.label}
+                            {isCancelledStatus ? step.label : isCompleted ? displayLabel : step.label}
                           </p>
                         </div>
                       </div>
