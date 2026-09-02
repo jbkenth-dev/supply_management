@@ -244,6 +244,21 @@ export default function ApprovalPersonnelRequests() {
   useEffect(() => { setPage(1) }, [sortedRequests.length])
   useEffect(() => { if (page > totalPages) setPage(totalPages) }, [page, totalPages])
 
+  const getDisplayStatusLabel = (request?: Pick<ApprovalRequest, "status" | "approvalLogs"> | null) => {
+    if (!request) return ""
+
+    if (normalizeStatus(request.status) !== "rejected") {
+      return request.status
+    }
+
+    const rejectionLog = [...(request.approvalLogs ?? [])]
+      .reverse()
+      .find((log) => normalizeStatus(log.action) === "rejected")
+
+    const approverRole = rejectionLog?.approverRole?.trim()
+    return approverRole ? `Rejected by ${approverRole}` : "Rejected"
+  }
+
   const handleAction = async () => {
     if (!authUser?.id || !selectedRequest || !actionType) return
 
@@ -330,10 +345,15 @@ export default function ApprovalPersonnelRequests() {
         return "Completed ✓"
       case "cancelled":
         return "Cancelled"
+      case "rejected":
+        return getDisplayStatusLabel(selectedRequest)
       default:
         return selectedRequest?.status ?? ""
     }
   })()
+  const rejectionLog = selectedRequest
+    ? [...(selectedRequest.approvalLogs ?? [])].reverse().find((log) => normalizeStatus(log.action) === "rejected")
+    : null
   const grandTotal = selectedRequest?.grandTotal ?? 0
   const totalItems = selectedRequest?.totalItems ?? 0
   const totalQuantity = selectedRequest?.totalQuantity ?? 0
@@ -430,7 +450,7 @@ export default function ApprovalPersonnelRequests() {
                             <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brown-500">
                               {request.requestNumber}
                             </span>
-                            <StatusBadge status={request.status} />
+                            <StatusBadge status={getDisplayStatusLabel(request)} />
                           </div>
                           <p className="mt-2 text-sm text-brown-500">
                             Submitted {formatDateTime(request.createdAt)} by{" "}
@@ -877,6 +897,17 @@ export default function ApprovalPersonnelRequests() {
               </div>
 
               <div className="border-t border-brown-200 px-6 py-4 sm:px-10">
+                {normalizeStatus(selectedRequest.status) === "rejected" && rejectionLog ? (
+                  <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-600">Rejection Details</p>
+                    <p className="mt-2 text-sm font-semibold text-brown-900">Rejected by: {rejectionLog.approverRole}</p>
+                    {rejectionLog.remarks ? (
+                      <p className="mt-2 text-sm leading-6 text-brown-700">
+                        <span className="font-bold text-brown-900">Reason:</span> {rejectionLog.remarks}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
                 <div className="mb-4">
                   <label className="text-[11px] font-bold uppercase tracking-wider text-brown-600">Notes / Remarks</label>
                   <p className="mt-1 text-sm leading-6 text-brown-600">{selectedRequest.notes}</p>
@@ -978,6 +1009,9 @@ export default function ApprovalPersonnelRequests() {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const normalizedStatus = status.trim()
+  const isRejected = normalizedStatus.toLowerCase().startsWith("rejected")
+
   const colorMap: Record<string, string> = {
     "Pending Immediate Head": "bg-amber-100 text-amber-700",
     "Pending Resource Planning Officer": "bg-amber-200 text-amber-800",
@@ -986,8 +1020,11 @@ function StatusBadge({ status }: { status: string }) {
     "Approved": "bg-emerald-100 text-emerald-700",
     "Rejected": "bg-rose-100 text-rose-700",
   }
+
+  const badgeClass = isRejected ? "bg-rose-100 text-rose-700" : colorMap[status] ?? "bg-brown-200 text-brown-700"
+
   return (
-    <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${colorMap[status] ?? "bg-brown-200 text-brown-700"}`}>
+    <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${badgeClass}`}>
       {status}
     </span>
   )

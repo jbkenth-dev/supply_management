@@ -257,7 +257,7 @@ function fetchAllApprovalRequests(PDO $pdo): array
          FROM supply_requests sr
          INNER JOIN users u ON u.id = sr.requested_by_user_id
          WHERE sr.status NOT IN (
-             \'Rejected\', \'Completed\', \'Fulfilled\', \'Cancelled\'
+             \'Completed\', \'Fulfilled\', \'Cancelled\'
          )
          ORDER BY sr.created_at ASC, sr.id ASC';
 
