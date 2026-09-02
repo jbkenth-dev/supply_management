@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/cors.php';
+require_once __DIR__ . '/config/user_schema.php';
 
 configureCors(['GET']);
 
 try {
     $pdo = getDatabaseConnection();
+    ensureUserProfileColumns($pdo);
+    ensureApprovalColumns($pdo);
 
     $rolesParam = trim((string) ($_GET['roles'] ?? ''));
     if ($rolesParam === '') {

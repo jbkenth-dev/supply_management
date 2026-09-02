@@ -64,6 +64,10 @@ type ApprovalApiResponse = {
   success: boolean
   requests: ApprovalRequest[]
   approvalHistory: ApprovalLog[]
+  approvalStats: {
+    approved: number
+    rejected: number
+  }
   message?: string
 }
 
@@ -72,6 +76,7 @@ export default function ApprovalPersonnelDashboard() {
   const navigate = useNavigate()
   const [requests, setRequests] = useState<ApprovalRequest[]>([])
   const [approvalHistory, setApprovalHistory] = useState<ApprovalLog[]>([])
+  const [approvalStats, setApprovalStats] = useState({ approved: 0, rejected: 0 })
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [modalTitle, setModalTitle] = useState("")
@@ -95,11 +100,16 @@ export default function ApprovalPersonnelDashboard() {
       })
       const res = await api(`/api/approval-workflow.php?${params.toString()}`)
       const result = (await res.json()) as ApprovalApiResponse
-      if (result.success) {
-        setRequests(result.requests ?? [])
-        setApprovalHistory(result.approvalHistory ?? [])
+      if (!res.ok || !result.success) {
+        throw new Error(result.message ?? "Unable to load dashboard data.")
       }
+      setRequests(result.requests)
+      setApprovalHistory(result.approvalHistory)
+      setApprovalStats(result.approvalStats)
     } catch {
+      setRequests([])
+      setApprovalHistory([])
+      setApprovalStats({ approved: 0, rejected: 0 })
       setModalTitle("Load Failed")
       setModalMessage("Unable to load dashboard data.")
       setModalType("error")
@@ -118,18 +128,16 @@ export default function ApprovalPersonnelDashboard() {
   }, [requests])
 
   const stats = useMemo(() => {
-    const approvedCount = approvalHistory.filter((h) => h.action === "approved").length
-    const rejectedCount = approvalHistory.filter((h) => h.action === "rejected").length
     const totalAmount = requests.reduce((sum, r) => sum + (r.grandTotal ?? 0), 0)
 
     return {
       pendingCount: requests.length,
-      approvedCount,
-      rejectedCount,
-      totalProcessed: approvedCount + rejectedCount,
+      approvedCount: approvalStats.approved,
+      rejectedCount: approvalStats.rejected,
+      totalProcessed: approvalStats.approved + approvalStats.rejected,
       totalAmount,
     }
-  }, [requests, approvalHistory])
+  }, [requests, approvalStats])
 
   if (!authUser) return null
 

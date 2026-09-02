@@ -7,6 +7,7 @@ ini_set('log_errors', '1');
 
 require_once __DIR__ . '/config/admin_inventory.php';
 require_once __DIR__ . '/config/notifications.php';
+require_once __DIR__ . '/config/user_schema.php';
 
 /**
  * Main request handling – wrapped in try/catch to guarantee JSON output.
@@ -15,6 +16,8 @@ try {
     sendApiHeaders(['GET', 'POST']);
 
     $pdo = getDatabaseConnection();
+    ensureUserProfileColumns($pdo);
+    ensureApprovalColumns($pdo);
     ensureInventoryTables($pdo);
     // Request tables are created by the faculty request endpoint.
     if (function_exists('ensureFacultyRequestTables')) {
@@ -62,6 +65,12 @@ function handleApprovalWorkflowFetch(PDO $pdo)
     }
 
     $user = findApprovalUser($pdo, $userId);
+    if ((int) ($user['is_verified'] ?? 0) !== 1 || ($user['approval_status'] ?? '') !== 'approved') {
+        jsonResponse(403, [
+            'success' => false,
+            'message' => 'Your approval personnel account is not active.',
+        ]);
+    }
 
     if ($showAll) {
         $effectiveDesignation = $designation !== '' ? $designation : (string) ($user['designation'] ?? $user['role'] ?? '');
@@ -78,10 +87,12 @@ function handleApprovalWorkflowFetch(PDO $pdo)
 
         $requests      = fetchAllApprovalRequests($pdo);
         $approvalHist  = fetchApprovalHistory($pdo, $userId);
+        $approvalStats = fetchApprovalStats($pdo, $userId);
         jsonResponse(200, [
             'success' => true,
             'requests'      => $requests,
             'approvalHistory' => $approvalHist,
+            'approvalStats' => $approvalStats,
         ]);
         return;
     }
@@ -99,10 +110,12 @@ function handleApprovalWorkflowFetch(PDO $pdo)
 
     $requests      = fetchApprovalQueue($pdo, $targetStatus);
     $approvalHist  = fetchApprovalHistory($pdo, $userId);
+    $approvalStats = fetchApprovalStats($pdo, $userId);
     jsonResponse(200, [
         'success' => true,
         'requests'      => $requests,
         'approvalHistory' => $approvalHist,
+        'approvalStats' => $approvalStats,
     ]);
 }
 
@@ -203,7 +216,7 @@ function handleApprovalWorkflowAction(PDO $pdo)
 function findApprovalUser(PDO $pdo, int $userId): array
 {
     $stmt = $pdo->prepare(
-        'SELECT id, role, designation, firstname, middlename, lastname, email
+        'SELECT id, role, designation, firstname, middlename, lastname, email, is_verified, approval_status
          FROM users WHERE id = :id LIMIT 1'
     );
     $stmt->execute(['id' => $userId]);
@@ -251,7 +264,7 @@ function fetchAllApprovalRequests(PDO $pdo): array
 {
     $sql = 'SELECT sr.id, sr.request_number, sr.purpose, sr.department, sr.date_needed, sr.grand_total,
                 sr.status, sr.total_items, sr.total_quantity, sr.notes, sr.created_at, sr.updated_at,
-                CONCAT_WS(" ", u.firstname, u.lastname) AS requested_by_name,
+                CONCAT_WS(" ", u.firstname, u.middlename, u.lastname) AS requested_by_name,
                 u.id_number AS requested_by_id_number,
                 u.email AS requested_by_email
          FROM supply_requests sr
@@ -365,6 +378,14 @@ function fetchAllApprovalRequests(PDO $pdo): array
     return $result;
 }
 
+function fetchApprovalQueue(PDO $pdo, string $targetStatus): array
+{
+    return array_values(array_filter(
+        fetchAllApprovalRequests($pdo),
+        static fn(array $request): bool => $request['status'] === $targetStatus
+    ));
+}
+
 function findRequestForApproval(PDO $pdo, int $requestId): ?array
 {
     $stmt = $pdo->prepare('SELECT * FROM supply_requests WHERE id = :id LIMIT 1');
@@ -377,12 +398,12 @@ function fetchApprovalHistory(PDO $pdo, int $userId): array
 {
     $stmt = $pdo->prepare(
         'SELECT al.*, sr.request_number,
-                CONCAT_WS(" ", u.firstname, u.lastname) AS requester_name
+                CONCAT_WS(" ", u.firstname, u.middlename, u.lastname) AS requester_name
          FROM approval_log al
          INNER JOIN supply_requests sr ON sr.id = al.request_id
          INNER JOIN users u ON u.id = sr.requested_by_user_id
          WHERE al.approver_user_id = :user_id
-         ORDER BY al.created_at DESC
+         ORDER BY al.created_at DESC, al.id DESC
          LIMIT 20'
     );
     $stmt->execute(['user_id' => $userId]);
@@ -401,6 +422,24 @@ function fetchApprovalHistory(PDO $pdo, int $userId): array
         ];
     }
     return $result;
+}
+
+function fetchApprovalStats(PDO $pdo, int $userId): array
+{
+    $stmt = $pdo->prepare(
+        "SELECT
+            COUNT(CASE WHEN action = 'approved' THEN 1 END) AS approved_count,
+            COUNT(CASE WHEN action = 'rejected' THEN 1 END) AS rejected_count
+         FROM approval_log
+         WHERE approver_user_id = :user_id"
+    );
+    $stmt->execute(['user_id' => $userId]);
+    $stats = $stmt->fetch() ?: [];
+
+    return [
+        'approved' => (int) ($stats['approved_count'] ?? 0),
+        'rejected' => (int) ($stats['rejected_count'] ?? 0),
+    ];
 }
 
 function notifyApprovalAction(PDO $pdo, array $request, array $approver, string $action, string $remarks, string $newStatus): void
