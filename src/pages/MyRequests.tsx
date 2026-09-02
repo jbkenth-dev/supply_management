@@ -261,16 +261,32 @@ export default function MyRequests() {
                           {request.status}
                         </td>
                         <td className="border-r-0 px-2 py-2 text-right text-sm">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedRequest(request);
-                              setViewModalOpen(true);
-                            }}
-                            className="text-xs font-semibold text-primary-600 hover:underline"
-                          >
-                            View
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedRequest(request);
+                                setViewModalOpen(true);
+                              }}
+                              className="inline-flex items-center justify-center rounded-lg border border-brown-200 bg-white px-3 py-2 text-xs font-semibold text-primary-700 transition hover:bg-brown-50"
+                            >
+                              View
+                            </button>
+                            {request.status === "Pending Immediate Head" ? (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setRequestToCancel(request);
+                                }}
+                                disabled={busyRequestId !== null}
+                                className="inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                Cancel
+                              </button>
+                            ) : null}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -413,7 +429,7 @@ function ConfirmCancelModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="w-full max-w-xl rounded-[2rem] border-border-brown-200 bg-white p-6 shadow-2xl sm:p-8"
+       className="w-full max-w-lg rounded-[2rem] border border-brown-200 bg-white p-6 shadow-2xl sm:p-8"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start gap-4">
@@ -424,49 +440,50 @@ function ConfirmCancelModal({
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-rose-600">Cancel Request</p>
             <h2 className="mt-2 text-2xl font-black tracking-tight text-brown-900">{request.requestNumber}</h2>
             <p className="mt-3 text-sm leading-6 text-brown-500">
-              This will cancel your pending request and notify administrator and property custodian by notification and email.
-            </p>
-          </div>
-        </div>
+             Are you sure you want to cancel this request?<br />
+             This action cannot be undone.
+           </p>
+         </div>
+       </div>
 
-        <div className="mt-6 rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3">
-          <p className="text-sm text-brown-600">
-            {request.totalItems} item{request.totalItems === 1 ? "" : "s"} requested with {request.totalQuantity} total{" "}
-            {request.totalQuantity === 1 ? "quantity" : "quantities"}.
-          </p>
-        </div>
+       <div className="mt-6 rounded-2xl border border-brown-200 bg-brown-50 px-4 py-3">
+         <p className="text-sm font-medium text-brown-700">Request ID: {request.requestNumber}</p>
+         <p className="mt-2 text-sm text-brown-600">
+           Status: <span className="font-semibold text-brown-800">{request.status}</span>
+         </p>
+       </div>
 
-        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={busy}
-            className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Close
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={busy}
-            className="inline-flex items-center justify-center rounded-xl bg-rose-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {busy ? (
-              <>
-                <div className="relative w-4 h-4 flex-shrink-0">
-  <div className="absolute inset-0 w-4 h-4 rounded-full border-3 border-primary-500 animate-spin"></div>
+       <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+         <button
+           type="button"
+           onClick={onClose}
+           disabled={busy}
+           className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
+         >
+           No
+         </button>
+         <button
+           type="button"
+           onClick={onConfirm}
+           disabled={busy}
+           className="inline-flex items-center justify-center rounded-xl bg-rose-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+         >
+           {busy ? (
+             <>
+<div className="relative h-4 w-4 flex-shrink-0">
+  <div className="absolute inset-0 h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-white"></div>
 </div>
-                Cancelling...
-              </>
-            ) : (
-              <>
-                <XCircleIcon className="mr-2 h-4 w-4" />
-                Confirm Cancel
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
+<span className="ml-2">Cancelling...</span>
+             </>
+           ) : (
+             <>
+<XCircleIcon className="mr-2 h-4 w-4" />
+Yes, Cancel Request
+             </>
+           )}
+         </button>
+       </div>
+     </div>
+   </div>
   )
 }
