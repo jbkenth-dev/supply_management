@@ -669,7 +669,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                     <ChatBubbleLeftRightIcon className="mx-auto h-14 w-14 text-brown-300" />
                     <p className="mt-4 text-lg font-bold text-brown-900">Choose a conversation</p>
                     <p className="mt-2 text-sm leading-6 text-brown-500">
-                      Select a faculty, custodian, or admin account from the left panel to view and send live messages.
+                      Select a faculty, approval personnel, or admin account from the left panel to view and send live messages.
                     </p>
                     {error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}
                   </div>
@@ -975,7 +975,7 @@ export default function MessageCenter({ role }: { role: AuthRole }) {
                     <ChatBubbleLeftRightIcon className="mx-auto h-14 w-14 text-brown-300" />
                     <p className="mt-4 text-lg font-bold text-brown-900">Choose a conversation</p>
                     <p className="mt-2 text-sm leading-6 text-brown-500">
-                      Select a faculty, custodian, or admin account from the left panel to view and send live messages.
+                      Select a faculty, approval personnel, or admin account from the left panel to view and send live messages.
                     </p>
                     {error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}
                   </div>
