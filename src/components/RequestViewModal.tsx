@@ -104,6 +104,7 @@ export default function RequestViewModal({
   // Special handling for "Approved" status:
   // When status is "Approved", we want to show "Approved" as completed (checkmark)
   // and "Waiting Purchase" as the current/in-progress step (loading animation)
+  const isCompletedStatus = request.status === "Completed";
   const isApprovedStatus = request.status === "Approved";
   const effectiveCurrentIndex = isApprovedStatus ? currentIndex + 1 : currentIndex; // Move to "Waiting Purchase" when Approved
   
@@ -121,6 +122,8 @@ export default function RequestViewModal({
         return "Waiting — Purchase";
       case "Ready for Release":
         return "Ready — Release";
+      case "Completed":
+        return "Completed ✓";
       default:
         return request.status;
     }
@@ -193,12 +196,18 @@ export default function RequestViewModal({
           {!isExpanded ? (
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-4">
-                <div className="status-orbit-shell shrink-0">
-                  <span className="status-orbit-ring" />
-                  <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-base font-black text-white shadow-sm ring-4 ring-white">
-                              {Math.max(effectiveCurrentIndex + 1, 1)}
-                  </span>
-                </div>
+                {isCompletedStatus ? (
+                  <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shadow-sm ring-4 ring-white">
+                    <CheckIcon className="h-5 w-5" />
+                  </div>
+                ) : (
+                  <div className="status-orbit-shell shrink-0">
+                    <span className="status-orbit-ring" />
+                    <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-base font-black text-white shadow-sm ring-4 ring-white">
+                      {Math.max(effectiveCurrentIndex + 1, 1)}
+                    </span>
+                  </div>
+                )}
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brown-500">Current status</p>
                   <p className="mt-1 text-base font-bold tracking-tight text-brown-900 sm:text-lg">
@@ -219,12 +228,18 @@ export default function RequestViewModal({
             <>
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-4">
-                  <div className="status-orbit-shell shrink-0">
-                    <span className="status-orbit-ring" />
-                    <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-base font-black text-white shadow-sm ring-4 ring-white">
-                                {Math.max(effectiveCurrentIndex + 1, 1)}
-                    </span>
-                  </div>
+                  {isCompletedStatus ? (
+                    <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 shadow-sm ring-4 ring-white">
+                      <CheckIcon className="h-5 w-5" />
+                    </div>
+                  ) : (
+                    <div className="status-orbit-shell shrink-0">
+                      <span className="status-orbit-ring" />
+                      <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary-600 text-base font-black text-white shadow-sm ring-4 ring-white">
+                        {Math.max(effectiveCurrentIndex + 1, 1)}
+                      </span>
+                    </div>
+                  )}
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brown-500">Current status</p>
                     <p className="mt-1 text-base font-bold tracking-tight text-brown-900 sm:text-lg">
@@ -246,8 +261,8 @@ export default function RequestViewModal({
                 <div className="absolute left-[17px] top-2 h-[calc(100%-0.75rem)] w-px bg-brown-200" aria-hidden="true" />
                 <div className="space-y-4">
                   {steps.map((step, idx) => {
-                              const isCurrent = idx === effectiveCurrentIndex;
-                              const isCompleted = idx < effectiveCurrentIndex;
+                             const isCurrent = idx === effectiveCurrentIndex && !isCompletedStatus;
+                             const isCompleted = idx < effectiveCurrentIndex || (isCompletedStatus && idx === effectiveCurrentIndex);
                               const isUpcoming = idx > effectiveCurrentIndex;
                     const displayLabel = step.label.replace(/^Pending\s+/, "");
  
