@@ -72,7 +72,7 @@ function handleAdminRequestIssuanceAction(PDO $pdo): void
         ]);
     }
 
-    if (!in_array($action, ['approve_request', 'reject_request', 'fulfill_request'], true)) {
+    if (!in_array($action, ['approve_request', 'reject_request', 'fulfill_request', 'update_status'], true)) {
         jsonResponse(400, [
             'success' => false,
             'message' => 'Invalid action.',
@@ -89,6 +89,11 @@ function handleAdminRequestIssuanceAction(PDO $pdo): void
 
     if ($action === 'fulfill_request') {
         fulfillRequest($pdo, $requestId, (int) $manager['id'], $reviewNotes);
+    }
+
+    if ($action === 'update_status') {
+        $nextStatus = trim((string) ($payload['status'] ?? ''));
+        updateRequestStatus($pdo, $requestId, (int) $manager['id'], $nextStatus, $reviewNotes);
     }
 }
 
@@ -337,6 +342,99 @@ function fulfillRequest(PDO $pdo, int $requestId, int $adminId, string $reviewNo
     }
 
     respondWithRequestSnapshot($pdo, 'Issuance completed successfully.');
+}
+
+function updateRequestStatus(PDO $pdo, int $requestId, int $adminId, string $nextStatus, string $reviewNotes): void
+{
+    $request = findRequestById($pdo, $requestId);
+
+    if ($request === null) {
+        jsonResponse(404, [
+            'success' => false,
+            'message' => 'The selected request was not found.',
+        ]);
+    }
+
+    $normalizedCurrentStatus = normalizeStatusValue((string) $request['status']);
+    $normalizedNextStatus = normalizeStatusValue($nextStatus);
+
+    $allowedTransitions = [
+        'Approved' => ['Purchased'],
+        'Purchased' => ['Ready for Release'],
+        'Ready for Release' => ['Released'],
+        'Released' => ['Received'],
+        'Received' => ['Completed'],
+    ];
+
+    if (!isset($allowedTransitions[$normalizedCurrentStatus]) || !in_array($normalizedNextStatus, $allowedTransitions[$normalizedCurrentStatus], true)) {
+        jsonResponse(422, [
+            'success' => false,
+            'message' => 'The selected status is not a valid next step for this request.',
+        ]);
+    }
+
+    $pdo->beginTransaction();
+
+    try {
+        $updateRequest = $pdo->prepare(
+            'UPDATE supply_requests
+             SET status = :status,
+                 review_notes = :review_notes,
+                 reviewed_by_user_id = :reviewed_by_user_id,
+                 reviewed_at = COALESCE(reviewed_at, NOW())
+             WHERE id = :id'
+        );
+
+        $updateRequest->execute([
+            'status' => $normalizedNextStatus,
+            'review_notes' => $reviewNotes !== '' ? $reviewNotes : ($request['reviewNotes'] !== '' ? $request['reviewNotes'] : null),
+            'reviewed_by_user_id' => $adminId,
+            'id' => $requestId,
+        ]);
+
+        $pdo->commit();
+    } catch (Throwable $throwable) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        throw $throwable;
+    }
+
+    respondWithRequestSnapshot($pdo, 'Request status updated successfully.');
+}
+
+function normalizeStatusValue(string $status): string
+{
+    $trimmed = trim($status);
+    if ($trimmed === '') {
+        return $trimmed;
+    }
+
+    $lookup = [
+        'APPROVED' => 'Approved',
+        'APPROVAL' => 'Approved',
+        'PURCHASED OR IN STOCK' => 'Purchased',
+        'PURCHASED OR IN-STOCK' => 'Purchased',
+        'WAITING PURCHASE' => 'Purchased',
+        'READY FOR RELEASE' => 'Ready for Release',
+        'RELEASED' => 'Released',
+        'RECEIVED' => 'Received',
+        'COMPLETED' => 'Completed',
+    ];
+
+    $normalized = str_replace(['-', '_'], ' ', strtoupper($trimmed));
+    $normalized = preg_replace('/\s+/', ' ', $normalized) ?? $normalized;
+
+    if (isset($lookup[$normalized])) {
+        return $lookup[$normalized];
+    }
+
+    if ($trimmed === 'Waiting Purchase') {
+        return 'Purchased';
+    }
+
+    return $trimmed;
 }
 
 function respondWithRequestSnapshot(PDO $pdo, string $message): void

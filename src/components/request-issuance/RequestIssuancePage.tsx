@@ -105,6 +105,9 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   const [requestPage, setRequestPage] = useState(1)
   const [issuancePage, setIssuancePage] = useState(1)
   const [showMessageModal, setShowMessageModal] = useState(false)
+  const [statusUpdateRequest, setStatusUpdateRequest] = useState<AdminRequestRecord | null>(null)
+  const [statusUpdateSelection, setStatusUpdateSelection] = useState<RequestStatus | null>(null)
+  const [statusUpdateSaving, setStatusUpdateSaving] = useState(false)
 
   useEffect(() => {
     void loadData()
@@ -298,6 +301,49 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
       setIsSuccess(false)
     } finally {
       setBusyAction(null)
+    }
+  }
+
+  async function submitStatusUpdate() {
+    if (!authUser?.id || authUser.role !== role || !statusUpdateRequest || !statusUpdateSelection) {
+      return
+    }
+
+    setStatusUpdateSaving(true)
+
+    try {
+      const response = await api("/api/admin-request-issuance.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "update_status",
+          requestId: statusUpdateRequest.id,
+          userId: authUser.id,
+          role: authUser.role,
+          status: statusUpdateSelection,
+          reviewNotes: "",
+        }),
+      })
+
+      const result = (await response.json()) as RequestIssuanceResponse
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message ?? "Unable to update the request status.")
+      }
+
+      setRequests(result.requests ?? [])
+      setSummary(result.summary ?? emptySummary)
+      setMessage(result.message ?? "Request status updated successfully.")
+      setIsSuccess(true)
+      setStatusUpdateSelection(null)
+      setStatusUpdateRequest(null)
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to update the request status.")
+      setIsSuccess(false)
+    } finally {
+      setStatusUpdateSaving(false)
     }
   }
 
@@ -523,8 +569,14 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                           <ActionButton label="Reject" onClick={() => openActionModal(request, "reject_request")} icon={<XCircleIcon className="h-4 w-4" />} tone="rose" />
                         </>
                       ) : null}
-                      {request.status === "Approved" ? (
-                        <ActionButton label="Issue Supplies" onClick={() => openActionModal(request, "fulfill_request")} icon={<TruckIcon className="h-4 w-4" />} tone="blue" />
+                      {request.status === "Completed" ? (
+                        <span className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700">
+                          <CheckCircleIcon className="h-4 w-4" />
+                          Completed
+                        </span>
+                      ) : null}
+                      {canUpdateRequestStatus(request.status) ? (
+                        <ActionButton label="Update Status" onClick={() => setStatusUpdateRequest(request)} icon={<TruckIcon className="h-4 w-4" />} tone="blue" />
                       ) : null}
                     </div>
                   </div>
@@ -695,6 +747,91 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                 className="inline-flex items-center justify-center rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {busyAction === actionType ? "Saving..." : getActionButtonLabel(actionType)}
+              </button>
+            </div>
+          </div>
+        </ModalShell>
+      ) : null}
+
+      {statusUpdateRequest ? (
+        <ModalShell onClose={() => setStatusUpdateRequest(null)} title="Update Status">
+          <div className="space-y-5">
+            <div className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-brown-400">Current Status</p>
+              <p className="mt-2 text-lg font-black text-brown-900">{getDisplayStatusLabel(statusUpdateRequest.status)}</p>
+            </div>
+
+            <div className="space-y-2">
+              {getStatusUpdateOptions(statusUpdateRequest.status).map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    if (!option.enabled) return
+                    setStatusUpdateSelection(option.value)
+                  }}
+                  disabled={!option.enabled}
+                  className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                    option.current
+                      ? "border-brown-900 bg-brown-900 text-white"
+                      : option.enabled
+                        ? "border-primary-200 bg-primary-50 text-primary-700 hover:border-primary-300 hover:bg-primary-100"
+                        : "cursor-not-allowed border-brown-200 bg-brown-50 text-brown-400"
+                  }`}
+                >
+                  <span>{option.label}</span>
+                  <span className="text-[10px] uppercase tracking-[0.18em]">
+                    {option.current ? "Current" : option.enabled ? "Available" : "Disabled"}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setStatusUpdateRequest(null)}
+                className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </ModalShell>
+      ) : null}
+
+      {statusUpdateRequest && statusUpdateSelection ? (
+        <ModalShell onClose={() => {
+          if (!statusUpdateSaving) {
+            setStatusUpdateSelection(null)
+          }
+        }} title="Update Status">
+          <div className="space-y-5">
+            <p className="text-base leading-7 text-brown-600">
+              Are you sure you want to update this request status to <span className="font-extrabold text-brown-900">{getDisplayStatusLabel(statusUpdateSelection)}</span>?
+            </p>
+
+            <div className="rounded-2xl border border-brown-200 bg-brown-50 p-4 text-sm text-brown-600">
+              <span className="font-bold uppercase tracking-[0.18em] text-brown-400">Current Status</span>
+              <p className="mt-2 font-semibold text-brown-900">{getDisplayStatusLabel(statusUpdateRequest.status)}</p>
+            </div>
+
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setStatusUpdateSelection(null)}
+                disabled={statusUpdateSaving}
+                className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                No
+              </button>
+              <button
+                type="button"
+                onClick={() => void submitStatusUpdate()}
+                disabled={statusUpdateSaving}
+                className="inline-flex items-center justify-center rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {statusUpdateSaving ? "Updating..." : "Yes, Update Status"}
               </button>
             </div>
           </div>
@@ -919,6 +1056,61 @@ function getActionButtonLabel(action: ActionKind) {
   if (action === "approve_request") return "Approve Request"
   if (action === "reject_request") return "Reject Request"
   return "Complete Issuance"
+}
+
+function canUpdateRequestStatus(status: string): boolean {
+  const current = normalizeRequestStatus(status)
+  return current !== "Completed" && current !== "Rejected" && current !== "Fulfilled" && current !== "Cancelled" && current !== "Pending" && current !== "Pending Immediate Head" && current !== "Pending Resource Planning Officer" && current !== "Pending VP Finance" && current !== "Pending College President"
+}
+
+function normalizeRequestStatus(status: string): string {
+  if (status === "Waiting Purchase") {
+    return "Purchased"
+  }
+
+  return status
+}
+
+function getRequestStatusProgression(): Array<{ value: RequestStatus; label: string }> {
+  return [
+    { value: "Approved", label: "Approved" },
+    { value: "Purchased", label: "Purchased or In Stock" },
+    { value: "Ready for Release", label: "Ready for Release" },
+    { value: "Released", label: "Released" },
+    { value: "Received", label: "Received" },
+    { value: "Completed", label: "Completed" },
+  ]
+}
+
+function getStatusUpdateOptions(status: string) {
+  const progression = getRequestStatusProgression()
+  const normalizedStatus = normalizeRequestStatus(status)
+  const currentIndex = progression.findIndex((item) => item.value === normalizedStatus)
+
+  if (currentIndex === -1) {
+    return []
+  }
+
+  return progression.map((item, index) => ({
+    value: item.value,
+    label: item.label,
+    current: index === currentIndex,
+    enabled: index === currentIndex + 1,
+  }))
+}
+
+function getDisplayStatusLabel(status: string): string {
+  const normalized = normalizeRequestStatus(status)
+
+  if (normalized === "Purchased") {
+    return "Purchased or In Stock"
+  }
+
+  if (normalized === "Approved") {
+    return "Approved"
+  }
+
+  return normalized
 }
 
 function createPdfDocument(title: string, subtitle: string) {
