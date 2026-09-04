@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import type { ReactNode } from "react"
-import { formatDateTime as manilaFormatDateTime } from "../../lib/date"
-import jsPDF from "jspdf"
-import autoTable from "jspdf-autotable"
+import { formatDateTime as manilaFormatDateTime, formatDateLong } from "../../lib/date"
 import {
   CheckCircleIcon,
   ClipboardDocumentListIcon,
@@ -373,7 +371,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
     }
   }
 
-  function printIssuanceSlip(request: AdminRequestRecord) {
+  function printIssuanceSlipLegacy(request: AdminRequestRecord) {
     const doc = createPdfDocument("Issuance Slip", "Official supply issuance document")
 
     doc.setDrawColor(203, 213, 225)
@@ -438,6 +436,238 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
     doc.text(role === "Administrator" ? "Supply administrator" : "Property custodian", 132, finalY + 40)
 
     openPdfInBrowser(doc)
+  }
+
+async function printIssuanceSlip(request: AdminRequestRecord) {
+    // Fetch approval personnel for signature lines
+    let approvalMap: Record<string, string> = {};
+    try {
+      const resp = await api(`/api/approval-personnel-info.php?roles=Immediate Head,Resource Planning Officer,Vice President for Finance,College President`);
+      const data = await resp.json();
+      if (data.success && data.personnel) {
+        for (const p of data.personnel) {
+          approvalMap[p.role] = p.fullName;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load approval personnel', e);
+    }
+
+    const escapeHtml = (text: string) => {
+      const map: Record<string, string> = {
+        '&': '&',
+        '<': '<',
+        '>': '>',
+        '"': '"',
+        "'": '&#039;'
+      };
+      return String(text).replace(/[&<>"']/g, m => map[m]);
+    };
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>Issuance Slip</title>
+        <link rel="stylesheet" href="/assets/index-BI00YaO6.css">
+      </head>
+      <body>
+        <div class="relative w-full max-w-[210mm] max-h-[calc(100vh_-_3rem)] overflow-y-auto rounded-[1.75rem] border border-brown-200 bg-white shadow-sm">
+          <!-- Header -->
+          <div class="border-b border-brown-200 bg-gradient-to-b from-brown-50 to-white px-6 pb-5 pt-6 text-center sm:px-10">
+            <p class="text-xs font-bold uppercase tracking-[0.25em] text-primary-600">
+              Saint Francis College, Guihulngan, Negros Oriental, Incorporated
+            </p>
+            <p class="mt-1 text-xs font-semibold uppercase tracking-wider text-brown-500">
+              Bateria, Poblacion, Guihulngan City, Negros Oriental
+            </p>
+            <h1 class="mt-2 text-lg font-black uppercase tracking-wide text-brown-900 sm:text-xl">
+              OFFICE OF THE VICE PRESIDENT FOR FINANCE
+            </h1>
+            <div class="mx-auto my-4 h-0.5 w-24 rounded-full bg-primary-500" />
+            <h2 class="text-base font-black uppercase tracking-[0.15em] text-brown-900 sm:text-lg">
+              REQUEST FORM
+            </h2>
+            <p class="mt-1 text-xs font-semibold uppercase tracking-wider text-brown-500">
+              (<span class="font-semibold text-brown-800">${escapeHtml(request.requestedByName)}</span>)
+            </p>
+          </div>
+
+          <!-- Purpose / Department / Date -->
+          <div class="border-b border-brown-200 px-6 py-4 sm:px-10">
+            <div class="grid gap-x-6 gap-y-3 sm:grid-cols-12">
+              <div class="sm:col-span-5">
+                <label class="text-[11px] font-bold uppercase tracking-wider text-brown-600">Purpose</label>
+                <p class="mt-1 text-sm leading-5 text-brown-700 line-clamp-2">${escapeHtml(request.purpose ?? "")}</p>
+              </div>
+
+              <div class="sm:col-span-4">
+                <label class="text-[11px] font-bold uppercase tracking-wider text-brown-600">Department</label>
+                <p class="mt-1 text-sm font-semibold text-brown-700">${escapeHtml(request.department ?? "")}</p>
+              </div>
+
+              <div class="sm:col-span-3">
+                <label class="text-[11px] font-bold uppercase tracking-wider text-brown-600">Date</label>
+                <p class="mt-1 text-sm font-semibold text-brown-700">${request.dateNeeded ? formatDateLong(request.dateNeeded) : "-"}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Item table -->
+          <div class="px-6 py-4 sm:px-10">
+            <div class="overflow-x-auto rounded-2xl border border-brown-200">
+              <table class="w-full border-collapse table-fixed text-xs sm:text-sm">
+                <thead>
+                  <tr class="border-b border-brown-200 bg-brown-100">
+                    <th class="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[40px]">Qty</th>
+                    <th class="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[110px]">Item / Description</th>
+                    <th class="border-r border-brown-200 px-3 py-2 text-right text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[120px]">Total Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${request.items.map(item => `
+                    <tr class="border-b border-brown-200 align-top">
+                      <td class="border-r border-brown-200 px-2 py-3 text-right align-top sm:w-[40px]">
+                        <span class="block text-xs font-bold text-brown-900">${item.quantityRequested}</span>
+                      </td>
+                      <td class="border-r border-brown-200 px-2 py-3 align-top">
+                        <div class="flex min-w-0 items-start gap-2">
+                          <img
+                            src="${item.imagePath || '/sfcg-logo.jpg'}"
+                            alt="${escapeHtml(item.name)}"
+                            class="mt-0.5 h-7 w-7 flex-shrink-0 rounded object-cover"
+                          />
+                          <div class="min-w-0">
+                            <p class="break-words text-xs font-semibold leading-5 text-brown-900 sm:text-sm">${escapeHtml(item.name)}</p>
+                            ${item.supplyId === null ? `
+                              <span class="mt-1 inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-600">Custom</span>
+                            ` : `
+                              <span class="mt-1 block text-[10px] font-medium text-brown-400">${escapeHtml(item.itemCode)}</span>
+                            `}
+                          </div>
+                        </div>
+                      </td>
+                      <td class="border-r border-brown-200 px-2 py-3 text-right align-top">
+                        <span class="text-[10px] font-bold text-brown-900 sm:text-xs">₱${Number(item.unitCost).toFixed(2)}</span>
+                      </td>
+                      <td class="px-2 py-3 text-right align-top">
+                        <span class="text-sm font-black text-brown-900 sm:text-xs">₱${Number(item.totalAmount).toFixed(2)}</span>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+                <tfoot>
+                  <tr class="bg-white font-bold">
+                    <td colSpan="2" class="border-r border-brown-200 px-3 py-2">
+                      <span class="flex items-center gap-2 text-[11px] uppercase tracking-wider text-brown-600">
+                        SOF:
+                        <span class="inline-block min-w-[120px] border-b border-brown-300">&nbsp;</span>
+                      </span>
+                    </td>
+                    <td class="border-r border-brown-200 px-3 py-2 text-right text-[11px] uppercase tracking-wider text-brown-600">
+                      Grand Total
+                    </td>
+                    <td class="px-3 py-2 text-right text-sm font-black text-brown-900 sm:text-base">
+                      ₱${Number(request.grandTotal).toFixed(2)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Total Items / Quantity -->
+          <p class="mt-3 text-[10px] uppercase tracking-wider text-brown-400">
+            Total Items: ${request.totalItems} | Total Quantity: ${request.totalQuantity}
+          </p>
+
+          <!-- Approval signatures table -->
+          <div class="border-t border-brown-200 px-6 py-4 sm:px-10">
+            <div class="overflow-x-auto rounded-2xl border border-brown-200">
+              <table class="w-full border-collapse text-[10px] sm:text-xs">
+                <thead>
+                  <tr class="border-b border-brown-200 bg-brown-100">
+                    ${["Requested By", "Recommended By", "Checked By", "Noted By", "Approved By"].map(label => `
+                      <th class="border-r border-brown-200 px-2 py-2 text-center font-bold uppercase tracking-wider text-brown-600 last:border-r-0">${label}</th>
+                    `).join('')}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    ${["Requested", "Recommended", "Checked", "Noted", "Approved"].map((label, idx) => {
+                      let printedName = "";
+                      if (label === "Requested") printedName = escapeHtml(request.requestedByName);
+                      else if (label === "Recommended") printedName = escapeHtml(approvalMap["Immediate Head"] ?? "");
+                      else if (label === "Checked") printedName = escapeHtml(approvalMap["Resource Planning Officer"] ?? "");
+                      else if (label === "Noted") printedName = escapeHtml(approvalMap["Vice President for Finance"] ?? "");
+                      else if (label === "Approved") printedName = escapeHtml(approvalMap["College President"] ?? "");
+
+                      const position = label === "Recommended" ? "Immediate Head"
+                                       : label === "Checked" ? "Resource Planning Officer"
+                                       : label === "Noted" ? "Vice President for Finance"
+                                       : label === "Approved" ? "College President"
+                                       : "";
+
+                      return `
+                        <td class="border-r border-brown-200 px-2 py-4 text-center last:border-r-0">
+                          <div class="mx-auto mb-2 h-px w-3/4 border-t border-brown-300" />
+                          <p class="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Signature</p>
+                          <p class="mt-3 text-[10px] sm:text-xs">${printedName}</p>
+                          <div class="mx-auto mt-1 h-px w-full border-t border-brown-300" />
+                          <p class="mt-1 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Printed Name</p>
+                          <p class="mt-2 text-[10px] sm:text-xs">${position}</p>
+                          <div class="mx-auto mt-1 h-px w-full border-t border-brown-300" />
+                          <p class="mt-1 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Position / Designation</p>
+                        </td>
+                      `;
+                    }).join('')}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Rejection details if any -->
+          ${request.status === "Rejected" ? `
+            <div class="border-t border-brown-200 px-6 py-4 sm:px-10">
+              <div class="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+                <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-600">Rejection Details</p>
+                <p class="mt-2 text-sm font-semibold text-brown-900">Rejected by: ${escapeHtml(request.reviewedByRole ?? "Unknown")}</p>
+                ${request.rejectionReason?.trim() || request.reviewNotes?.trim() ? `
+                  <p class="mt-2 text-sm leading-6 text-brown-700">
+                    <span class="font-bold text-brown-900">Reason:</span> ${escapeHtml(request.rejectionReason?.trim() ?? request.reviewNotes?.trim())}
+                  </p>
+                ` : ''}
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Notes / Remarks -->
+          <div class="border-t border-brown-200 px-6 py-4 sm:px-10">
+            <div class="mb-4">
+              <label class="text-[11px] font-bold uppercase tracking-wider text-brown-600">Notes / Remarks</label>
+              <p class="mt-1 text-sm leading-6 text-brown-600">${escapeHtml(request.notes ?? "")}</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.focus();
+      // Trigger print after load
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    } else {
+      // Fallback if popup blocked
+      alert('Please allow pop-ups to print the issuance slip.');
+    }
   }
 
   return (
