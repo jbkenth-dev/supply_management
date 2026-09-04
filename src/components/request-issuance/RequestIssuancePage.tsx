@@ -119,7 +119,6 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
     "Pending VP Finance",
     "Pending College President",
     "Approved",
-    "Waiting Purchase",
     "Purchased",
     "Ready for Release",
     "Released",
@@ -534,7 +533,6 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
         <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Search</p>
               <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">All Supply Requests</h2>
             </div>
             <div className="relative w-full max-w-lg">
