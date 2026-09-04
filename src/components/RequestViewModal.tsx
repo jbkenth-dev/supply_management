@@ -110,7 +110,24 @@ export default function RequestViewModal({
   const isCompletedStatus = normalizeStatus(request.status) === "completed";
   const isCancelledStatus = normalizeStatus(request.status) === "cancelled";
   const isApprovedStatus = normalizeStatus(request.status) === "approved";
+  const isRejectedStatus = normalizeStatus(request.status) === "rejected";
   const effectiveCurrentIndex = isApprovedStatus ? currentIndex + 1 : currentIndex; // Move to "Waiting Purchase" when Approved
+
+  const rejectionIndex = (() => {
+    if (!isRejectedStatus || !rejectionRole) return -1;
+
+    const normalizedRole = normalizeStatus(rejectionRole);
+    const roleAliases = [
+      ["immediate head"],
+      ["resource planning officer"],
+      ["vp finance", "vice president for finance"],
+      ["college president"],
+    ];
+
+    return roleAliases.findIndex((aliases) =>
+      aliases.some((alias) => normalizedRole === alias || normalizedRole.includes(alias)),
+    );
+  })();
   
   const currentStatusLabel = (() => {
     switch (normalizeStatus(request.status)) {
@@ -204,7 +221,7 @@ export default function RequestViewModal({
           {!isExpanded ? (
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-4">
-                {isCancelledStatus ? (
+                {isCancelledStatus || isRejectedStatus ? (
                   <div className="relative flex h-10 w-10 items-center justify-center rounded-full border border-red-200 bg-red-50 text-lg font-bold text-red-600 shadow-sm ring-4 ring-white">
                     <span aria-hidden="true">✕</span>
                   </div>
@@ -222,7 +239,7 @@ export default function RequestViewModal({
                 )}
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brown-500">Current status</p>
-                  <p className={`mt-1 text-base font-bold tracking-tight sm:text-lg ${isCancelledStatus ? "text-red-700" : "text-brown-900"}`}>
+                  <p className={`mt-1 text-base font-bold tracking-tight sm:text-lg ${isCancelledStatus || isRejectedStatus ? "text-red-700" : "text-brown-900"}`}>
                     {currentStatusLabel}
                   </p>
                 </div>
@@ -240,7 +257,7 @@ export default function RequestViewModal({
             <>
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-4">
-                  {isCancelledStatus ? (
+                  {isCancelledStatus || isRejectedStatus ? (
                     <div className="relative flex h-10 w-10 items-center justify-center rounded-full border border-red-200 bg-red-50 text-lg font-bold text-red-600 shadow-sm ring-4 ring-white">
                       <span aria-hidden="true">✕</span>
                     </div>
@@ -258,7 +275,7 @@ export default function RequestViewModal({
                   )}
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-brown-500">Current status</p>
-                    <p className={`mt-1 text-base font-bold tracking-tight sm:text-lg ${isCancelledStatus ? "text-red-700" : "text-brown-900"}`}>
+                    <p className={`mt-1 text-base font-bold tracking-tight sm:text-lg ${isCancelledStatus || isRejectedStatus ? "text-red-700" : "text-brown-900"}`}>
                       {currentStatusLabel}
                     </p>
                   </div>
@@ -274,12 +291,14 @@ export default function RequestViewModal({
               </div>
 
               <div className="relative ml-2 pt-2">
-                <div className={`absolute left-[17px] top-2 h-[calc(100%-0.75rem)] w-px ${isCancelledStatus ? "bg-red-200" : "bg-brown-200"}`} aria-hidden="true" />
+                <div className={`absolute left-[17px] top-2 h-[calc(100%-0.75rem)] w-px ${isCancelledStatus || isRejectedStatus ? "bg-red-200" : "bg-brown-200"}`} aria-hidden="true" />
                 <div className="space-y-4">
                   {steps.map((step, idx) => {
                     const isCurrent = !isCancelledStatus && idx === effectiveCurrentIndex && !isCompletedStatus;
                     const isCompleted = !isCancelledStatus && (idx < effectiveCurrentIndex || (isCompletedStatus && idx === effectiveCurrentIndex));
                     const isUpcoming = !isCancelledStatus && idx > effectiveCurrentIndex;
+                    const isCompletedBeforeRejection = isRejectedStatus && rejectionIndex > 0 && idx < rejectionIndex;
+                    const isRejectedStep = isRejectedStatus && (rejectionIndex < 0 || idx >= rejectionIndex);
                     const displayLabel = step.label.replace(/^Pending\s+/, "");
 
                     return (
@@ -289,6 +308,20 @@ export default function RequestViewModal({
                             <span className="flex h-6 w-6 items-center justify-center rounded-full border border-red-200 bg-red-50 text-sm font-bold text-red-600">
                               ✕
                             </span>
+                          ) : isRejectedStatus ? (
+                            isCompletedBeforeRejection ? (
+                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                                <CheckIcon className="h-4 w-4" />
+                              </span>
+                            ) : (
+                              <span className={`flex h-6 w-6 items-center justify-center rounded-full border text-sm font-bold ${
+                                isRejectedStep
+                                  ? "border-red-200 bg-red-50 text-red-600"
+                                  : "border-red-100 bg-red-50 text-red-400"
+                              }`}>
+                                ✕
+                              </span>
+                            )
                           ) : isCompleted ? (
                             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                               <CheckIcon className="h-4 w-4" />
@@ -315,6 +348,12 @@ export default function RequestViewModal({
                             className={`text-sm font-semibold ${
                               isCancelledStatus
                                 ? "text-red-700"
+                              : isRejectedStatus
+                                ? isCompletedBeforeRejection
+                                  ? "text-emerald-700"
+                                  : isRejectedStep
+                                    ? "text-red-700"
+                                    : "text-red-400"
                                 : isCurrent
                                   ? "text-brown-900"
                                   : isCompleted
@@ -322,7 +361,7 @@ export default function RequestViewModal({
                                     : "text-brown-400"
                             }`}
                           >
-                            {isCancelledStatus ? step.label : isCompleted ? displayLabel : step.label}
+                            {isCancelledStatus || isRejectedStatus ? displayLabel : isCompleted ? displayLabel : step.label}
                           </p>
                         </div>
                       </div>
