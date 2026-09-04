@@ -550,7 +550,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
             <div className="relative mt-4 lg:mt-0 lg:ml-4 w-full lg:w-auto max-w-lg">
               <div className="flex items-center space-x-2">
                 <ClipboardDocumentListIcon className="pointer-events-none h-5 w-5 text-brown-400" />
-                <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Status</p>
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Filter</p>
               </div>
               <div className="relative mt-2 w-full">
                 <select
@@ -560,6 +560,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                     setStatusFilter(value === "" ? null : value);
                   }}
                   className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3 pl-4 pr-10 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 appearance-none"
+                  aria-label="Status filter"
                 >
                   <option value="">All Statuses</option>
                   {allStatuses.map((status) => (
