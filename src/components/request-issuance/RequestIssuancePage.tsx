@@ -110,6 +110,25 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   const [statusUpdateRequest, setStatusUpdateRequest] = useState<AdminRequestRecord | null>(null)
   const [statusUpdateSelection, setStatusUpdateSelection] = useState<RequestStatus | null>(null)
   const [statusUpdateSaving, setStatusUpdateSaving] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<null | string>(null) // null means "All"
+
+  const allStatuses = [
+    "Pending",
+    "Pending Immediate Head",
+    "Pending Resource Planning Officer",
+    "Pending VP Finance",
+    "Pending College President",
+    "Approved",
+    "Waiting Purchase",
+    "Purchased",
+    "Ready for Release",
+    "Released",
+    "Received",
+    "Completed",
+    "Rejected",
+    "Fulfilled",
+    "Cancelled",
+  ] as const
 
   useEffect(() => {
     void loadData()
@@ -132,13 +151,14 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
 
   const filteredRequests = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
+    const filterStatus = statusFilter ?? null // null means no status filter
 
-    if (!query) {
+    if (!query && !filterStatus) {
       return requests
     }
 
     return requests.filter((request) => {
-      const haystack = [
+      const matchesSearch = !query || [
         request.requestNumber,
         request.issuanceSlipNo ?? "",
         request.requestedByName,
@@ -151,10 +171,13 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
       ]
         .join(" ")
         .toLowerCase()
+        .includes(query)
 
-      return haystack.includes(query)
+      const matchesStatus = !filterStatus || request.status === filterStatus
+
+      return matchesSearch && matchesStatus
     })
-  }, [requests, searchTerm])
+  }, [requests, searchTerm, statusFilter])
 
   const issuanceHistory = useMemo(
     () => requests.filter((request) => request.status === "Fulfilled"),
@@ -199,11 +222,11 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
 
   useEffect(() => {
     setRequestPage(1)
-  }, [searchTerm, requests])
+  }, [searchTerm, requests, statusFilter])
 
   useEffect(() => {
     setIssuancePage(1)
-  }, [issuanceSearchTerm, requests])
+  }, [issuanceSearchTerm, requests, statusFilter])
 
   useEffect(() => {
     if (requestPage > requestTotalPages) {
@@ -523,6 +546,29 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                 placeholder="Search request no, requester, ID, email, slip no, or item"
                 className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3 pl-11 pr-4 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
               />
+            </div>
+            <div className="relative mt-4 lg:mt-0 lg:ml-4 w-full lg:w-auto max-w-lg">
+              <div className="flex items-center space-x-2">
+                <ClipboardDocumentListIcon className="pointer-events-none h-5 w-5 text-brown-400" />
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Status</p>
+              </div>
+              <div className="relative mt-2 w-full">
+                <select
+                  value={statusFilter ?? ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setStatusFilter(value === "" ? null : value);
+                  }}
+                  className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3 pl-4 pr-10 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 appearance-none"
+                >
+                  <option value="">All Statuses</option>
+                  {allStatuses.map((status) => (
+                    <option key={status} value={status}>
+                      {getDisplayStatusLabel(status, undefined)}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
