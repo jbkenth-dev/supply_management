@@ -371,73 +371,6 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
     }
   }
 
-  function printIssuanceSlipLegacy(request: AdminRequestRecord) {
-    const doc = createPdfDocument("Issuance Slip", "Official supply issuance document")
-
-    doc.setDrawColor(203, 213, 225)
-    doc.roundedRect(14, 42, 182, 34, 4, 4)
-    doc.setFontSize(10)
-    doc.setTextColor(51, 65, 85)
-    doc.text(`Slip No: ${request.issuanceSlipNo ?? "Not assigned"}`, 18, 50)
-    doc.text(`Request No: ${request.requestNumber}`, 18, 57)
-    doc.text(`Issued To: ${request.requestedByName}`, 18, 64)
-    doc.text(`ID Number: ${request.requestedByIdNumber || "Not available"}`, 18, 71)
-    doc.text(`Issued By: ${request.fulfilledByName || role}`, 112, 50)
-    doc.text(`Issued At: ${request.fulfilledAt ? formatDateTime(request.fulfilledAt) : "Not issued yet"}`, 112, 57)
-    doc.text(`Status: ${request.status}`, 112, 64)
-    doc.text(`Total Quantity: ${request.totalQuantity}`, 112, 71)
-
-    autoTable(doc, {
-      startY: 84,
-      head: [["Item Code", "Supply", "Category", "Requested", "Approved", "Issued"]],
-      body: request.items.map((item) => [
-        item.itemCode,
-        item.name,
-        item.categoryName,
-        String(item.quantityRequested),
-        String(item.quantityApproved ?? 0),
-        String(item.quantityFulfilled),
-      ]),
-      styles: {
-        fontSize: 9,
-        cellPadding: 3.5,
-        textColor: [30, 41, 59],
-      },
-      headStyles: {
-        fillColor: [15, 23, 42],
-        textColor: [255, 255, 255],
-        fontStyle: "bold",
-      },
-      alternateRowStyles: {
-        fillColor: [248, 250, 252],
-      },
-      columnStyles: {
-        0: { cellWidth: 28 },
-        1: { cellWidth: 62 },
-        2: { cellWidth: 34 },
-        3: { cellWidth: 18, halign: "center" },
-        4: { cellWidth: 18, halign: "center" },
-        5: { cellWidth: 18, halign: "center" },
-      },
-      margin: { left: 14, right: 14 },
-      didDrawPage: () => {
-        drawPdfFooter(doc)
-      },
-    })
-
-    const finalY = (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? 130
-    doc.setFontSize(10)
-    doc.setTextColor(71, 85, 105)
-    doc.text("Received by:", 18, finalY + 20)
-    doc.line(18, finalY + 34, 82, finalY + 34)
-    doc.text("Signature over printed name", 24, finalY + 40)
-    doc.text("Issued by:", 118, finalY + 20)
-    doc.line(118, finalY + 34, 182, finalY + 34)
-    doc.text(role === "Administrator" ? "Supply administrator" : "Property custodian", 132, finalY + 40)
-
-    openPdfInBrowser(doc)
-  }
-
 async function printIssuanceSlip(request: AdminRequestRecord) {
     // Fetch approval personnel for signature lines
     let approvalMap: Record<string, string> = {};
@@ -595,7 +528,7 @@ async function printIssuanceSlip(request: AdminRequestRecord) {
                 </thead>
                 <tbody>
                   <tr>
-                    ${["Requested", "Recommended", "Checked", "Noted", "Approved"].map((label, idx) => {
+                    ${["Requested", "Recommended", "Checked", "Noted", "Approved"].map((label) => {
                       let printedName = "";
                       if (label === "Requested") printedName = escapeHtml(request.requestedByName);
                       else if (label === "Recommended") printedName = escapeHtml(approvalMap["Immediate Head"] ?? "");
@@ -1342,57 +1275,4 @@ function getDisplayStatusLabel(status: string, reviewedByRole?: string): string 
   }
 
   return normalized
-}
-
-function createPdfDocument(title: string, subtitle: string) {
-  const doc = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4",
-  })
-
-  doc.setFillColor(15, 23, 42)
-  doc.rect(0, 0, 210, 28, "F")
-  doc.setTextColor(255, 255, 255)
-  doc.setFont("helvetica", "bold")
-  doc.setFontSize(18)
-  doc.text("SFC-G Supply Management", 14, 12)
-  doc.setFontSize(14)
-  doc.text(title, 14, 21)
-
-  doc.setTextColor(71, 85, 105)
-  doc.setFont("helvetica", "normal")
-  doc.setFontSize(10)
-  doc.text(subtitle, 14, 34)
-  doc.text(`Generated ${manilaFormatDateTime(new Date().toISOString())}`, 196, 34, { align: "right" })
-
-  return doc
-}
-
-function drawPdfFooter(doc: jsPDF) {
-  const pageCount = doc.getNumberOfPages()
-  const currentPage = doc.getCurrentPageInfo().pageNumber
-
-  doc.setFontSize(9)
-  doc.setTextColor(100, 116, 139)
-  doc.text("WEB-BASED STOCKS & SUPPLY MANAGEMENT", 14, 290)
-  doc.text(`Page ${currentPage} of ${pageCount}`, 196, 290, { align: "right" })
-}
-
-function openPdfInBrowser(doc: jsPDF) {
-  const pdfBlob = doc.output("blob")
-  const pdfUrl = URL.createObjectURL(pdfBlob)
-  const openedWindow = window.open(pdfUrl, "_blank", "noopener,noreferrer")
-
-  if (!openedWindow) {
-    const fallbackLink = document.createElement("a")
-    fallbackLink.href = pdfUrl
-    fallbackLink.target = "_blank"
-    fallbackLink.rel = "noopener noreferrer"
-    fallbackLink.click()
-  }
-
-  window.setTimeout(() => {
-    URL.revokeObjectURL(pdfUrl)
-  }, 60_000)
 }
