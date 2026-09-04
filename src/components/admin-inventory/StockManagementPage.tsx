@@ -187,6 +187,12 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
     return supplies.find((s) => s.id === Number(form.supplyId)) ?? null
   }, [supplies, form.supplyId])
 
+  const stockSummary = useMemo(() => ({
+    trackedItems: supplies.length,
+    totalUnits: supplies.reduce((total, supply) => total + supply.quantityOnHand, 0),
+    recentEntries: entries.length,
+  }), [entries.length, supplies])
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitting(true)
@@ -233,11 +239,11 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
 
   return (
     <AppShell role={role}>
-      <div className="space-y-8">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className={role === "Administrator" ? "admin-stock-page space-y-8" : "space-y-8"}>
+        <div className="admin-stock-header flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Admin Stock</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-brown-900">Stock Management</h1>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary-600">Inventory · Stock</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-brown-900 sm:text-4xl">Stock Management</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-brown-500">
               Search current quantities and add stock-in records.
             </p>
@@ -252,6 +258,14 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
           </button>
         </div>
 
+        {role === "Administrator" ? (
+          <div className="admin-stock-summary grid gap-3 sm:grid-cols-3">
+            <SummaryCard label="Tracked items" value={stockSummary.trackedItems.toLocaleString()} />
+            <SummaryCard label="Units on hand" value={stockSummary.totalUnits.toLocaleString()} />
+            <SummaryCard label="Stock entries" value={stockSummary.recentEntries.toLocaleString()} />
+          </div>
+        ) : null}
+
         <MessageModal
           open={showMessageModal}
           title={isSuccess ? "Success" : "Error"}
@@ -260,8 +274,8 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
           onClose={() => setShowMessageModal(false)}
         />
 
-        <div className="grid gap-8 xl:grid-cols-[380px_minmax(0,1fr)]">
-          <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm">
+        <div className="admin-stock-content grid gap-6 xl:grid-cols-[minmax(290px,340px)_minmax(0,1fr)]">
+          <section className="admin-stock-form rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm">
             <div className="mb-6">
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Add Stock</p>
               <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Stock In</h2>
@@ -368,7 +382,7 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
             </form>
           </section>
 
-          <section className="space-y-6">
+          <section className="admin-stock-results min-w-0 space-y-6">
             <div className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
@@ -388,7 +402,7 @@ export default function StockManagementPage({ role }: { role: Extract<AuthRole, 
               </div>
 
               <div className="mt-6 overflow-x-auto">
-                <table className="min-w-full divide-y divide-brown-200">
+                <table className="min-w-[680px] divide-y divide-brown-200">
                   <thead className="bg-brown-50">
                     <tr>
                       <HeaderCell>Item Code</HeaderCell>
@@ -554,6 +568,15 @@ function BodyCell({
   className?: string
 }) {
   return <td className={`px-6 py-4 text-sm text-brown-600 ${className}`}>{children}</td>
+}
+
+function SummaryCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-brown-200 bg-white px-5 py-4 shadow-sm">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brown-400">{label}</p>
+      <p className="mt-2 text-2xl font-black tracking-tight text-brown-900">{value}</p>
+    </div>
+  )
 }
 
 function formatDateTime(value: string) {

@@ -5,3 +5,55 @@
   padding: 0;
   text-align: left;
 }
+
+/* Admin stock workspace: scoped so the shared custodian stock screen is unchanged. */
+.admin-stock-page {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.admin-stock-page .admin-stock-header {
+  padding-bottom: 0.25rem;
+}
+
+.admin-stock-page .admin-stock-summary {
+  max-width: 860px;
+}
+
+.admin-stock-page .admin-stock-content > .admin-stock-form {
+  align-self: start;
+}
+
+.admin-stock-page table th,
+.admin-stock-page table td {
+  white-space: nowrap;
+}
+
+.admin-stock-page table td:nth-child(2) {
+  white-space: normal;
+  min-width: 220px;
+}
+
+@media (max-width: 639px) {
+  .admin-stock-page {
+    padding-bottom: 1rem;
+  }
+
+  .admin-stock-page .admin-stock-header button {
+    width: 100%;
+  }
+
+  .admin-stock-page .admin-stock-form,
+  .admin-stock-page .admin-stock-results > div {
+    border-radius: 1.25rem;
+    padding: 1rem;
+  }
+
+  .admin-stock-page .admin-stock-results > div:first-child > div:first-child {
+    align-items: stretch;
+  }
+
+  .admin-stock-page .admin-stock-results input[type="search"] {
+    max-width: none;
+  }
+}
