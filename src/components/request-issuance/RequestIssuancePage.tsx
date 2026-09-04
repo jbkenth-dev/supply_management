@@ -179,7 +179,9 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   }, [requests, searchTerm, statusFilter])
 
   const issuanceHistory = useMemo(
-    () => requests.filter((request) => request.status === "Fulfilled"),
+    () => requests.filter((request) =>
+      ['Fulfilled', 'Completed', 'Received'].includes(request.status)
+    ),
     [requests],
   )
   const filteredIssuanceHistory = useMemo(() => {
