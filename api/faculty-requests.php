@@ -714,10 +714,12 @@ function fetchFacultyRequests(PDO $pdo, int $userId): array
     $itemsStatement->execute($requestIds);
     $items = $itemsStatement->fetchAll();
 
+    $remarksColumn = $pdo->query("SHOW COLUMNS FROM approval_log LIKE 'remarks'")->fetch();
+    $rejectionRemarksSelect = $remarksColumn ? ', remarks' : '';
     $rejectionLogsStatement = $pdo->prepare(
-        'SELECT request_id, approver_role, remarks
+        'SELECT request_id, approver_role' . $rejectionRemarksSelect . '
          FROM approval_log
-         WHERE request_id IN (' . $placeholders . ') AND action = :action
+         WHERE request_id IN (' . $placeholders . ') AND action = ?
          ORDER BY created_at DESC, id DESC'
     );
     $rejectionLogsStatement->execute([...$requestIds, 'rejected']);
@@ -729,7 +731,9 @@ function fetchFacultyRequests(PDO $pdo, int $userId): array
         $requestId = (int) $log['request_id'];
         if (!isset($rejectionRoleByRequestId[$requestId])) {
             $rejectionRoleByRequestId[$requestId] = trim((string) ($log['approver_role'] ?? ''));
-            $rejectionReasonByRequestId[$requestId] = $log['remarks'] !== null ? (string) $log['remarks'] : '';
+            $rejectionReasonByRequestId[$requestId] = isset($log['remarks']) && $log['remarks'] !== null
+                ? (string) $log['remarks']
+                : '';
         }
     }
 
