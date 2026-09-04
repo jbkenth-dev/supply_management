@@ -371,61 +371,6 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
     }
   }
 
-  function printReport() {
-    const doc = createPdfDocument("Request and Issuance Report", "Administrative report of supply requests and issuance records")
-
-    const rows = filteredRequests.flatMap((request) =>
-      request.items.map((item, index) => [
-        index === 0 ? request.requestNumber : "",
-        index === 0 ? request.requestedByName : "",
-        item.itemCode,
-        item.name,
-        request.status,
-        String(item.quantityRequested),
-        String(item.quantityApproved ?? 0),
-        String(item.quantityFulfilled),
-        index === 0 ? formatDateTime(request.createdAt) : "",
-      ]),
-    )
-
-    autoTable(doc, {
-      startY: 42,
-      head: [["Request No", "Requester", "Item Code", "Supply", "Status", "Requested", "Approved", "Issued", "Created"]],
-      body: rows,
-      styles: {
-        fontSize: 8,
-        cellPadding: 3,
-        valign: "middle",
-        textColor: [30, 41, 59],
-      },
-      headStyles: {
-        fillColor: [15, 23, 42],
-        textColor: [255, 255, 255],
-        fontStyle: "bold",
-      },
-      alternateRowStyles: {
-        fillColor: [248, 250, 252],
-      },
-      columnStyles: {
-        0: { cellWidth: 23 },
-        1: { cellWidth: 28 },
-        2: { cellWidth: 23 },
-        3: { cellWidth: 34 },
-        4: { cellWidth: 18 },
-        5: { cellWidth: 15, halign: "center" },
-        6: { cellWidth: 15, halign: "center" },
-        7: { cellWidth: 15, halign: "center" },
-        8: { cellWidth: 28 },
-      },
-      margin: { left: 10, right: 10 },
-      didDrawPage: () => {
-        drawPdfFooter(doc)
-      },
-    })
-
-    openPdfInBrowser(doc)
-  }
-
   function printIssuanceSlip(request: AdminRequestRecord) {
     const doc = createPdfDocument("Issuance Slip", "Official supply issuance document")
 
