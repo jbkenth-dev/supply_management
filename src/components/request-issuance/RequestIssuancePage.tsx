@@ -961,116 +961,237 @@ function PrintIssuanceSlipModal({
   onClose: () => void;
   onPrint: () => void;
 }) {
+  // Escape HTML helper (same as in print\[printId].tsx)
+  const escapeHtml = (text: string) => {
+    const map: Record<string, string> = {
+      '&': '&',
+      '<': '<',
+      '>': '>',
+      '"': '"',
+      "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[2rem] border border-brown-200 bg-white p-6 shadow-2xl sm:p-8" onClick={(event) => event.stopPropagation()}>
+      <div className="w-full max-w-[210mm] max-h-[calc(100vh_-_3rem)] overflow-y-auto rounded-[1.75rem] border border-brown-200 bg-white shadow-sm" onClick={(event) => event.stopPropagation()}>
         <style>{`
           @media print {
             .no-print {
               display: none !important;
             }
+
+            /* Ensure page breaks correctly */
+            @page {
+              size: A4;
+              margin: 0;
+            }
+
+            body {
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
           }
         `}</style>
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <h2 className="text-2xl font-black tracking-tight text-brown-900">Print Issuance Slip</h2>
-          <div className="flex flex-row gap-2 no-print">
-            <button
-              type="button"
-              onClick={onPrint}
-              className="inline-flex items-center justify-center rounded-xl border border-primary-200 bg-primary-50 px-4 py-2 text-sm font-semibold text-primary-700 transition hover:border-primary-300 hover:bg-primary-100"
-            >
-              Print
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl border border-brown-200 px-4 py-2 text-sm font-semibold text-brown-700 transition hover:bg-brown-50"
-            >
-              Close
-            </button>
+
+        {/* Header - matching RequestViewModal design */}
+        <div className="border-b border-brown-200 bg-gradient-to-b from-brown-50 to-white px-6 pb-5 pt-6 text-center sm:px-10">
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-primary-600">
+            Saint Francis College, Guihulngan, Negros Oriental, Incorporated
+          </p>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-brown-500">
+            Bateria, Poblacion, Guihulngan City, Negros Oriental
+          </p>
+          <h1 className="mt-2 text-lg font-black uppercase tracking-wide text-brown-900 sm:text-xl">
+            OFFICE OF THE VICE PRESIDENT FOR FINANCE
+          </h1>
+          <div className="mx-auto my-4 h-0.5 w-24 rounded-full bg-primary-500" />
+          <h2 className="text-base font-black uppercase tracking-[0.15em] text-brown-900 sm:text-lg">
+            ISSUANCE SLIP
+          </h2>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-brown-500">
+            (<span className="font-semibold text-brown-800">{escapeHtml(request.requestedByName)}</span>)
+          </p>
+        </div>
+
+        {/* Purpose / Department / Date */}
+        <div className="border-b border-brown-200 px-6 py-4 sm:px-10">
+          <div className="grid gap-x-6 gap-y-3 sm:grid-cols-12">
+            <div className="sm:col-span-5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-brown-600">Purpose</label>
+              <p className="mt-1 text-sm leading-5 text-brown-700 line-clamp-2">{escapeHtml(request.purpose ?? "")}</p>
+            </div>
+
+            <div className="sm:col-span-4">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-brown-600">Department</label>
+              <p className="mt-1 text-sm font-semibold text-brown-700">{escapeHtml(request.department ?? "")}</p>
+            </div>
+
+            <div className="sm:col-span-3">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-brown-600">Date</label>
+              <p className="mt-1 text-sm font-semibold text-brown-700">{request.dateNeeded ? formatDateTime(request.dateNeeded) : "-"}</p>
+            </div>
           </div>
         </div>
-        <div className="space-y-6">
-          <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Request No:</p>
-            <p className="text-xl font-black text-brown-900">{request.requestNumber}</p>
+
+        {/* Item table */}
+        <div className="px-6 py-4 sm:px-10">
+          <div className="overflow-x-auto rounded-2xl border border-brown-200">
+            <table className="w-full border-collapse table-fixed text-xs sm:text-sm">
+              <thead>
+                <tr className="border-b border-brown-200 bg-brown-100">
+                  <th className="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[40px]">Qty</th>
+                  <th className="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600">Item / Description</th>
+                  <th className="border-r border-brown-200 px-3 py-2 text-right text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[110px]">Unit Cost</th>
+                  <th className="border-r-0 px-3 py-2 text-right text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[120px]">Total Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {request.items.map((item) => (
+                  <tr key={item.requestItemId} className="border-b border-brown-200 align-top">
+                    <td className="border-r border-brown-200 px-2 py-3 text-right align-top sm:w-[40px]">
+                      <span className="block text-xs font-bold text-brown-900">{item.quantityRequested}</span>
+                    </td>
+                    <td className="border-r border-brown-200 px-2 py-3 align-top">
+                      <div className="flex min-w-0 items-start gap-2">
+                        <img
+                          src={item.supplyId === null ? '/sfcg-logo.jpg' : (item.imagePath || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop')}
+                          alt={escapeHtml(item.name)}
+                          className="mt-0.5 h-7 w-7 flex-shrink-0 rounded object-cover"
+                        />
+                        <div className="min-w-0">
+                          <p className="break-words text-xs font-semibold leading-5 text-brown-900 sm:text-sm">{escapeHtml(item.name)}</p>
+                          {item.supplyId === null ? (
+                            <span className="mt-1 inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-600">Custom</span>
+                          ) : (
+                            <span className="mt-1 block text-[10px] font-medium text-brown-400">{escapeHtml(item.itemCode)}</span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="border-r border-brown-200 px-2 py-3 text-right align-top">
+                      <span className="text-[10px] font-bold text-brown-900 sm:text-xs">₱{Number(item.unitCost).toFixed(2)}</span>
+                    </td>
+                    <td className="px-2 py-3 text-right align-top">
+                      <span className="text-sm font-black text-brown-900 sm:text-xs">₱{Number(item.totalAmount).toFixed(2)}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="bg-white font-bold">
+                  <td colSpan={2} className="border-r border-brown-200 px-3 py-2">
+                    <span className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-brown-600">
+                      SOF:
+                      <span className="inline-block min-w-[120px] border-b border-brown-300">&nbsp;</span>
+                    </span>
+                  </td>
+                  <td className="border-r border-brown-200 px-3 py-2 text-right text-[11px] uppercase tracking-wider text-brown-600">
+                    Grand Total
+                  </td>
+                  <td className="px-3 py-2 text-right text-sm font-black text-brown-900 sm:text-base">
+                    ₱{Number(request.grandTotal).toFixed(2)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+
+            {/* Total Items / Quantity */}
+            <p className="mt-3 text-[10px] uppercase tracking-wider text-brown-400">
+              Total Items: {request.totalItems} | Total Quantity: {request.totalQuantity}
+            </p>
           </div>
-          {request.issuanceSlipNo && (
-            <div className="space-y-2">
-              <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Issuance Slip No:</p>
-              <p className="text-xl font-black text-brown-900">{request.issuanceSlipNo}</p>
-            </div>
-          )}
-          <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Requested By:</p>
-            <div className="space-y-1">
-              <p className="text-base font-semibold text-brown-900">{request.requestedByName}</p>
-              <p className="text-sm text-brown-500">
-                ID Number: {request.requestedByIdNumber || "Not available"} • {request.requestedByEmail || "No email"}
-              </p>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Department:</p>
-            <p className="text-base font-semibold text-brown-900">{request.department}</p>
-          </div>
-          <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Purpose:</p>
-            <p className="text-base text-brown-900">{request.purpose}</p>
-          </div>
-          {request.dateNeeded && (
-            <div className="space-y-4">
-              <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Date Needed:</p>
-              <p className="text-base font-semibold text-brown-900">{formatDateTime(request.dateNeeded)}</p>
-            </div>
-          )}
-          <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Items:</p>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-brown-900">
-                <thead className="border-brown-200">
-                  <tr>
-                    <th className="p-2 text-left text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Item Code</th>
-                    <th className="p-2 text-left text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Name</th>
-                    <th className="p-2 text-left text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Category</th>
-                    <th className="p-2 text-right text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Quantity</th>
-                    <th className="p-2 text-right text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Unit Cost</th>
-                    <th className="p-2 text-right text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Total Amount</th>
+
+          {/* Approval signatures table */}
+          <div className="border-t border-brown-200 px-6 py-4 sm:px-10">
+            <div className="overflow-x-auto rounded-2xl border border-brown-200">
+              <table className="w-full border-collapse text-[10px] sm:text-xs">
+                <thead>
+                  <tr className="border-b border-brown-200 bg-brown-100">
+                    {["Requested By", "Recommended By", "Checked By", "Noted By", "Approved By"].map((label) => (
+                      <th key={label} className="border-r border-brown-200 px-2 py-2 text-center font-bold uppercase tracking-wider text-brown-600 last:border-r-0">
+                        {label}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-brown-200">
-                  {request.items.map((item) => (
-                    <tr key={item.requestItemId} className="bg-brown-50">
-                      <td className="p-2 text-sm text-brown-700">{item.itemCode}</td>
-                      <td className="p-2 text-sm text-brown-700">{item.name}</td>
-                      <td className="p-2 text-sm text-brown-700">{item.categoryName}</td>
-                      <td className="p-2 text-sm text-brown-700 text-right">{item.quantityRequested}</td>
-                      <td className="p-2 text-sm text-brown-700 text-right">{item.unitCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="p-2 text-sm text-brown-700 text-right">{item.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot className="border-t-2 border-brown-200">
+                <tbody>
                   <tr>
-                    <td colSpan={5} className="p-2 text-right text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Grand Total:</td>
-                    <td className="p-2 text-sm text-brown-700 text-right">{request.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    {["Requested", "Recommended", "Checked", "Noted", "Approved"].map((label, index) => {
+                      let printedName = "";
+                      if (label === "Requested") printedName = escapeHtml(request.requestedByName)
+                      else if (label === "Recommended") {
+                        // In a real app, we'd fetch approval personnel, but for now we'll use placeholder
+                        printedName = escapeHtml("To be filled by Immediate Head");
+                      } else if (label === "Checked") {
+                        printedName = escapeHtml("To be filled by Resource Planning Officer");
+                      } else if (label === "Noted") {
+                        printedName = escapeHtml("To be filled by Vice President for Finance");
+                      } else if (label === "Approved") {
+                        printedName = escapeHtml(request.fulfilledByName || "To be filled by College President");
+                      }
+
+                      const position = label === "Recommended" ? "Immediate Head"
+                                            : label === "Checked" ? "Resource Planning Officer"
+                                            : label === "Noted" ? "Vice President for Finance"
+                                            : label === "Approved" ? "College President"
+                                            : "";
+
+                      return (
+                        <td key={index} className={`border-r border-brown-200 px-2 py-4 text-center last:border-r-0`}>
+                          <div className="mx-auto mb-2 h-px w-3/4 border-t border-brown-300" />
+                          <p className="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Signature</p>
+                          <p className="mt-3 text-[10px] sm:text-xs">{printedName}</p>
+                          <div className="mx-auto mt-1 h-px w-3/4 border-t border-brown-300" />
+                          <p className="mt-1 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Printed Name</p>
+                          <div className="mx-auto mt-1 h-px w-3/4 border-t border-brown-300" />
+                          <p className="mt-2 text-[10px] sm:text-xs">{position}</p>
+                        </td>
+                      );
+                    })}
                   </tr>
-                </tfoot>
+                </tbody>
               </table>
             </div>
           </div>
-          {request.fulfilledByName && (
-            <div className="space-y-4">
-              <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Issued By:</p>
-              <p className="text-base font-semibold text-brown-900">{request.fulfilledByName}</p>
+
+          {/* Rejection details if any */}
+          <div className="border-t border-brown-200 px-6 py-4 sm:px-10">
+            {request.status === "Rejected" ? (
+              <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-600">Rejection Details</p>
+                <p className="mt-2 text-sm font-semibold text-brown-900">Rejected by: {escapeHtml(request.reviewedByRole ?? "Unknown")}</p>
+                {request.reason?.trim() || request.reviewNotes?.trim() ? (
+                  <p className="mt-2 text-sm leading-6 text-brown-700">
+                    <span className="font-bold text-brown-900">Reason:</span> {escapeHtml(request.reason?.trim() ?? request.reviewNotes?.trim())}
+                  </p>
+                ) : ''}
+              </div>
+            ) : ''}
+            <div className="mb-4">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-brown-600">Notes / Remarks</label>
+              <p className="mt-1 text-sm leading-6 text-brown-600">{escapeHtml(request.notes ?? "")}</p>
             </div>
-          )}
-          {request.fulfilledAt && (
-            <div className="space-y-4">
-              <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Date Issued:</p>
-              <p className="text-base font-semibold text-brown-900">{formatDateTime(request.fulfilledAt)}</p>
-            </div>
-          )}
+          </div>
+        </div>
+
+        {/* Print buttons - no-print class ensures they don't appear in print output */}
+        <div className="mt-6 flex justify-end space-x-3 no-print">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl border border-brown-200 px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50"
+          >
+            Close
+          </button>
+          <button
+            type="button"
+            onClick={onPrint}
+            className="rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800"
+          >
+            Print
+          </button>
         </div>
       </div>
     </div>
