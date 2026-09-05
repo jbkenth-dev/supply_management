@@ -1052,7 +1052,7 @@ function PrintIssuanceSlipModal({
                 </tbody>
                 <tfoot className="border-t-2 border-brown-200">
                   <tr>
-                    <td colSpan="5" className="p-2 text-right text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Grand Total:</td>
+                    <td colSpan={5} className="p-2 text-right text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Grand Total:</td>
                     <td className="p-2 text-sm text-brown-700 text-right">{request.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   </tr>
                 </tfoot>
