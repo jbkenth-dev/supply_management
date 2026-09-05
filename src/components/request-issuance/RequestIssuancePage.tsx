@@ -110,6 +110,8 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   const [statusUpdateSelection, setStatusUpdateSelection] = useState<RequestStatus | null>(null)
   const [statusUpdateSaving, setStatusUpdateSaving] = useState(false)
   const [statusFilter, setStatusFilter] = useState<null | string>(null) // null means "All"
+  const [showPrintModal, setShowPrintModal] = useState(false)
+  const [printModalRequest, setPrintModalRequest] = useState<AdminRequestRecord | null>(null)
 
   const navigate = useNavigate();
 
@@ -378,12 +380,8 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
     if (!request) {
       return;
     }
-
-    if (request.issuanceSlipNo) {
-      navigate(`/admin/print/${request.issuanceSlipNo}`);
-    } else {
-      navigate(`/admin/print/request-${request.id}`);
-    }
+    setPrintModalRequest(request);
+    setShowPrintModal(true);
   }
 
   return (
@@ -774,6 +772,16 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
             </div>
           </ModalShell>
         ) : null}
+        {showPrintModal && printModalRequest ? (
+          <PrintIssuanceSlipModal
+            request={printModalRequest}
+            onClose={() => {
+              setShowPrintModal(false);
+              setPrintModalRequest(null);
+            }}
+            onPrint={() => window.print()}
+          />
+        ) : null}
       </AppShell>
     )
   }
@@ -945,6 +953,131 @@ function ModalShell({
       </div>
     </div>
   )
+}
+
+function PrintIssuanceSlipModal({
+  request,
+  onClose,
+  onPrint,
+}: {
+  request: AdminRequestRecord;
+  onClose: () => void;
+  onPrint: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[2rem] border border-brown-200 bg-white p-6 shadow-2xl sm:p-8" onClick={(event) => event.stopPropagation()}>
+        <style>{`
+          @media print {
+            .no-print {
+              display: none !important;
+            }
+          }
+        `}</style>
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <h2 className="text-2xl font-black tracking-tight text-brown-900">Print Issuance Slip</h2>
+          <div className="flex flex-row gap-2 no-print">
+            <button
+              type="button"
+              onClick={onPrint}
+              className="inline-flex items-center justify-center rounded-xl border border-primary-200 bg-primary-50 px-4 py-2 text-sm font-semibold text-primary-700 transition hover:border-primary-300 hover:bg-primary-100"
+            >
+              Print
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-brown-200 px-4 py-2 text-sm font-semibold text-brown-700 transition hover:bg-brown-50"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Request No:</p>
+            <p className="text-xl font-black text-brown-900">{request.requestNumber}</p>
+          </div>
+          {request.issuanceSlipNo && (
+            <div className="space-y-2">
+              <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Issuance Slip No:</p>
+              <p className="text-xl font-black text-brown-900">{request.issuanceSlipNo}</p>
+            </div>
+          )}
+          <div className="space-y-4">
+            <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Requested By:</p>
+            <div className="space-y-1">
+              <p className="text-base font-semibold text-brown-900">{request.requestedByName}</p>
+              <p className="text-sm text-brown-500">
+                ID Number: {request.requestedByIdNumber || "Not available"} • {request.requestedByEmail || "No email"}
+              </p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Department:</p>
+            <p className="text-base font-semibold text-brown-900">{request.department}</p>
+          </div>
+          <div className="space-y-4">
+            <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Purpose:</p>
+            <p className="text-base text-brown-900">{request.purpose}</p>
+          </div>
+          {request.dateNeeded && (
+            <div className="space-y-4">
+              <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Date Needed:</p>
+              <p className="text-base font-semibold text-brown-900">{formatDateTime(request.dateNeeded)}</p>
+            </div>
+          )}
+          <div className="space-y-4">
+            <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Items:</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-brown-900">
+                <thead className="border-brown-200">
+                  <tr>
+                    <th className="p-2 text-left text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Item Code</th>
+                    <th className="p-2 text-left text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Name</th>
+                    <th className="p-2 text-left text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Category</th>
+                    <th className="p-2 text-right text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Quantity</th>
+                    <th className="p-2 text-right text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Unit Cost</th>
+                    <th className="p-2 text-right text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Total Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-brown-200">
+                  {request.items.map((item) => (
+                    <tr key={item.requestItemId} className="bg-brown-50">
+                      <td className="p-2 text-sm text-brown-700">{item.itemCode}</td>
+                      <td className="p-2 text-sm text-brown-700">{item.name}</td>
+                      <td className="p-2 text-sm text-brown-700">{item.categoryName}</td>
+                      <td className="p-2 text-sm text-brown-700 text-right">{item.quantityRequested}</td>
+                      <td className="p-2 text-sm text-brown-700 text-right">{item.unitCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="p-2 text-sm text-brown-700 text-right">{item.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="border-t-2 border-brown-200">
+                  <tr>
+                    <td colSpan="5" className="p-2 text-right text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Grand Total:</td>
+                    <td className="p-2 text-sm text-brown-700 text-right">{request.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+          {request.fulfilledByName && (
+            <div className="space-y-4">
+              <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Issued By:</p>
+              <p className="text-base font-semibold text-brown-900">{request.fulfilledByName}</p>
+            </div>
+          )}
+          {request.fulfilledAt && (
+            <div className="space-y-4">
+              <p className="text-sm font-bold uppercase tracking-[0.24em] text-brown-400">Date Issued:</p>
+              <p className="text-base font-semibold text-brown-900">{formatDateTime(request.fulfilledAt)}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function RequesterAvatar({
