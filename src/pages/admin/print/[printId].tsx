@@ -338,7 +338,7 @@ const PrintIssuanceSlipPage = () => {
                     {["Requested By", "Recommended By", "Checked By", "Noted By", "Approved By"].map((label) => (
                       <th key={label} className="border-r border-brown-200 px-2 py-2 text-center font-bold uppercase tracking-wider text-brown-600 last:border-r-0">
                         {label}
-                      }
+                      </th>
                     ))}
                   </tr>
                 </thead>
@@ -388,9 +388,9 @@ const PrintIssuanceSlipPage = () => {
               <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-4">
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-600">Rejection Details</p>
                 <p className="mt-2 text-sm font-semibold text-brown-900">Rejected by: {escapeHtml(request.reviewedByRole ?? "Unknown")}</p>
-                {request.reasonReason?.trim() || request.reviewNotes?.trim() ? (
+                {request.rejectionReason?.trim() || request.reviewNotes?.trim() ? (
                   <p className="mt-2 text-sm leading-6 text-brown-700">
-                    <span className="font-bold text-brown-900">Reason:</span> {escapeHtml(request.reasonReason?.trim() ?? request.reviewNotes?.trim())}
+                    <span className="font-bold text-brown-900">Reason:</span> {escapeHtml(request.rejectionReason?.trim() ?? request.reviewNotes?.trim())}
                   </p>
                 ) : ''}
               </div>
