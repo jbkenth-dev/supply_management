@@ -74,12 +74,23 @@
           setLoading(true)
           setError(null)
 
-          // Fetch request by issuance slip number
-          const params = new URLSearchParams({
+          // Determine if printId is a request ID format or issuance slip number
+          let params = new URLSearchParams({
             userId: String(authUser.id),
             role: authUser.role,
-            issuanceSlipNo: printId,
           })
+
+          if (printId.startsWith('request-')) {
+            // Extract numeric ID from "request-16" -> 16
+            const requestId = printId.substring(8) // Remove "request-" prefix
+            if (!/^\d+$/.test(requestId)) {
+              throw new Error('Invalid request ID format')
+            }
+            params.append('requestId', requestId)
+          } else {
+            // Treat as issuance slip number
+            params.append('issuanceSlipNo', printId)
+          }
 
           const response = await api(`/api/admin-request-issuance.php?${params.toString()}`)
           const result = await response.json()
@@ -157,9 +168,9 @@
     const escapeHtml = (text: string) => {
       const map: Record<string, string> = {
         '&': '&',
-        '<': '<',
-        '>': '>',
-        '"': '"',
+        '<': '&',
+        '>': '&',
+        '"': '&',
         "'": '&#039;'
       }
       return String(text).replace(/[&<>"']/g, m => map[m])
