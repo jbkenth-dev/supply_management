@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/router"
 import type { ReactNode } from "react"
 import { formatDateTime as manilaFormatDateTime, formatDateLong } from "../../lib/date"
 import {
@@ -371,231 +372,17 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
     }
   }
 
-async function printIssuanceSlip(request: AdminRequestRecord) {
-    // Fetch approval personnel for signature lines
-    let approvalMap: Record<string, string> = {};
-    try {
-      const resp = await api(`/api/approval-personnel-info.php?roles=Immediate Head,Resource Planning Officer,Vice President for Finance,College President`);
-      const data = await resp.json();
-      if (data.success && data.personnel) {
-        for (const p of data.personnel) {
-          approvalMap[p.role] = p.fullName;
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to load approval personnel', e);
+  function printIssuanceSlip(request: AdminRequestRecord) {
+    const router = useRouter();
+
+    if (!request) {
+      return;
     }
 
-    const escapeHtml = (text: string) => {
-      const map: Record<string, string> = {
-        '&': '&',
-        '<': '<',
-        '>': '>',
-        '"': '"',
-        "'": '&#039;'
-      };
-      return String(text).replace(/[&<>"']/g, m => map[m]);
-    };
-
-    const html = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <title>Issuance Slip</title>
-        <link rel="stylesheet" href="/assets/index-BI00YaO6.css">
-      </head>
-      <body>
-        <div class="relative w-full max-w-[210mm] max-h-[calc(100vh_-_3rem)] overflow-y-auto rounded-[1.75rem] border border-brown-200 bg-white shadow-sm" onClick={(e) => e.stopPropagation()}>
-          <!-- Header -->
-          <div class="border-b border-brown-200 bg-gradient-to-b from-brown-50 to-white px-6 pb-5 pt-6 text-center sm:px-10">
-            <p class="text-xs font-bold uppercase tracking-[0.25em] text-primary-600">
-              Saint Francis College, Guihulngan, Negros Oriental, Incorporated
-            </p>
-            <p class="mt-1 text-xs font-semibold uppercase tracking-wider text-brown-500">
-              Bateria, Poblacion, Guihulngan City, Negros Oriental
-            </p>
-            <h1 class="mt-2 text-lg font-black uppercase tracking-wide text-brown-900 sm:text-xl">
-              OFFICE OF THE VICE PRESIDENT FOR FINANCE
-            </h1>
-            <div class="mx-auto my-4 h-0.5 w-24 rounded-full bg-primary-500" />
-            <h2 class="text-base font-black uppercase tracking-[0.15em] text-brown-900 sm:text-lg">
-              REQUEST FORM
-            </h2>
-            <p class="mt-1 text-xs font-semibold uppercase tracking-wider text-brown-500">
-              (<span class="font-semibold text-brown-800">${escapeHtml(request.requestedByName)}</span>)
-            </p>
-          </div>
-
-          <!-- Purpose / Department / Date -->
-          <div class="border-b border-brown-200 px-6 py-4 sm:px-10">
-            <div class="grid gap-x-6 gap-y-3 sm:grid-cols-12">
-              <div class="sm:col-span-5">
-                <label class="text-[11px] font-bold uppercase tracking-wider text-brown-600">Purpose</label>
-                <p class="mt-1 text-sm leading-5 text-brown-700 line-clamp-2">${escapeHtml(request.purpose ?? "")}</p>
-              </div>
-
-              <div class="sm:col-span-4">
-                <label class="text-[11px] font-bold uppercase tracking-wider text-brown-600">Department</label>
-                <p class="mt-1 text-sm font-semibold text-brown-700">${escapeHtml(request.department ?? "")}</p>
-              </div>
-
-              <div class="sm:col-span-3">
-                <label class="text-[11px] font-bold uppercase tracking-wider text-brown-600">Date</label>
-                <p class="mt-1 text-sm font-semibold text-brown-700">${request.dateNeeded ? formatDateLong(request.dateNeeded) : "-"}</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Item table -->
-          <div class="px-6 py-4 sm:px-10">
-            <div class="overflow-x-auto rounded-2xl border border-brown-200">
-              <table class="w-full border-collapse table-fixed text-xs sm:text-sm">
-                <thead>
-                  <tr class="border-b border-brown-200 bg-brown-100">
-                    <th class="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[40px]">Qty</th>
-                    <th class="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600">Item / Description</th>
-                    <th class="border-r border-brown-200 px-3 py-2 text-right text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[110px]">Unit Cost</th>
-                    <th class="border-r-0 px-3 py-2 text-right text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[120px]">Total Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${request.items.map(item => `
-                    <tr class="border-b border-brown-200 align-top">
-                      <td class="border-r border-brown-200 px-2 py-3 text-right align-top sm:w-[40px]">
-                        <span class="block text-xs font-bold text-brown-900">${item.quantityRequested}</span>
-                      </td>
-                      <td class="border-r border-brown-200 px-2 py-3 align-top">
-                        <div class="flex min-w-0 items-start gap-2">
-                          <img
-                            src="${item.supplyId === null ? '/sfcg-logo.jpg' : (item.imagePath || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop')}"
-                            alt="${escapeHtml(item.name)}"
-                            class="mt-0.5 h-7 w-7 flex-shrink-0 rounded object-cover"
-                          />
-                          <div class="min-w-0">
-                            <p class="break-words text-xs font-semibold leading-5 text-brown-900 sm:text-sm">${escapeHtml(item.name)}</p>
-                            ${item.supplyId === null ? `
-                              <span class="mt-1 inline-block rounded-full bg-accent-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-600">Custom</span>
-                            ` : `
-                              <span class="mt-1 block text-[10px] font-medium text-brown-400">${escapeHtml(item.itemCode)}</span>
-                            `}
-                          </div>
-                        </div>
-                      </td>
-                      <td class="border-r border-brown-200 px-2 py-3 text-right align-top">
-                        <span class="text-[10px] font-bold text-brown-900 sm:text-xs">₱${Number(item.unitCost).toFixed(2)}</span>
-                      </td>
-                      <td class="px-2 py-3 text-right align-top">
-                        <span class="text-sm font-black text-brown-900 sm:text-xs">₱${Number(item.totalAmount).toFixed(2)}</span>
-                      </td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-                <tfoot>
-                  <tr class="bg-white font-bold">
-                    <td colSpan="2" class="border-r border-brown-200 px-3 py-2">
-                      <span class="flex items-center gap-2 text-[11px] uppercase tracking-wider text-brown-600">
-                        SOF:
-                        <span class="inline-block min-w-[120px] border-b border-brown-300">&nbsp;</span>
-                      </span>
-                    </td>
-                    <td class="border-r border-brown-200 px-3 py-2 text-right text-[11px] uppercase tracking-wider text-brown-600">
-                      Grand Total
-                    </td>
-                    <td class="px-3 py-2 text-right text-sm font-black text-brown-900 sm:text-base">
-                      ₱${Number(request.grandTotal).toFixed(2)}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-
-            <!-- Total Items / Quantity -->
-            <p class="mt-3 text-[10px] uppercase tracking-wider text-brown-400">
-              Total Items: ${request.totalItems} | Total Quantity: ${request.totalQuantity}
-            </p>
-          </div>
-
-          <!-- Approval signatures table -->
-          <div class="border-t border-brown-200 px-6 py-4 sm:px-10">
-            <div class="overflow-x-auto rounded-2xl border border-brown-200">
-              <table class="w-full border-collapse text-[10px] sm:text-xs">
-                <thead>
-                  <tr class="border-b border-brown-200 bg-brown-100">
-                    ${["Requested By", "Recommended By", "Checked By", "Noted By", "Approved By"].map(label => `
-                      <th class="border-r border-brown-200 px-2 py-2 text-center font-bold uppercase tracking-wider text-brown-600 last:border-r-0">${label}</th>
-                    `).join('')}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    ${["Requested", "Recommended", "Checked", "Noted", "Approved"].map((label) => {
-                      let printedName = "";
-                      if (label === "Requested") printedName = escapeHtml(request.requestedByName);
-                      else if (label === "Recommended") printedName = escapeHtml(approvalMap["Immediate Head"] ?? "");
-                      else if (label === "Checked") printedName = escapeHtml(approvalMap["Resource Planning Officer"] ?? "");
-                      else if (label === "Noted") printedName = escapeHtml(approvalMap["Vice President for Finance"] ?? "");
-                      else if (label === "Approved") printedName = escapeHtml(approvalMap["College President"] ?? "");
-
-                      const position = label === "Recommended" ? "Immediate Head"
-                                       : label === "Checked" ? "Resource Planning Officer"
-                                       : label === "Noted" ? "Vice President for Finance"
-                                       : label === "Approved" ? "College President"
-                                       : "";
-
-                      return `
-                        <td class="border-r border-brown-200 px-2 py-4 text-center last:border-r-0">
-                          <div class="mx-auto mb-2 h-px w-3/4 border-t border-brown-300" />
-                          <p class="text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Signature</p>
-                          <p class="mt-3 text-[10px] sm:text-xs">${printedName}</p>
-                          <div class="mx-auto mt-1 h-px w-full border-t border-brown-300" />
-                          <p class="mt-1 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Printed Name</p>
-                          <p class="mt-2 text-[10px] sm:text-xs">${position}</p>
-                          <div class="mx-auto mt-1 h-px w-full border-t border-brown-300" />
-                          <p class="mt-1 text-[9px] uppercase tracking-wider text-brown-400 sm:text-[10px]">Position / Designation</p>
-                        </td>
-                      `;
-                    }).join('')}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Rejection details if any -->
-          <div class="border-t border-brown-200 px-6 py-4 sm:px-10">
-            ${request.status === "Rejected" ? `
-              <div class="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-4">
-                <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-600">Rejection Details</p>
-                <p class="mt-2 text-sm font-semibold text-brown-900">Rejected by: ${escapeHtml(request.reviewedByRole ?? "Unknown")}</p>
-                ${request.rejectionReason?.trim() || request.reviewNotes?.trim() ? `
-                  <p class="mt-2 text-sm leading-6 text-brown-700">
-                    <span class="font-bold text-brown-900">Reason:</span> ${escapeHtml(request.rejectionReason?.trim() ?? request.reviewNotes?.trim())}
-                  </p>
-                ` : ''}
-              </div>
-            ` : ''}
-            <div class="mb-4">
-              <label class="text-[11px] font-bold uppercase tracking-wider text-brown-600">Notes / Remarks</label>
-              <p class="mt-1 text-sm leading-6 text-brown-600">${escapeHtml(request.notes ?? "")}</p>
-            </div>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(html);
-      printWindow.document.close();
-      printWindow.focus();
-      // Trigger print after load
-      printWindow.onload = () => {
-        printWindow.print();
-      };
+    if (request.issuanceSlipNo) {
+      router.push(`/admin/print/${request.issuanceSlipNo}`);
     } else {
-      // Fallback if popup blocked
-      alert('Please allow pop-ups to print the issuance slip.');
+      router.push(`/admin/print/request-${request.id}`);
     }
   }
 
@@ -636,360 +423,360 @@ async function printIssuanceSlip(request: AdminRequestRecord) {
             </div>
           </div>
 
-        <MessageModal
-          open={showMessageModal}
-          title={isSuccess ? "Success" : "Error"}
-          message={message}
-          type={isSuccess ? "success" : "error"}
-          onClose={() => setShowMessageModal(false)}
-        />
+          <MessageModal
+            open={showMessageModal}
+            title={isSuccess ? "Success" : "Error"}
+            message={message}
+            type={isSuccess ? "success" : "error"}
+            onClose={() => setShowMessageModal(false)}
+          />
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          <SummaryCard label="Total Requests" value={summary.totalRequests} tone="slate" />
-          <SummaryCard label="Pending" value={summary.pendingRequests} tone="amber" />
-          <SummaryCard label="Approved" value={summary.approvedRequests} tone="blue" />
-          <SummaryCard label="Rejected" value={summary.rejectedRequests} tone="rose" />
-          <SummaryCard label="Issued" value={summary.fulfilledRequests} tone="emerald" />
-        </div>
-
-        <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">All Supply Requests</h2>
-            </div>
-            <div className="relative w-full max-w-lg">
-              <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-brown-400" />
-              <input
-                type="search"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search request no, requester, ID, email, slip no, or item"
-                className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3 pl-11 pr-4 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-              />
-            </div>
-                      </div>
-
-          <div className="mt-6 space-y-4">
-            {loading ? (
-              <LoadingCards count={4} />
-            ) : filteredRequests.length === 0 ? (
-              <EmptyState title="No request records found" description="Requests submitted by faculty will appear here." />
-            ) : (
-              paginatedRequests.map((request) => (
-                <article key={request.id} className="rounded-[1.75rem] border border-brown-200 bg-brown-50 p-5">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="flex items-start gap-4">
-                      <RequesterAvatar request={request} sizeClassName="h-14 w-14" textClassName="text-lg" />
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brown-500">
-                            {request.requestNumber}
-                          </span>
-                          <StatusBadge status={request.status} reviewedByRole={request.reviewedByRole} />
-                          {request.status === "Approved" && (
-                            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-medium text-amber-700 whitespace-nowrap">
-                              Please purchase or update the status. Please view details for more info.
-                            </span>
-                          )}
-                          {request.issuanceSlipNo ? (
-                            <span className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-700">
-                              {request.issuanceSlipNo}
-                            </span>
-                          ) : null}
-                        </div>
-                        <h3 className="mt-3 text-xl font-black tracking-tight text-brown-900">{request.requestedByName}</h3>
-                        <p className="mt-2 text-sm text-brown-500">
-                          ID Number: {request.requestedByIdNumber || "Not available"} • {request.requestedByEmail || "No email"}
-                        </p>
-                        <p className="mt-1 text-sm text-brown-500">
-                          Submitted {formatDateTime(request.createdAt)} • {request.totalItems} item{request.totalItems === 1 ? "" : "s"} • Quantity: {request.totalQuantity}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <ActionButton label="View Details" onClick={() => setSelectedRequest(request)} icon={<ClipboardDocumentListIcon className="h-4 w-4" />} />
-                      {request.status === "Pending" ? (
-                        <>
-                          <ActionButton label="Approve" onClick={() => openActionModal(request, "approve_request")} icon={<CheckCircleIcon className="h-4 w-4" />} tone="emerald" />
-                          <ActionButton label="Reject" onClick={() => openActionModal(request, "reject_request")} icon={<XCircleIcon className="h-4 w-4" />} tone="rose" />
-                        </>
-                      ) : null}
-                      {request.status === "Completed" ? (
-                        <span className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700">
-                          <CheckCircleIcon className="h-4 w-4" />
-                          Completed
-                        </span>
-                      ) : null}
-                      {canUpdateRequestStatus(request.status) ? (
-                        <ActionButton label="Update Status" onClick={() => setStatusUpdateRequest(request)} icon={<TruckIcon className="h-4 w-4" />} tone="blue" />
-                      ) : null}
-                    </div>
-                  </div>
-
-                </article>
-              ))
-            )}
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <SummaryCard label="Total Requests" value={summary.totalRequests} tone="slate" />
+            <SummaryCard label="Pending" value={summary.pendingRequests} tone="amber" />
+            <SummaryCard label="Approved" value={summary.approvedRequests} tone="blue" />
+            <SummaryCard label="Rejected" value={summary.rejectedRequests} tone="rose" />
+            <SummaryCard label="Issued" value={summary.fulfilledRequests} tone="emerald" />
           </div>
 
-          {filteredRequests.length > 0 ? (
-            <PaginationControls
-              currentPage={requestPage}
-              totalPages={requestTotalPages}
-              totalItems={filteredRequests.length}
-              pageSize={REQUESTS_PER_PAGE}
-              itemLabel="requests"
-              onPageChange={setRequestPage}
-            />
-          ) : null}
-        </section>
-
-        <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Issuance</p>
-              <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Issuance History</h2>
-            </div>
-            <div className="w-full max-w-lg">
-              <div className="relative">
+          <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">All Supply Requests</h2>
+              </div>
+              <div className="relative w-full max-w-lg">
                 <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-brown-400" />
                 <input
                   type="search"
-                  value={issuanceSearchTerm}
-                  onChange={(event) => setIssuanceSearchTerm(event.target.value)}
-                  placeholder="Search slip no, request no, requester, issuer, or item"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Search request no, requester, ID, email, slip no, or item"
                   className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3 pl-11 pr-4 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                 />
               </div>
-            </div>
-          </div>
+                      </div>
 
-          <div className="mt-6 space-y-3">
-            {loading ? (
-              <LoadingCards count={3} />
-            ) : filteredIssuanceHistory.length === 0 ? (
-              <EmptyState
-                title={issuanceSearchTerm.trim() ? "No issuance records match your search" : "No issuance history yet"}
-                description={
-                  issuanceSearchTerm.trim()
-                    ? "Try a request number, slip number, requester name, issuer, or item keyword."
-                    : "Approved requests that are issued from this page will appear here."
-                }
-              />
-            ) : (
-              paginatedIssuanceHistory.map((request) => (
-                <div key={request.id} className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="flex items-start gap-4">
-                      <RequesterAvatar request={request} sizeClassName="h-12 w-12" textClassName="text-base" />
-                      <div>
-                        <p className="font-semibold text-brown-900">{request.requestedByName}</p>
-                        <p className="mt-1 text-sm text-brown-500">
-                          {request.issuanceSlipNo ?? request.requestNumber} • Issued {request.fulfilledAt ? formatDateTime(request.fulfilledAt) : "Not recorded"}
-                        </p>
-                        <p className="mt-1 text-sm text-brown-500">
-                          Issued by {request.fulfilledByName || role} • Total quantity: {request.totalQuantity}
-                        </p>
+            <div className="mt-6 space-y-4">
+              {loading ? (
+                <LoadingCards count={4} />
+              ) : filteredRequests.length === 0 ? (
+                <EmptyState title="No request records found" description="Requests submitted by faculty will appear here." />
+              ) : (
+                paginatedRequests.map((request) => (
+                  <article key={request.id} className="rounded-[1.75rem] border border-brown-200 bg-brown-50 p-5">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="flex items-start gap-4">
+                        <RequesterAvatar request={request} sizeClassName="h-14 w-14" textClassName="text-lg" />
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brown-500">
+                              {request.requestNumber}
+                            </span>
+                            <StatusBadge status={request.status} reviewedByRole={request.reviewedByRole} />
+                            {request.status === "Approved" && (
+                              <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-medium text-amber-700 whitespace-nowrap">
+                                Please purchase or update the status. Please view details for more info.
+                              </span>
+                            )}
+                            {request.issuanceSlipNo ? (
+                              <span className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-700">
+                                {request.issuanceSlipNo}
+                              </span>
+                            ) : null}
+                          </div>
+                          <h3 className="mt-3 text-xl font-black tracking-tight text-brown-900">{request.requestedByName}</h3>
+                          <p className="mt-2 text-sm text-brown-500">
+                            ID Number: {request.requestedByIdNumber || "Not available"} • {request.requestedByEmail || "No email"}
+                          </p>
+                          <p className="mt-1 text-sm text-brown-500">
+                            Submitted {formatDateTime(request.createdAt)} • {request.totalItems} item{request.totalItems === 1 ? "" : "s"} • Quantity: {request.totalQuantity}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <ActionButton label="View Details" onClick={() => setSelectedRequest(request)} icon={<ClipboardDocumentListIcon className="h-4 w-4" />} />
+                        {request.status === "Pending" ? (
+                          <>
+                            <ActionButton label="Approve" onClick={() => openActionModal(request, "approve_request")} icon={<CheckCircleIcon className="h-4 w-4" />} tone="emerald" />
+                            <ActionButton label="Reject" onClick={() => openActionModal(request, "reject_request")} icon={<XCircleIcon className="h-4 w-4" />} tone="rose" />
+                          </>
+                        ) : null}
+                        {request.status === "Completed" ? (
+                          <span className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700">
+                            <CheckCircleIcon className="h-4 w-4" />
+                            Completed
+                          </span>
+                        ) : null}
+                        {canUpdateRequestStatus(request.status) ? (
+                          <ActionButton label="Update Status" onClick={() => setStatusUpdateRequest(request)} icon={<TruckIcon className="h-4 w-4" />} tone="blue" />
+                        ) : null}
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      <ActionButton label="View Issuance Details" onClick={() => setSelectedRequest(request)} icon={<ClipboardDocumentListIcon className="h-4 w-4" />} />
-                      <ActionButton label="Print Issuance Slip" onClick={() => printIssuanceSlip(request)} icon={<PrinterIcon className="h-4 w-4" />} tone="blue" />
+                  </article>
+                ))
+              )}
+            </div>
+
+            {filteredRequests.length > 0 ? (
+              <PaginationControls
+                currentPage={requestPage}
+                totalPages={requestTotalPages}
+                totalItems={filteredRequests.length}
+                pageSize={REQUESTS_PER_PAGE}
+                itemLabel="requests"
+                onPageChange={setRequestPage}
+              />
+            ) : null}
+          </section>
+
+          <section className="rounded-[2rem] border border-brown-200 bg-white p-6 shadow-sm sm:p-8">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-brown-400">Issuance</p>
+                <h2 className="mt-3 text-2xl font-black tracking-tight text-brown-900">Issuance History</h2>
+              </div>
+              <div className="w-full max-w-lg">
+                <div className="relative">
+                  <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-brown-400" />
+                  <input
+                    type="search"
+                    value={issuanceSearchTerm}
+                    onChange={(event) => setIssuanceSearchTerm(event.target.value)}
+                    placeholder="Search slip no, request no, requester, issuer, or item"
+                    className="w-full rounded-xl border border-brown-200 bg-brown-50 py-3 pl-11 pr-4 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              {loading ? (
+                <LoadingCards count={3} />
+              ) : filteredIssuanceHistory.length === 0 ? (
+                <EmptyState
+                  title={issuanceSearchTerm.trim() ? "No issuance records match your search" : "No issuance history yet"}
+                  description={
+                    issuanceSearchTerm.trim()
+                      ? "Try a request number, slip number, requester name, issuer, or item keyword."
+                      : "Approved requests that are issued from this page will appear here."
+                  }
+                )
+              ) : (
+                paginatedIssuanceHistory.map((request) => (
+                  <div key={request.id} className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="flex items-start gap-4">
+                        <RequesterAvatar request={request} sizeClassName="h-12 w-12" textClassName="text-base" />
+                        <div>
+                          <p className="font-semibold text-brown-900">{request.requestedByName}</p>
+                          <p className="mt-1 text-sm text-brown-500">
+                            {request.issuanceSlipNo ?? request.requestNumber} • Issued {request.fulfilledAt ? formatDateTime(request.fulfilledAt) : "Not recorded"}
+                          </p>
+                          <p className="mt-1 text-sm text-brown-500">
+                            Issued by {request.fulfilledByName || role} • Total quantity: {request.totalQuantity}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <ActionButton label="View Issuance Details" onClick={() => setSelectedRequest(request)} icon={<ClipboardDocumentListIcon className="h-4 w-4" />} />
+                        <ActionButton label="Print Issuance Slip" onClick={() => printIssuanceSlip(request)} icon={<PrinterIcon className="h-4 w-4" />} tone="blue" />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
+                ))
+              )}
+            </div>
 
-          {filteredIssuanceHistory.length > 0 ? (
-            <PaginationControls
-              currentPage={issuancePage}
-              totalPages={issuanceTotalPages}
-              totalItems={filteredIssuanceHistory.length}
-              pageSize={ISSUANCE_HISTORY_PER_PAGE}
-              itemLabel="issuance records"
-              onPageChange={setIssuancePage}
-            />
-          ) : null}
-        </section>
-      </div>
-
-      {selectedRequest ? (
-        <>
-          {(() => {
-            const facultyRequest = {
-              id: selectedRequest.id,
-              requestNumber: selectedRequest.requestNumber,
-              purpose: selectedRequest.purpose ?? "",
-              department: selectedRequest.department ?? "",
-              dateNeeded: selectedRequest.dateNeeded ?? null,
-              grandTotal: selectedRequest.grandTotal ?? 0,
-              status: selectedRequest.status,
-              totalItems: selectedRequest.totalItems ?? 0,
-              totalQuantity: selectedRequest.totalQuantity ?? 0,
-              notes: selectedRequest.notes ?? "",
-              createdAt: selectedRequest.createdAt,
-              updatedAt: selectedRequest.updatedAt,
-              requestedByName: selectedRequest.requestedByName,
-              requestedByIdNumber: selectedRequest.requestedByIdNumber ?? "",
-              requestedByEmail: selectedRequest.requestedByEmail ?? "",
-              reviewNotes: selectedRequest.rejectionReason ?? selectedRequest.reviewNotes ?? "",
-              rejectionReason: selectedRequest.rejectionReason ?? undefined,
-              reviewedAt: selectedRequest.reviewedAt ?? null,
-              reviewedByRole: selectedRequest.reviewedByRole ?? undefined,
-              items: selectedRequest.items.map(item => ({
-                supplyId: item.supplyId,
-                customItemName: null,
-                unitCost: item.unitCost,
-                totalAmount: item.totalAmount,
-                itemCode: item.itemCode,
-                name: item.name,
-                categoryName: item.categoryName,
-                description: item.description,
-                imagePath: item.imagePath,
-                quantityRequested: item.quantityRequested,
-                quantityApproved: item.quantityApproved,
-                quantityFulfilled: item.quantityFulfilled,
-                quantityOnHand: item.quantityOnHand,
-              })),
-              approvalLogs: []
-            };
-            return <RequestViewModal request={facultyRequest} open={true} onClose={() => setSelectedRequest(null)} />;
-          })()}
-        </>
-      ) : null}
-
-      {actionRequest && actionType ? (
-        <ModalShell onClose={closeActionModal} title={getActionTitle(actionType)}>
-          <div className="space-y-5">
-            <p className="text-sm leading-6 text-brown-500">
-              {getActionDescription(actionType)} <span className="font-semibold text-brown-900">{actionRequest.requestNumber}</span> for{" "}
-              <span className="font-semibold text-brown-900">{actionRequest.requestedByName}</span>.
-            </p>
-
-            <div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Notes</label>
-              <textarea
-                value={reviewNotes}
-                onChange={(event) => setReviewNotes(event.target.value)}
-                rows={4}
-                className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                placeholder="Add approval, rejection, or issuance notes"
+            {filteredIssuanceHistory.length > 0 ? (
+              <PaginationControls
+                currentPage={issuancePage}
+                totalPages={issuanceTotalPages}
+                totalItems={filteredIssuanceHistory.length}
+                pageSize={ISSUANCE_HISTORY_PER_PAGE}
+                itemLabel="issuance records"
+                onPageChange={setIssuancePage}
               />
-            </div>
+            ) : null}
+          </section>
+        </div>
 
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={closeActionModal}
-                disabled={busyAction !== null}
-                className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => void submitAction()}
-                disabled={busyAction !== null}
-                className="inline-flex items-center justify-center rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {busyAction === actionType ? "Saving..." : getActionButtonLabel(actionType)}
-              </button>
-            </div>
-          </div>
-        </ModalShell>
-      ) : null}
+        {selectedRequest ? (
+          <>
+            {(() => {
+              const facultyRequest = {
+                id: selectedRequest.id,
+                requestNumber: selectedRequest.requestNumber,
+                purpose: selectedRequest.purpose ?? "",
+                department: selectedRequest.department ?? "",
+                dateNeeded: selectedRequest.dateNeeded ?? null,
+                grandTotal: selectedRequest.grandTotal ?? 0,
+                status: selectedRequest.status,
+                totalItems: selectedRequest.totalItems ?? 0,
+                totalQuantity: selectedRequest.totalQuantity ?? 0,
+                notes: selectedRequest.notes ?? "",
+                createdAt: selectedRequest.createdAt,
+                updatedAt: selectedRequest.updatedAt,
+                requestedByName: selectedRequest.requestedByName,
+                requestedByIdNumber: selectedRequest.requestedByIdNumber ?? "",
+                requestedByEmail: selectedRequest.requestedByEmail ?? "",
+                reviewNotes: selectedRequest.rejectionReason ?? selectedRequest.reviewNotes ?? "",
+                rejectionReason: selectedRequest.rejectionReason ?? undefined,
+                reviewedAt: selectedRequest.reviewedAt ?? null,
+                reviewedByRole: selectedRequest.reviewedByRole ?? undefined,
+                items: selectedRequest.items.map(item => ({
+                  supplyId: item.supplyId,
+                  customItemName: null,
+                  unitCost: item.unitCost,
+                  totalAmount: item.totalAmount,
+                  itemCode: item.itemCode,
+                  name: item.name,
+                  categoryName: item.categoryName,
+                  description: item.description,
+                  imagePath: item.imagePath,
+                  quantityRequested: item.quantityRequested,
+                  quantityApproved: item.quantityApproved,
+                  quantityFulfilled: item.quantityFulfilled,
+                  quantityOnHand: item.quantityOnHand,
+                })),
+                approvalLogs: []
+              };
+              return <RequestViewModal request={facultyRequest} open={true} onClose={() => setSelectedRequest(null)} />;
+            })()}
+          </>
+        ) : null}
 
-      {statusUpdateRequest ? (
-        <ModalShell onClose={() => setStatusUpdateRequest(null)} title="Update Status">
-          <div className="space-y-5">
-            <div className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-brown-400">Current Status</p>
-              <p className="mt-2 text-lg font-black text-brown-900">
-                {getDisplayStatusLabel(statusUpdateRequest.status, statusUpdateRequest.reviewedByRole)}
+        {actionRequest && actionType ? (
+          <ModalShell onClose={closeActionModal} title={getActionTitle(actionType)}>
+            <div className="space-y-5">
+              <p className="text-sm leading-6 text-brown-500">
+                {getActionDescription(actionType)} <span className="font-semibold text-brown-900">{actionRequest.requestNumber}</span> for{" "}
+                <span className="font-semibold text-brown-900">{actionRequest.requestedByName}</span>.
               </p>
-            </div>
 
-            <div className="space-y-2">
-              {getStatusUpdateOptions(statusUpdateRequest.status).map((option) => (
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-[0.18em] text-brown-400">Notes</label>
+                <textarea
+                  value={reviewNotes}
+                  onChange={(event) => setReviewNotes(event.target.value)}
+                  rows={4}
+                  className="w-full rounded-xl border border-brown-200 bg-brown-50 px-4 py-3 text-sm text-brown-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                  placeholder="Add approval, rejection, or issuance notes"
+                />
+              </div>
+
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button
-                  key={option.value}
                   type="button"
-                  onClick={() => {
-                    if (!option.enabled) return
-                    setStatusUpdateSelection(option.value)
-                  }}
-                  disabled={!option.enabled}
-                  className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-semibold transition ${
-                    option.current
-                      ? "border-brown-900 bg-brown-900 text-white"
-                      : option.enabled
-                        ? "border-primary-200 bg-primary-50 text-primary-700 hover:border-primary-300 hover:bg-primary-100"
-                        : "cursor-not-allowed border-brown-200 bg-brown-50 text-brown-400"
-                  }`}
+                  onClick={closeActionModal}
+                  disabled={busyAction !== null}
+                  className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <span>{option.label}</span>
-                  <span className="text-[10px] uppercase tracking-[0.18em]">
-                    {option.current ? "Current" : option.enabled ? "Available" : "Disabled"}
-                  </span>
+                  Cancel
                 </button>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => void submitAction()}
+                  disabled={busyAction !== null}
+                  className="inline-flex items-center justify-center rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {busyAction === actionType ? "Saving..." : getActionButtonLabel(actionType)}
+                </button>
+              </div>
             </div>
+          </ModalShell>
+        ) : null}
 
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={() => setStatusUpdateRequest(null)}
-                className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50"
-              >
-                Close
-              </button>
+        {statusUpdateRequest ? (
+          <ModalShell onClose={() => setStatusUpdateRequest(null)} title="Update Status">
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-brown-400">Current Status</p>
+                <p className="mt-2 text-lg font-black text-brown-900">
+                  {getDisplayStatusLabel(statusUpdateRequest.status, statusUpdateRequest.reviewedByRole)}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                {getStatusUpdateOptions(statusUpdateRequest.status).map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      if (!option.enabled) return
+                      setStatusUpdateSelection(option.value)
+                    }}
+                    disabled={!option.enabled}
+                    className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                      option.current
+                        ? "border-brown-900 bg-brown-900 text-white"
+                        : option.enabled
+                          ? "border-primary-200 bg-primary-50 text-primary-700 hover:border-primary-300 hover:bg-primary-100"
+                          : "cursor-not-allowed border-brown-200 bg-brown-50 text-brown-400"
+                    }`}
+                  >
+                    <span>{option.label}</span>
+                    <span className="text-[10px] uppercase tracking-[0.18em]">
+                      {option.current ? "Current" : option.enabled ? "Available" : "Disabled"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setStatusUpdateRequest(null)}
+                  className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50"
+                >
+                  Close
+                </button>
+              </div>
             </div>
-          </div>
-        </ModalShell>
-      ) : null}
+          </ModalShell>
+        ) : null}
 
-      {statusUpdateRequest && statusUpdateSelection ? (
-        <ModalShell onClose={() => {
-          if (!statusUpdateSaving) {
-            setStatusUpdateSelection(null)
-          }
-        }} title="Update Status">
-          <div className="space-y-5">
-            <p className="text-base leading-7 text-brown-600">
-              Are you sure you want to update this request status to <span className="font-extrabold text-brown-900">{getDisplayStatusLabel(statusUpdateSelection)}</span>?
-            </p>
-
-            <div className="rounded-2xl border border-brown-200 bg-brown-50 p-4 text-sm text-brown-600">
-              <span className="font-bold uppercase tracking-[0.18em] text-brown-400">Current Status</span>
-              <p className="mt-2 font-semibold text-brown-900">
-                {getDisplayStatusLabel(statusUpdateRequest.status, statusUpdateRequest.reviewedByRole)}
+        {statusUpdateRequest && statusUpdateSelection ? (
+          <ModalShell onClose={() => {
+            if (!statusUpdateSaving) {
+              setStatusUpdateSelection(null)
+            }
+          }} title="Update Status">
+            <div className="space-y-5">
+              <p className="text-base leading-7 text-brown-600">
+                Are you sure you want to update this request status to <span className="font-extrabold text-brown-900">{getDisplayStatusLabel(statusUpdateSelection)}</span>?
               </p>
-            </div>
 
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={() => setStatusUpdateSelection(null)}
-                disabled={statusUpdateSaving}
-                className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                No
-              </button>
-              <button
-                type="button"
-                onClick={() => void submitStatusUpdate()}
-                disabled={statusUpdateSaving}
-                className="inline-flex items-center justify-center rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {statusUpdateSaving ? "Updating..." : "Yes, Update Status"}
-              </button>
+              <div className="rounded-2xl border border-brown-200 bg-brown-50 p-4 text-sm text-brown-600">
+                <span className="font-bold uppercase tracking-[0.18em] text-brown-400">Current Status</span>
+                <p className="mt-2 font-semibold text-brown-900">
+                  {getDisplayStatusLabel(statusUpdateRequest.status, statusUpdateRequest.reviewedByRole)}
+                </p>
+              </div>
+
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setStatusUpdateSelection(null)}
+                  disabled={statusUpdateSaving}
+                  className="inline-flex items-center justify-center rounded-xl border border-brown-200 bg-white px-5 py-3 text-sm font-semibold text-brown-700 transition hover:bg-brown-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  No
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void submitStatusUpdate()}
+                  disabled={statusUpdateSaving}
+                  className="inline-flex items-center justify-center rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {statusUpdateSaving ? "Updating..." : "Yes, Update Status"}
+                </button>
+              </div>
             </div>
-          </div>
-        </ModalShell>
-      ) : null}
-    </AppShell>
-  )
+          </ModalShell>
+        ) : null}
+      </AppShell>
+    )
+  }
 }
 
 function SummaryCard({ label, value, tone }: { label: string; value: number; tone: "slate" | "amber" | "blue" | "rose" | "emerald" }) {

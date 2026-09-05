@@ -43,9 +43,15 @@ function handleAdminRequestIssuanceFetch(PDO $pdo): void
 {
     $userId = filter_input(INPUT_GET, 'userId', FILTER_VALIDATE_INT);
     $role = trim((string) ($_GET['role'] ?? ''));
+    $issuanceSlipNo = trim((string) ($_GET['issuanceSlipNo'] ?? ''));
     validateIssuanceManager($pdo, $userId, $role);
 
-    $requests = fetchAllRequestsForAdmin($pdo);
+    if ($issuanceSlipNo !== '') {
+        $request = findRequestByIssuanceSlipNo($pdo, $issuanceSlipNo);
+        $requests = $request ? [$request] : [];
+    } else {
+        $requests = fetchAllRequestsForAdmin($pdo);
+    }
 
     jsonResponse(200, [
         'success' => true,
@@ -853,6 +859,17 @@ function fetchAllRequestsForAdmin(PDO $pdo): array
             'items' => $itemsByRequestId[$requestId] ?? [],
         ];
     }, $requestRows);
+}
+
+function findRequestByIssuanceSlipNo(PDO $pdo, string $issuanceSlipNo): ?array
+{
+    foreach (fetchAllRequestsForAdmin($pdo) as $request) {
+        if ($request['issuanceSlipNo'] === $issuanceSlipNo) {
+            return $request;
+        }
+    }
+
+    return null;
 }
 
 function findRequestById(PDO $pdo, int $requestId): ?array
