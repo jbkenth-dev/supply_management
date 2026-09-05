@@ -406,7 +406,7 @@ async function printIssuanceSlip(request: AdminRequestRecord) {
         <link rel="stylesheet" href="/assets/index-BI00YaO6.css">
       </head>
       <body>
-        <div class="relative w-full max-w-[210mm] max-h-[calc(100vh_-_3rem)] overflow-y-auto rounded-[1.75rem] border border-brown-200 bg-white shadow-sm">
+        <div class="relative w-full max-w-[210mm] max-h-[calc(100vh_-_3rem)] overflow-y-auto rounded-[1.75rem] border border-brown-200 bg-white shadow-sm" onClick={(e) => e.stopPropagation()}>
           <!-- Header -->
           <div class="border-b border-brown-200 bg-gradient-to-b from-brown-50 to-white px-6 pb-5 pt-6 text-center sm:px-10">
             <p class="text-xs font-bold uppercase tracking-[0.25em] text-primary-600">
@@ -454,8 +454,9 @@ async function printIssuanceSlip(request: AdminRequestRecord) {
                 <thead>
                   <tr class="border-b border-brown-200 bg-brown-100">
                     <th class="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[40px]">Qty</th>
-                    <th class="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[110px]">Item / Description</th>
-                    <th class="border-r border-brown-200 px-3 py-2 text-right text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[120px]">Total Amount</th>
+                    <th class="border-r border-brown-200 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-brown-600">Item / Description</th>
+                    <th class="border-r border-brown-200 px-3 py-2 text-right text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[110px]">Unit Cost</th>
+                    <th class="border-r-0 px-3 py-2 text-right text-[11px] font-bold uppercase tracking-wider text-brown-600 sm:w-[120px]">Total Amount</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -467,7 +468,7 @@ async function printIssuanceSlip(request: AdminRequestRecord) {
                       <td class="border-r border-brown-200 px-2 py-3 align-top">
                         <div class="flex min-w-0 items-start gap-2">
                           <img
-                            src="${item.imagePath || '/sfcg-logo.jpg'}"
+                            src="${item.supplyId === null ? '/sfcg-logo.jpg' : (item.imagePath || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=320&fit=crop')}"
                             alt="${escapeHtml(item.name)}"
                             class="mt-0.5 h-7 w-7 flex-shrink-0 rounded object-cover"
                           />
@@ -507,13 +508,12 @@ async function printIssuanceSlip(request: AdminRequestRecord) {
                   </tr>
                 </tfoot>
               </table>
-            </div>
-          </div>
 
-          <!-- Total Items / Quantity -->
-          <p class="mt-3 text-[10px] uppercase tracking-wider text-brown-400">
-            Total Items: ${request.totalItems} | Total Quantity: ${request.totalQuantity}
-          </p>
+            <!-- Total Items / Quantity -->
+            <p class="mt-3 text-[10px] uppercase tracking-wider text-brown-400">
+              Total Items: ${request.totalItems} | Total Quantity: ${request.totalQuantity}
+            </p>
+          </div>
 
           <!-- Approval signatures table -->
           <div class="border-t border-brown-200 px-6 py-4 sm:px-10">
@@ -562,8 +562,8 @@ async function printIssuanceSlip(request: AdminRequestRecord) {
           </div>
 
           <!-- Rejection details if any -->
-          ${request.status === "Rejected" ? `
-            <div class="border-t border-brown-200 px-6 py-4 sm:px-10">
+          <div class="border-t border-brown-200 px-6 py-4 sm:px-10">
+            ${request.status === "Rejected" ? `
               <div class="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-4">
                 <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-600">Rejection Details</p>
                 <p class="mt-2 text-sm font-semibold text-brown-900">Rejected by: ${escapeHtml(request.reviewedByRole ?? "Unknown")}</p>
@@ -573,11 +573,7 @@ async function printIssuanceSlip(request: AdminRequestRecord) {
                   </p>
                 ` : ''}
               </div>
-            </div>
-          ` : ''}
-
-          <!-- Notes / Remarks -->
-          <div class="border-t border-brown-200 px-6 py-4 sm:px-10">
+            ` : ''}
             <div class="mb-4">
               <label class="text-[11px] font-bold uppercase tracking-wider text-brown-600">Notes / Remarks</label>
               <p class="mt-1 text-sm leading-6 text-brown-600">${escapeHtml(request.notes ?? "")}</p>
