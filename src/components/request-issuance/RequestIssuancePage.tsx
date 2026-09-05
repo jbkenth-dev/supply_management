@@ -112,8 +112,6 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   const [showPrintModal, setShowPrintModal] = useState(false)
   const [printModalRequest, setPrintModalRequest] = useState<AdminRequestRecord | null>(null)
 
-  const navigate = useNavigate();
-
   const allStatuses = [
     "Pending",
     "Pending Immediate Head",
@@ -606,10 +604,10 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                 purpose: selectedRequest.purpose ?? "",
                 department: selectedRequest.department ?? "",
                 dateNeeded: selectedRequest.dateNeeded ?? null,
-                grandTotal: selectedRequest.grandTotal ?? 0,
+                grandTotal: Number(selectedRequest.grandTotal) || 0,
                 status: selectedRequest.status,
-                totalItems: selectedRequest.totalItems ?? 0,
-                totalQuantity: selectedRequest.totalQuantity ?? 0,
+                totalItems: Number(selectedRequest.totalItems) || 0,
+                totalQuantity: Number(selectedRequest.totalQuantity) || 0,
                 notes: selectedRequest.notes ?? "",
                 createdAt: selectedRequest.createdAt,
                 updatedAt: selectedRequest.updatedAt,
