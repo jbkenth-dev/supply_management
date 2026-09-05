@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
-import { useRouter } from "next/router"
+import { useNavigate } from "react-router-dom"
 import type { ReactNode } from "react"
-import { formatDateTime as manilaFormatDateTime, formatDateLong } from "../../lib/date"
+import { formatDateTime as manilaFormatDateTime } from "../../lib/date"
 import {
   CheckCircleIcon,
   ClipboardDocumentListIcon,
@@ -373,16 +373,16 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   }
 
   function printIssuanceSlip(request: AdminRequestRecord) {
-    const router = useRouter();
+    const navigate = useNavigate();
 
     if (!request) {
       return;
     }
 
     if (request.issuanceSlipNo) {
-      router.push(`/admin/print/${request.issuanceSlipNo}`);
+      navigate(`/admin/print/${request.issuanceSlipNo}`);
     } else {
-      router.push(`/admin/print/request-${request.id}`);
+      navigate(`/admin/print/request-${request.id}`);
     }
   }
 

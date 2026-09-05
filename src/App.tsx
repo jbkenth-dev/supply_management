@@ -24,6 +24,7 @@ import NewRequest from "./pages/NewRequest";
 import MyRequests from "./pages/MyRequests";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import RequestIssuance from "./pages/admin/RequestIssuance";
+import PrintIssuanceSlip from "./pages/admin/print/[printId]";
 import MyAccount from "./pages/admin/MyAccount";
 import FacultyMyAccount from "./pages/MyAccount";
 import Messages from "./pages/Messages";
@@ -80,6 +81,7 @@ export default function App() {
       <Route path="/admin/supply" element={<SupplyManagement />} />
       <Route path="/admin/stock" element={<StockManagement />} />
       <Route path="/admin/request-issuance" element={<RequestIssuance />} />
+      <Route path="/admin/print/:printId" element={<PrintIssuanceSlip />} />
       <Route path="/admin/notification" element={<AdminNotification />} />
       <Route path="/admin/announcements" element={<AdminAnnouncements />} />
       <Route path="/admin/reports" element={<Reports />} />
