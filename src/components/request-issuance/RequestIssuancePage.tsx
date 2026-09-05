@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react"
-import { useNavigate } from "react-router-dom"
 import type { ReactNode } from "react"
 import { formatDateTime as manilaFormatDateTime } from "../../lib/date"
 import {
@@ -774,7 +773,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
         ) : null}
         {showPrintModal && printModalRequest ? (
           <PrintIssuanceSlipModal
-            request={printModalRequest}
+            request={printModalRequest!}
             onClose={() => {
               setShowPrintModal(false);
               setPrintModalRequest(null);
