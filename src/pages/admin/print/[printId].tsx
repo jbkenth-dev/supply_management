@@ -92,7 +92,11 @@
             params.append('issuanceSlipNo', printId)
           }
 
-          const response = await api(`/api/admin-request-issuance.php?${params.toString()}`)
+          const response = await api(`/api/admin-request-issuance.php?${params.toString()}`, {
+            headers: {
+              'Accept': 'application/json'
+            }
+          })
           const result = await response.json()
 
           if (!response.ok || !result.success) {
