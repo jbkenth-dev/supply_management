@@ -379,9 +379,9 @@ const PrintIssuanceSlipPage: NextPage = () => {
             </div>
           </div>
         </div>
+      </div>
       </AppShell>
     )
-  )
-}
+  }
 
 export default PrintIssuanceSlipPage

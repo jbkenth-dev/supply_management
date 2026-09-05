@@ -560,7 +560,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                       ? "Try a request number, slip number, requester name, issuer, or item keyword."
                       : "Approved requests that are issued from this page will appear here."
                   }
-                )
+                />
               ) : (
                 paginatedIssuanceHistory.map((request) => (
                   <div key={request.id} className="rounded-2xl border border-brown-200 bg-brown-50 p-4">
@@ -777,7 +777,6 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
       </AppShell>
     )
   }
-}
 
 function SummaryCard({ label, value, tone }: { label: string; value: number; tone: "slate" | "amber" | "blue" | "rose" | "emerald" }) {
   const classes = {
