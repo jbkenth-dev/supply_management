@@ -111,6 +111,8 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   const [statusUpdateSaving, setStatusUpdateSaving] = useState(false)
   const [statusFilter, setStatusFilter] = useState<null | string>(null) // null means "All"
 
+  const navigate = useNavigate();
+
   const allStatuses = [
     "Pending",
     "Pending Immediate Head",
@@ -373,8 +375,6 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   }
 
   function printIssuanceSlip(request: AdminRequestRecord) {
-    const navigate = useNavigate();
-
     if (!request) {
       return;
     }
