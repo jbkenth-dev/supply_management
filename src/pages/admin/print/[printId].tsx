@@ -133,10 +133,10 @@ const PrintIssuanceSlipPage = () => {
       if (printedRef.current) {
         return
       }
+      printedRef.current = true
       // Trigger print after a small delay to ensure rendering is complete
       const printTimer = setTimeout(() => {
         window.print()
-        printedRef.current = true
       }, 1000)
 
       return () => clearTimeout(printTimer)
