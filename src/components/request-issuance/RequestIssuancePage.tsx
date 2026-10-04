@@ -475,8 +475,6 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
     setPrintModalRequest(null);
   }, [showPrintModal, printModalRequest, printModalContentRef]);
 
-  // ... rest of the component remains the same, but we need to update the JSX for the print modal
-
   return (
     <AppShell role={role}>
       <div className="space-y-8">
@@ -591,7 +589,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                             <ActionButton label="Approve" onClick={() => openActionModal(request, "approve_request")} icon={<CheckCircleIcon className="h-4 w-4" />} tone="emerald" />
                             <ActionButton label="Reject" onClick={() => openActionModal(request, "reject_request")} icon={<XCircleIcon className="h-4 w-4" />} tone="rose" />
                           </>
-                        ) : null)
+                        ) : null}
                         {request.status === "Completed" ? (
                           <span className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700">
                             <CheckCircleIcon className="h-4 w-4" />
@@ -857,7 +855,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                   type="button"
                   onClick={() => void submitStatusUpdate()}
                   disabled={statusUpdateSaving}
-                  className="inline-flex items-center justify-center rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center rounded-xl bg-brown-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-brown-800 disabled:currency-not-allowed disabled:opacity-60"
                 >
                   {statusUpdateSaving ? "Updating..." : "Yes, Update Status"}
                 </button>
