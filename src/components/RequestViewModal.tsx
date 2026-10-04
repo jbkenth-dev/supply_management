@@ -1,8 +1,5 @@
-import { useEffect, useState } from "react";
-import { formatDateLong } from "../lib/date";
-import { CheckIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import { XCircleIcon } from "@heroicons/react/24/outline";
 import type { FacultyRequest } from "../types/requests";
-import { api } from "../lib/api";
 import RequestViewContent from "./RequestViewContent";
 
 type RequestViewModalProps = {

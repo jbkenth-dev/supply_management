@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useRef } from "react"
 import type { ReactNode } from "react"
-import { formatDateTime as manilaFormatDateTime } from "../../lib/date"
+import { formatDateTime } from "../../lib/date"
 import {
   CheckCircleIcon,
   ClipboardDocumentListIcon,
@@ -15,6 +15,7 @@ import { MessageModal } from "../ui/MessageModal"
 import RequestViewModal from "../../components/RequestViewModal"
 import RequestViewContent from "../../components/RequestViewContent"
 import type { RequestStatus } from "../../types/requests"
+import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
 
 type RequestItem = {
   requestItemId: number
@@ -382,25 +383,20 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
     setShowPrintModal(true);
   }
 
-  // Effect to handle printing when the print modal is shown
   useEffect(() => {
     if (!showPrintModal || !printModalRequest || !printModalContentRef.current) {
       return;
     }
 
-    // Get the content to print
     const contentToPrint = printModalContentRef.current.innerHTML;
 
-    // Open a new window for printing
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
-      // Failed to open window, fallback to current window
       window.print();
       setShowPrintModal(false);
       return;
     }
 
-    // Write the HTML document to the new window
     printWindow.document.write(`
       <!DOCTYPE html>
       <html lang="en">
@@ -409,27 +405,14 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Issuance Slip</title>
         <style>
-          /* Tailwind CSS base styles - we'll include the necessary utilities */
-          /* We'll inline the essential CSS for the modal to look correct */
-          /* We'll also add print-specific styles */
-          /* We'll use the same CSS as in the original modal but we'll adjust for print */
-          /* Since we cannot include the entire Tailwind CSS, we'll rely on the fact that */
-          /* the modal content already has inline styles from the component? */
-          /* Actually, the component uses Tailwind classes, so we need to include the Tailwind CSS. */
-          /* We'll include the Tailwind CSS from CDN for simplicity. */
-          /* Note: This is not ideal for production, but for the sake of this fix, we'll use it. */
           <script src="https://cdn.tailwindcss.com"></script>
           <style>
-            /* We'll add some custom styles to ensure proper printing */
             @media print {
-              /* Remove the backdrop and any modal overlay styles */
-              /* We want the content to take the full page */
               body {
                 margin: 0;
                 padding: 0;
                 background: white;
               }
-              /* Ensure the content container has no fixed height or width constraints */
               .print-content-container {
                 width: 100%;
                 height: auto;
@@ -437,11 +420,9 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                 padding: 0;
                 box-sizing: border-box;
               }
-              /* Hide any elements that should not be printed */
               .no-print {
                 display: none !important;
               }
-              /* We also want to avoid page breaks inside certain elements */
               .avoid-page-break {
                 page-break-inside: avoid;
                 break-inside: avoid;
@@ -459,18 +440,11 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
     `);
     printWindow.document.close();
 
-    // Wait for the content to load and then trigger print
     printWindow.focus();
-    // We'll wait a bit for the fonts and images to load, but for simplicity, we'll print after a short delay
-    const printTimer = window.setTimeout(() => {
+    window.setTimeout(() => {
       printWindow.print();
-      // Close the print window after printing? Not required, but we can leave it open.
-      // We'll close it after printing to avoid leaving extra windows.
-      // However, we should not close it before the print dialog is closed.
-      // We'll leave it open for the user to close.
     }, 500);
 
-    // Clean up: hide the print modal after we've initiated the print
     setShowPrintModal(false);
     setPrintModalRequest(null);
   }, [showPrintModal, printModalRequest, printModalContentRef]);
@@ -595,7 +569,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
                             <CheckCircleIcon className="h-4 w-4" />
                             Completed
                           </span>
-                        ) : null)
+                        ) : null}
                         {canUpdateRequestStatus(request.status) ? (
                           <ActionButton label="Update Status" onClick={() => setStatusUpdateRequest(request)} icon={<TruckIcon className="h-4 w-4" />} tone="blue" />
                         ) : null}
@@ -687,8 +661,6 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
               />
             ) : null}
           </section>
-        </div>
-
         {selectedRequest ? (
           <>
             {(() => {
@@ -864,7 +836,6 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
           </ModalShell>
         ) : null}
 
-        {/* Print modal - we'll keep it for the ref, but we won't display it on screen */}
         {showPrintModal && printModalRequest ? (
           <PrintIssuanceSlipModal
             request={printModalRequest!}
@@ -880,7 +851,34 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   );
 }
 
-// ... rest of the helper functions remain the same
+function RequesterAvatar({
+  request,
+  sizeClassName,
+  textClassName,
+}: {
+  request: AdminRequestRecord
+  sizeClassName: string
+  textClassName: string
+}) {
+  const initials = request.requestedByName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("") || "U"
+
+  return request.requestedByProfileImageUrl ? (
+    <img
+      src={request.requestedByProfileImageUrl}
+      alt={request.requestedByName}
+      className={`${sizeClassName} shrink-0 rounded-2xl object-cover`}
+    />
+  ) : (
+    <div className={`${sizeClassName} ${textClassName} flex shrink-0 items-center justify-center rounded-2xl bg-primary-100 font-black text-primary-700`}>
+      {initials}
+    </div>
+  )
+}
 
 function SummaryCard({ label, value, tone }: { label: string; value: number; tone: "slate" | "amber" | "blue" | "rose" | "emerald" }) {
   const classes = {
@@ -1039,7 +1037,7 @@ function ModalShell({
           <h2 className="text-2xl font-black tracking-tight text-brown-900">{title}</h2>
           <button
             type="button"
-            onClose
+            onClick={onClose}
             className="rounded-xl border border-brown-200 px-4 py-2 text-sm font-semibold text-brown-700 transition hover:bg-brown-50"
           >
             Close
@@ -1051,7 +1049,6 @@ function ModalShell({
   )
 }
 
-// We need to update the PrintIssuanceSlipModal to accept a contentRef and use it
 function PrintIssuanceSlipModal({
   request,
   onClose,
@@ -1059,20 +1056,8 @@ function PrintIssuanceSlipModal({
 }: {
   request: AdminRequestRecord;
   onClose: () => void;
-  contentRef: React.RefObject<HTMLDivElement>;
+  contentRef: React.RefObject<HTMLDivElement | null>;
 }) {
-  // We'll reuse the same escapeHtml function from before
-  const escapeHtml = (text: string) => {
-    const map: Record<string, string> = {
-      '&': '&',
-      '<': '<',
-      '>': '>',
-      '"': '"',
-      "'": '&#039;'
-    };
-    return String(text).replace(/[&<>"']/g, m => map[m]);
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-brown-950/55 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
@@ -1080,14 +1065,14 @@ function PrintIssuanceSlipModal({
         className="w-full max-w-[210mm] mx-auto p-4 print-content-container"
         onClick={(event) => event.stopPropagation()}
       >
-        {/* We'll render the RequestViewContent here */}
-        <RequestViewContent request={request} />
+        <RequestViewContent request={{
+          ...request,
+          items: request.items.map((item) => ({ ...item, customItemName: null })),
+        }} />
       </div>
     </div>
   );
 }
-
-// ... rest of the helper functions remain the same (getActionTitle, getActionDescription, etc.)
 
 function getActionTitle(action: ActionKind) {
   if (action === "approve_request") return "Approve Request"

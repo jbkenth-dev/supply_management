@@ -50,8 +50,8 @@ Copy this to your Awardspace server as `public_html/.env`:
 
 ```ini
 VITE_API_BASE_URL=
-VITE_RECAPTCHA_SITE_KEY=6LdFDqgsAAAAAINqbtrMA1A6oJhRyt6vmNg8tPjp
-ALLOWED_ORIGINS=http://127.0.0.1:5173,http://localhost:5173
+VITE_RECAPTCHA_SITE_KEY=your_recaptcha_site_key
+ALLOWED_ORIGINS=http://127.0.0.1:5173,http://localhost:5173,https://your-frontend-domain.example
 
 DB_HOST=localhost
 DB_PORT=3306
@@ -59,13 +59,13 @@ DB_NAME=youruser_supply
 DB_USER=youruser_dbuser
 DB_PASS=your_strong_password
 
-SMTP_HOST=smtp-relay.brevo.com
+SMTP_HOST=your_smtp_host
 SMTP_PORT=587
-SMTP_USERNAME=7e010a001@smtp-brevo.com
-SMTP_PASSWORD=@Jbkenthrina25
-SMTP_FROM_NAME=SFCG
-SMTP_FROM_EMAIL=sfcginquiry@gmail.com
-SMTP_API_KEY=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
+SMTP_USERNAME=your_smtp_username
+SMTP_PASSWORD=your_smtp_password
+SMTP_FROM_NAME=your_sender_name
+SMTP_FROM_EMAIL=your_sender_email
+SMTP_API_KEY=your_brevo_api_key
 SMTP_ENCRYPTION=auto
 SMTP_TIMEOUT=20
 SMTP_VERIFY_PEER=false

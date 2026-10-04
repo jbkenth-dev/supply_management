@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatDateLong } from "../lib/date";
-import { CheckIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import { CheckIcon } from "@heroicons/react/24/outline";
 import type { FacultyRequest } from "../types/requests";
 import { api } from "../lib/api";
 
@@ -23,26 +23,21 @@ type RequestViewContentProps = {
 };
 
 export default function RequestViewContent({ request }: RequestViewContentProps) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const items = useMemo<CartItem[]>(() => request.items.map((item) => ({
+    supplyId: item.supplyId,
+    name: item.name,
+    itemCode: item.itemCode,
+    imagePath: item.imagePath,
+    categoryName: item.categoryName,
+    quantity: item.quantityRequested,
+    unitCost: item.unitCost,
+    totalAmount: item.totalAmount,
+    isCustom: item.supplyId === null,
+    customItemName: item.customItemName ?? "",
+    maxStock: item.quantityOnHand,
+  })), [request.items]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [approvalPersonnel, setApprovalPersonnel] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    const cartItems: CartItem[] = request.items.map((item) => ({
-      supplyId: item.supplyId,
-      name: item.name,
-      itemCode: item.itemCode,
-      imagePath: item.imagePath,
-      categoryName: item.categoryName,
-      quantity: item.quantityRequested,
-      unitCost: item.unitCost,
-      totalAmount: item.totalAmount,
-      isCustom: item.supplyId === null,
-      customItemName: item.customItemName ?? "",
-      maxStock: item.quantityOnHand,
-    }));
-    setItems(cartItems);
-  }, [request.items]);
 
   useEffect(() => {
     let cancelled = false;

@@ -27,10 +27,10 @@ export default async function handler(req, res) {
   }
 
   const apiKey = process.env.SMTP_API_KEY;
-  const fromEmail = process.env.SMTP_FROM_EMAIL || 'sfcginquiry@gmail.com';
-  const fromName = process.env.SMTP_FROM_NAME || 'SFCG';
+  const fromEmail = process.env.SMTP_FROM_EMAIL || '';
+  const fromName = process.env.SMTP_FROM_NAME || 'SFC-G Supply Management';
 
-  if (!apiKey) {
+  if (!apiKey || !fromEmail) {
     return res.status(500).json({ success: false, message: 'Email service not configured.' });
   }
 
