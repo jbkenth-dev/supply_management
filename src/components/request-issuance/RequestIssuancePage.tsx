@@ -792,7 +792,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
           <div
             ref={printContentRef}
             aria-hidden="true"
-            className="pointer-events-none absolute -left-[10000px] top-0 w-[794px] bg-white text-left"
+            className="pointer-events-none fixed left-0 top-0 -z-10 w-[794px] bg-white text-left"
           >
             <RequestViewContent request={{
               ...printRequest,
@@ -1017,31 +1017,31 @@ function generateIssuanceSlipPdf(
 ) {
   const pdf = new jsPDF({ unit: "mm", format: "a4" })
 
-  pdf.html(content, {
+  const worker = pdf.html(content, {
     x: 0,
     y: 0,
     width: 190,
     windowWidth: 794,
     autoPaging: "text",
     html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-    callback: (generatedPdf) => {
-      generatedPdf.autoPrint()
-      const pdfUrl = String(generatedPdf.output("bloburl"))
+  })
 
-      if (previewWindow && !previewWindow.closed) {
-        previewWindow.location.href = pdfUrl
-      } else {
-        const fallbackWindow = window.open(pdfUrl, "_blank", "noopener,noreferrer")
-        if (!fallbackWindow) {
-          window.location.assign(pdfUrl)
-        }
-      }
+  worker.then(() => {
+    pdf.autoPrint()
+    const pdfUrl = String(pdf.output("bloburl"))
 
-      if (previewWindow && !previewWindow.closed) {
-        previewWindow.focus()
-      }
-      onComplete()
-    },
+    if (previewWindow && !previewWindow.closed) {
+      previewWindow.location.href = pdfUrl
+      previewWindow.focus()
+    } else {
+      window.open(pdfUrl, "_blank", "noopener,noreferrer")
+    }
+    onComplete()
+  }).catch(() => {
+    if (previewWindow && !previewWindow.closed) {
+      previewWindow.document.body.innerHTML = "<p style='font-family:Arial;padding:24px'>Unable to generate the issuance PDF. Please try again.</p>"
+    }
+    onComplete()
   })
 }
 
