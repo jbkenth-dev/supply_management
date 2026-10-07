@@ -113,6 +113,7 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   const [statusFilter, setStatusFilter] = useState<null | string>(null) // null means "All"
   const [printRequest, setPrintRequest] = useState<AdminRequestRecord | null>(null)
   const printContentRef = useRef<HTMLDivElement>(null)
+  const printWindowRef = useRef<Window | null>(null)
 
   const allStatuses = [
     "Pending",
@@ -376,6 +377,9 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   }
 
   function printIssuanceSlip(request: AdminRequestRecord) {
+    // Open the tab during the click event so browser popup blockers do not
+    // prevent the asynchronously generated PDF from being shown.
+    printWindowRef.current = window.open("about:blank", "_blank")
     setPrintRequest(request)
   }
 
@@ -386,9 +390,12 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
 
     const timer = window.setTimeout(() => {
       if (printContentRef.current) {
-        generateIssuanceSlipPdf(printContentRef.current)
+        generateIssuanceSlipPdf(
+          printContentRef.current,
+          printWindowRef.current,
+          () => setPrintRequest(null),
+        )
       }
-      setPrintRequest(null)
     }, 600)
 
     return () => window.clearTimeout(timer)
@@ -1003,7 +1010,11 @@ function getActionTitle(action: ActionKind) {
   return "Issue Supplies"
 }
 
-function generateIssuanceSlipPdf(content: HTMLDivElement) {
+function generateIssuanceSlipPdf(
+  content: HTMLDivElement,
+  previewWindow: Window | null,
+  onComplete: () => void,
+) {
   const pdf = new jsPDF({ unit: "mm", format: "a4" })
 
   pdf.html(content, {
@@ -1015,12 +1026,21 @@ function generateIssuanceSlipPdf(content: HTMLDivElement) {
     html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
     callback: (generatedPdf) => {
       generatedPdf.autoPrint()
-      const pdfUrl = generatedPdf.output("bloburl")
-      const previewWindow = window.open(pdfUrl, "_blank", "noopener,noreferrer")
+      const pdfUrl = String(generatedPdf.output("bloburl"))
 
-      if (!previewWindow) {
-        window.location.assign(pdfUrl)
+      if (previewWindow && !previewWindow.closed) {
+        previewWindow.location.href = pdfUrl
+      } else {
+        const fallbackWindow = window.open(pdfUrl, "_blank", "noopener,noreferrer")
+        if (!fallbackWindow) {
+          window.location.assign(pdfUrl)
+        }
       }
+
+      if (previewWindow && !previewWindow.closed) {
+        previewWindow.focus()
+      }
+      onComplete()
     },
   })
 }
