@@ -1033,6 +1033,28 @@ function generateIssuanceSlipPdf(
         // browser CORS restrictions. The item names, codes, quantities, and
         // all other issuance data remain in the PDF.
         clonedDocument.querySelectorAll("img").forEach((image) => image.remove())
+
+        // Tailwind v4 may emit oklch() colors. html2canvas cannot parse some
+        // of those values, so normalize the cloned document to safe PDF
+        // colors while keeping the same modal structure and spacing.
+        const safeStyles = clonedDocument.createElement("style")
+        safeStyles.textContent = `
+          *, *::before, *::after {
+            color: #3f3f46 !important;
+            border-color: #d4d4d8 !important;
+            box-shadow: none !important;
+            text-shadow: none !important;
+            filter: none !important;
+            background-image: none !important;
+          }
+          body, .bg-white { background-color: #ffffff !important; }
+          [class*="bg-brown"], [class*="bg-primary"], [class*="bg-accent"] {
+            background-color: #f4f4f5 !important;
+          }
+          [class*="text-primary"] { color: #1d4ed8 !important; }
+          [class*="text-brown-900"] { color: #18181b !important; }
+        `
+        clonedDocument.head.appendChild(safeStyles)
       },
     },
   })
