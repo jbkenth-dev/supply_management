@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState, useRef } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { ReactNode } from "react"
 import { formatDateTime } from "../../lib/date"
 import { jsPDF } from "jspdf"
+import autoTable from "jspdf-autotable"
 import {
   CheckCircleIcon,
   ClipboardDocumentListIcon,
@@ -14,7 +15,6 @@ import AppShell from "../../layout/AppShell"
 import { api } from "../../lib/api"
 import { MessageModal } from "../ui/MessageModal"
 import RequestViewModal from "../../components/RequestViewModal"
-import RequestViewContent from "../../components/RequestViewContent"
 import type { RequestStatus } from "../../types/requests"
 import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
 
@@ -111,9 +111,6 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   const [statusUpdateSelection, setStatusUpdateSelection] = useState<RequestStatus | null>(null)
   const [statusUpdateSaving, setStatusUpdateSaving] = useState(false)
   const [statusFilter, setStatusFilter] = useState<null | string>(null) // null means "All"
-  const [printRequest, setPrintRequest] = useState<AdminRequestRecord | null>(null)
-  const printContentRef = useRef<HTMLDivElement>(null)
-  const printWindowRef = useRef<Window | null>(null)
 
   const allStatuses = [
     "Pending",
@@ -377,29 +374,8 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   }
 
   function printIssuanceSlip(request: AdminRequestRecord) {
-    // Open the tab during the click event so browser popup blockers do not
-    // prevent the asynchronously generated PDF from being shown.
-    printWindowRef.current = window.open("about:blank", "_blank")
-    setPrintRequest(request)
+    generateIssuanceSlipPdf(request)
   }
-
-  useEffect(() => {
-    if (!printRequest || !printContentRef.current) {
-      return
-    }
-
-    const timer = window.setTimeout(() => {
-      if (printContentRef.current) {
-        generateIssuanceSlipPdf(
-          printContentRef.current,
-          printWindowRef.current,
-          () => setPrintRequest(null),
-        )
-      }
-    }, 600)
-
-    return () => window.clearTimeout(timer)
-  }, [printRequest])
 
   return (
     <AppShell role={role}>
@@ -788,19 +764,6 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
           </ModalShell>
         ) : null}
 
-        {printRequest ? (
-          <div
-            ref={printContentRef}
-            aria-hidden="true"
-            className="pointer-events-none fixed left-0 top-0 -z-10 w-[794px] bg-white text-left"
-          >
-            <RequestViewContent request={{
-              ...printRequest,
-              items: printRequest.items.map((item) => ({ ...item, customItemName: null })),
-            }} />
-          </div>
-        ) : null}
-
       </div>
     </AppShell>
   );
@@ -1010,72 +973,101 @@ function getActionTitle(action: ActionKind) {
   return "Issue Supplies"
 }
 
-function generateIssuanceSlipPdf(
-  content: HTMLDivElement,
-  previewWindow: Window | null,
-  onComplete: () => void,
-) {
+function generateIssuanceSlipPdf(request: AdminRequestRecord) {
   const pdf = new jsPDF({ unit: "mm", format: "a4" })
+  const pageWidth = pdf.internal.pageSize.getWidth()
+  const left = 16
+  const right = pageWidth - 16
+  const issuedItems = request.items.map((item) => {
+    const quantity = item.quantityFulfilled > 0
+      ? item.quantityFulfilled
+      : item.quantityApproved ?? item.quantityRequested
+    const unitCost = Number(item.unitCost) || 0
+    return [item.itemCode || "—", item.name || "Unnamed item", String(quantity), moneyPdf(unitCost), moneyPdf(quantity * unitCost)]
+  })
+  const issuedTotal = request.items.reduce((sum, item) => {
+    const quantity = item.quantityFulfilled > 0 ? item.quantityFulfilled : item.quantityApproved ?? item.quantityRequested
+    return sum + quantity * (Number(item.unitCost) || 0)
+  }, 0)
+  const totalQuantity = request.items.reduce((sum, item) => sum + (item.quantityFulfilled > 0 ? item.quantityFulfilled : item.quantityApproved ?? item.quantityRequested), 0)
+  const slipNumber = request.issuanceSlipNo || request.requestNumber
 
-  const worker = pdf.html(content, {
-    x: 0,
-    y: 0,
-    width: 190,
-    windowWidth: 794,
-    autoPaging: "text",
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      imageTimeout: 3000,
-      backgroundColor: "#ffffff",
-      onclone: (clonedDocument) => {
-        // Prevent remote item images from blocking PDF generation because of
-        // browser CORS restrictions. The item names, codes, quantities, and
-        // all other issuance data remain in the PDF.
-        clonedDocument.querySelectorAll("img").forEach((image) => image.remove())
+  pdf.setFillColor(247, 248, 250)
+  pdf.rect(0, 0, pageWidth, 35, "F")
+  pdf.setTextColor(20, 47, 78)
+  pdf.setFont("helvetica", "bold")
+  pdf.setFontSize(14)
+  pdf.text("SAINT FRANCIS COLLEGE", left, 13)
+  pdf.setFontSize(8)
+  pdf.text("Guihulngan City, Negros Oriental", left, 19)
+  pdf.setFontSize(13)
+  pdf.text("REQUEST FORM", right, 14, { align: "right" })
+  pdf.setFont("helvetica", "normal")
+  pdf.setFontSize(8)
+  pdf.text(`Issuance Slip: ${slipNumber}`, right, 21, { align: "right" })
+  pdf.setDrawColor(31, 78, 121)
+  pdf.setLineWidth(0.8)
+  pdf.line(left, 28, right, 28)
 
-        // Tailwind v4 may emit oklch() colors. html2canvas cannot parse some
-        // of those values, so normalize the cloned document to safe PDF
-        // colors while keeping the same modal structure and spacing.
-        const safeStyles = clonedDocument.createElement("style")
-        safeStyles.textContent = `
-          *, *::before, *::after {
-            color: #3f3f46 !important;
-            border-color: #d4d4d8 !important;
-            box-shadow: none !important;
-            text-shadow: none !important;
-            filter: none !important;
-            background-image: none !important;
-          }
-          body, .bg-white { background-color: #ffffff !important; }
-          [class*="bg-brown"], [class*="bg-primary"], [class*="bg-accent"] {
-            background-color: #f4f4f5 !important;
-          }
-          [class*="text-primary"] { color: #1d4ed8 !important; }
-          [class*="text-brown-900"] { color: #18181b !important; }
-        `
-        clonedDocument.head.appendChild(safeStyles)
-      },
-    },
+  pdf.setTextColor(55, 65, 81)
+  pdf.setFontSize(8)
+  pdf.setFont("helvetica", "bold")
+  pdf.text("REQUESTER", left, 45)
+  pdf.text("DEPARTMENT", 84, 45)
+  pdf.text("DATE NEEDED", 145, 45)
+  pdf.setFont("helvetica", "normal")
+  pdf.setTextColor(31, 41, 55)
+  pdf.text(request.requestedByName || "—", left, 51)
+  pdf.text(request.department || "—", 84, 51)
+  pdf.text(request.dateNeeded ? formatDateTime(request.dateNeeded).split(",")[0] : "—", 145, 51)
+  pdf.setFont("helvetica", "bold")
+  pdf.setTextColor(55, 65, 81)
+  pdf.text("PURPOSE", left, 61)
+  pdf.setFont("helvetica", "normal")
+  pdf.setTextColor(31, 41, 55)
+  pdf.text(request.purpose || "—", left, 67, { maxWidth: right - left })
+
+  autoTable(pdf, {
+    startY: 77,
+    margin: { left, right: 16 },
+    head: [["ITEM CODE", "ITEM / DESCRIPTION", "QTY", "UNIT COST", "TOTAL AMOUNT"]],
+    body: issuedItems.length ? issuedItems : [["—", "No items recorded", "0", moneyPdf(0), moneyPdf(0)]],
+    theme: "grid",
+    styles: { font: "helvetica", fontSize: 8, cellPadding: 3, textColor: [31, 41, 55], lineColor: [210, 218, 230], lineWidth: 0.2 },
+    headStyles: { fillColor: [31, 78, 121], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
+    columnStyles: { 0: { cellWidth: 29 }, 1: { cellWidth: "auto" }, 2: { cellWidth: 16, halign: "right" }, 3: { cellWidth: 31, halign: "right" }, 4: { cellWidth: 34, halign: "right" } },
+    alternateRowStyles: { fillColor: [249, 250, 251] },
   })
 
-  worker.then(() => {
-    pdf.autoPrint()
-    const pdfUrl = String(pdf.output("bloburl"))
+  const finalY = (pdf as jsPDF & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 100
+  pdf.setFont("helvetica", "bold")
+  pdf.setFontSize(9)
+  pdf.text(`Total Items: ${request.totalItems}    Total Quantity: ${totalQuantity}`, left, finalY + 10)
+  pdf.text(`Grand Total: ${moneyPdf(issuedTotal)}`, right, finalY + 10, { align: "right" })
+  pdf.setDrawColor(210, 218, 230)
+  pdf.line(left, finalY + 16, right, finalY + 16)
+  pdf.setFontSize(8)
+  pdf.setTextColor(90, 105, 125)
+  pdf.text("REQUESTED BY", left + 25, finalY + 29, { align: "center" })
+  pdf.text("ISSUED BY", right - 25, finalY + 29, { align: "center" })
+  pdf.setDrawColor(130, 145, 165)
+  pdf.line(left, finalY + 25, left + 50, finalY + 25)
+  pdf.line(right - 50, finalY + 25, right, finalY + 25)
+  pdf.setTextColor(31, 41, 55)
+  pdf.text(request.requestedByName || "—", left + 25, finalY + 34, { align: "center" })
+  pdf.text(request.fulfilledByName || "—", right - 25, finalY + 34, { align: "center" })
+  pdf.setTextColor(90, 105, 125)
+  pdf.setFont("helvetica", "normal")
+  pdf.text(`Issued: ${request.fulfilledAt ? formatDateTime(request.fulfilledAt) : formatDateTime(new Date().toISOString())}`, left, 285)
+  pdf.text("Generated from the Supply Management System", right, 285, { align: "right" })
+  pdf.autoPrint()
+  const pdfUrl = String(pdf.output("bloburl"))
+  const previewWindow = window.open(pdfUrl, "_blank", "noopener,noreferrer")
+  if (!previewWindow) window.location.assign(pdfUrl)
+}
 
-    if (previewWindow && !previewWindow.closed) {
-      previewWindow.location.href = pdfUrl
-      previewWindow.focus()
-    } else {
-      window.open(pdfUrl, "_blank", "noopener,noreferrer")
-    }
-    onComplete()
-  }).catch(() => {
-    if (previewWindow && !previewWindow.closed) {
-      previewWindow.document.body.innerHTML = "<p style='font-family:Arial;padding:24px'>Unable to generate the issuance PDF. Please try again.</p>"
-    }
-    onComplete()
-  })
+function moneyPdf(amount: number): string {
+  return `PHP ${amount.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 function getActionDescription(action: ActionKind) {
