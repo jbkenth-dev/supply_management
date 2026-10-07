@@ -1023,7 +1023,18 @@ function generateIssuanceSlipPdf(
     width: 190,
     windowWidth: 794,
     autoPaging: "text",
-    html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      imageTimeout: 3000,
+      backgroundColor: "#ffffff",
+      onclone: (clonedDocument) => {
+        // Prevent remote item images from blocking PDF generation because of
+        // browser CORS restrictions. The item names, codes, quantities, and
+        // all other issuance data remain in the PDF.
+        clonedDocument.querySelectorAll("img").forEach((image) => image.remove())
+      },
+    },
   })
 
   worker.then(() => {
