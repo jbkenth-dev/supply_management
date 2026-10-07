@@ -1020,7 +1020,7 @@ async function generateIssuanceSlipPdf(request: AdminRequestRecord, previewWindo
   pdf.setFont("helvetica", "bold")
   pdf.setFontSize(8)
   pdf.text("SAINT FRANCIS COLLEGE, GUIHULNGAN, NEGROS ORIENTAL, INCORPORATED", pageWidth / 2, 10, { align: "center" })
-  pdf.setFont("helvetica", "bold")
+  pdf.setFont("helvetica", "normal")
   pdf.setTextColor(0, 0, 0)
   pdf.setFontSize(8)
   pdf.text("BATERIA, POBLACION, GUIHULNGAN CITY, NEGROS ORIENTAL", pageWidth / 2, 16, { align: "center" })
@@ -1033,7 +1033,7 @@ async function generateIssuanceSlipPdf(request: AdminRequestRecord, previewWindo
   pdf.line(pageWidth / 2 - 14, 29, pageWidth / 2 + 14, 29)
   pdf.setFontSize(11)
   pdf.text("REQUEST FORM", pageWidth / 2, 38, { align: "center" })
-  pdf.setFont("helvetica", "bold")
+  pdf.setFont("helvetica", "normal")
   pdf.setTextColor(0, 0, 0)
   pdf.setFontSize(8)
   pdf.text(`(${request.requestedByName || ""})`, pageWidth / 2, 44, { align: "center" })
@@ -1047,7 +1047,7 @@ async function generateIssuanceSlipPdf(request: AdminRequestRecord, previewWindo
   pdf.text("REQUESTER", left, 55)
   pdf.text("DEPARTMENT", 84, 55)
   pdf.text("DATE NEEDED", 145, 55)
-  pdf.setFont("helvetica", "bold")
+  pdf.setFont("helvetica", "normal")
   pdf.setTextColor(0, 0, 0)
   pdf.text(request.requestedByName || "—", left, 61)
   pdf.text(request.department || "—", 84, 61)
@@ -1055,7 +1055,7 @@ async function generateIssuanceSlipPdf(request: AdminRequestRecord, previewWindo
   pdf.setFont("helvetica", "bold")
   pdf.setTextColor(0, 0, 0)
   pdf.text("PURPOSE", left, 71)
-  pdf.setFont("helvetica", "bold")
+  pdf.setFont("helvetica", "normal")
   pdf.setTextColor(0, 0, 0)
   pdf.text(request.purpose || "—", left, 77, { maxWidth: right - left })
 
@@ -1066,7 +1066,7 @@ async function generateIssuanceSlipPdf(request: AdminRequestRecord, previewWindo
     body: issuedItems.length ? issuedItems : [["—", "No items recorded", "0", moneyPdf(0), moneyPdf(0)]],
     theme: "grid",
     styles: { font: "helvetica", fontSize: 8, cellPadding: 3, textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.2 },
-    headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
+    headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: "bold", halign: "center" },
     columnStyles: { 0: { cellWidth: 29 }, 1: { cellWidth: "auto" }, 2: { cellWidth: 16, halign: "right" }, 3: { cellWidth: 31, halign: "right" }, 4: { cellWidth: 34, halign: "right" } },
     alternateRowStyles: { fillColor: [255, 255, 255] },
   })
@@ -1086,6 +1086,7 @@ async function generateIssuanceSlipPdf(request: AdminRequestRecord, previewWindo
   pdf.line(left, finalY + 25, left + 50, finalY + 25)
   pdf.line(right - 50, finalY + 25, right, finalY + 25)
   pdf.setTextColor(0, 0, 0)
+  pdf.setFont("helvetica", "normal")
   pdf.text(request.requestedByName || "—", left + 25, finalY + 34, { align: "center" })
   pdf.text(request.fulfilledByName || "—", right - 25, finalY + 34, { align: "center" })
   pdf.setTextColor(0, 0, 0)
