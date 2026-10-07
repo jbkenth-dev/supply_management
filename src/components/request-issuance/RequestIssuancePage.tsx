@@ -374,7 +374,12 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   }
 
   function printIssuanceSlip(request: AdminRequestRecord) {
-    generateIssuanceSlipPdf(request)
+    const previewWindow = window.open("about:blank", "_blank")
+    if (previewWindow) {
+      previewWindow.document.title = "Issuance Slip"
+      previewWindow.document.body.innerHTML = "<p style='font-family:Arial;padding:24px'>Generating issuance PDF...</p>"
+    }
+    void generateIssuanceSlipPdf(request, previewWindow)
   }
 
   return (
@@ -973,7 +978,7 @@ function getActionTitle(action: ActionKind) {
   return "Issue Supplies"
 }
 
-function generateIssuanceSlipPdf(request: AdminRequestRecord) {
+async function generateIssuanceSlipPdf(request: AdminRequestRecord, previewWindow: Window | null) {
   const pdf = new jsPDF({ unit: "mm", format: "a4" })
   const pageWidth = pdf.internal.pageSize.getWidth()
   const left = 16
@@ -991,48 +996,67 @@ function generateIssuanceSlipPdf(request: AdminRequestRecord) {
   }, 0)
   const totalQuantity = request.items.reduce((sum, item) => sum + (item.quantityFulfilled > 0 ? item.quantityFulfilled : item.quantityApproved ?? item.quantityRequested), 0)
   const slipNumber = request.issuanceSlipNo || request.requestNumber
+  let logoDataUrl: string | null = null
 
-  pdf.setTextColor(31, 78, 121)
+  try {
+    const logoResponse = await fetch("/sfcg-logo.jpg")
+    if (logoResponse.ok) {
+      const logoBlob = await logoResponse.blob()
+      logoDataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(String(reader.result))
+        reader.onerror = () => reject(new Error("Unable to read logo"))
+        reader.readAsDataURL(logoBlob)
+      })
+    }
+  } catch {
+    // The PDF remains usable if the logo cannot be loaded.
+  }
+
+  pdf.setTextColor(0, 0, 0)
+  if (logoDataUrl) {
+    pdf.addImage(logoDataUrl, "JPEG", left, 8, 16, 16)
+  }
   pdf.setFont("helvetica", "bold")
   pdf.setFontSize(8)
   pdf.text("SAINT FRANCIS COLLEGE, GUIHULNGAN, NEGROS ORIENTAL, INCORPORATED", pageWidth / 2, 10, { align: "center" })
-  pdf.setFont("helvetica", "normal")
-  pdf.setTextColor(90, 105, 125)
+  pdf.setFont("helvetica", "bold")
+  pdf.setTextColor(0, 0, 0)
   pdf.setFontSize(8)
   pdf.text("BATERIA, POBLACION, GUIHULNGAN CITY, NEGROS ORIENTAL", pageWidth / 2, 16, { align: "center" })
   pdf.setFont("helvetica", "bold")
-  pdf.setTextColor(31, 41, 55)
+  pdf.setTextColor(0, 0, 0)
   pdf.setFontSize(12)
   pdf.text("OFFICE OF THE VICE PRESIDENT FOR FINANCE", pageWidth / 2, 24, { align: "center" })
-  pdf.setDrawColor(31, 78, 121)
+  pdf.setDrawColor(0, 0, 0)
   pdf.setLineWidth(0.6)
   pdf.line(pageWidth / 2 - 14, 29, pageWidth / 2 + 14, 29)
   pdf.setFontSize(11)
   pdf.text("REQUEST FORM", pageWidth / 2, 38, { align: "center" })
-  pdf.setFont("helvetica", "normal")
-  pdf.setTextColor(90, 105, 125)
+  pdf.setFont("helvetica", "bold")
+  pdf.setTextColor(0, 0, 0)
   pdf.setFontSize(8)
   pdf.text(`(${request.requestedByName || ""})`, pageWidth / 2, 44, { align: "center" })
-  pdf.setTextColor(31, 41, 55)
+  pdf.setTextColor(0, 0, 0)
   pdf.setFontSize(7)
   pdf.text(`Issuance Slip: ${slipNumber}`, right, 44, { align: "right" })
 
-  pdf.setTextColor(55, 65, 81)
+  pdf.setTextColor(0, 0, 0)
   pdf.setFontSize(8)
   pdf.setFont("helvetica", "bold")
   pdf.text("REQUESTER", left, 55)
   pdf.text("DEPARTMENT", 84, 55)
   pdf.text("DATE NEEDED", 145, 55)
-  pdf.setFont("helvetica", "normal")
-  pdf.setTextColor(31, 41, 55)
+  pdf.setFont("helvetica", "bold")
+  pdf.setTextColor(0, 0, 0)
   pdf.text(request.requestedByName || "—", left, 61)
   pdf.text(request.department || "—", 84, 61)
   pdf.text(request.dateNeeded ? formatDateTime(request.dateNeeded).split(",")[0] : "—", 145, 61)
   pdf.setFont("helvetica", "bold")
-  pdf.setTextColor(55, 65, 81)
+  pdf.setTextColor(0, 0, 0)
   pdf.text("PURPOSE", left, 71)
-  pdf.setFont("helvetica", "normal")
-  pdf.setTextColor(31, 41, 55)
+  pdf.setFont("helvetica", "bold")
+  pdf.setTextColor(0, 0, 0)
   pdf.text(request.purpose || "—", left, 77, { maxWidth: right - left })
 
   autoTable(pdf, {
@@ -1041,10 +1065,10 @@ function generateIssuanceSlipPdf(request: AdminRequestRecord) {
     head: [["ITEM CODE", "ITEM / DESCRIPTION", "QTY", "UNIT COST", "TOTAL AMOUNT"]],
     body: issuedItems.length ? issuedItems : [["—", "No items recorded", "0", moneyPdf(0), moneyPdf(0)]],
     theme: "grid",
-    styles: { font: "helvetica", fontSize: 8, cellPadding: 3, textColor: [31, 41, 55], lineColor: [210, 218, 230], lineWidth: 0.2 },
-    headStyles: { fillColor: [31, 78, 121], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
+    styles: { font: "helvetica", fontSize: 8, cellPadding: 3, textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.2 },
+    headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
     columnStyles: { 0: { cellWidth: 29 }, 1: { cellWidth: "auto" }, 2: { cellWidth: 16, halign: "right" }, 3: { cellWidth: 31, halign: "right" }, 4: { cellWidth: 34, halign: "right" } },
-    alternateRowStyles: { fillColor: [249, 250, 251] },
+    alternateRowStyles: { fillColor: [255, 255, 255] },
   })
 
   const finalY = (pdf as jsPDF & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 100
@@ -1052,26 +1076,31 @@ function generateIssuanceSlipPdf(request: AdminRequestRecord) {
   pdf.setFontSize(9)
   pdf.text(`Total Items: ${request.totalItems}    Total Quantity: ${totalQuantity}`, left, finalY + 10)
   pdf.text(`Grand Total: ${moneyPdf(issuedTotal)}`, right, finalY + 10, { align: "right" })
-  pdf.setDrawColor(210, 218, 230)
+  pdf.setDrawColor(0, 0, 0)
   pdf.line(left, finalY + 16, right, finalY + 16)
   pdf.setFontSize(8)
-  pdf.setTextColor(90, 105, 125)
+  pdf.setTextColor(0, 0, 0)
   pdf.text("REQUESTED BY", left + 25, finalY + 29, { align: "center" })
   pdf.text("ISSUED BY", right - 25, finalY + 29, { align: "center" })
-  pdf.setDrawColor(130, 145, 165)
+  pdf.setDrawColor(0, 0, 0)
   pdf.line(left, finalY + 25, left + 50, finalY + 25)
   pdf.line(right - 50, finalY + 25, right, finalY + 25)
-  pdf.setTextColor(31, 41, 55)
+  pdf.setTextColor(0, 0, 0)
   pdf.text(request.requestedByName || "—", left + 25, finalY + 34, { align: "center" })
   pdf.text(request.fulfilledByName || "—", right - 25, finalY + 34, { align: "center" })
-  pdf.setTextColor(90, 105, 125)
-  pdf.setFont("helvetica", "normal")
+  pdf.setTextColor(0, 0, 0)
+  pdf.setFont("helvetica", "bold")
   pdf.text(`Issued: ${request.fulfilledAt ? formatDateTime(request.fulfilledAt) : formatDateTime(new Date().toISOString())}`, left, 285)
   pdf.text("Generated from the Supply Management System", right, 285, { align: "right" })
   pdf.autoPrint()
   const pdfUrl = String(pdf.output("bloburl"))
-  const previewWindow = window.open(pdfUrl, "_blank", "noopener,noreferrer")
-  if (!previewWindow) window.location.assign(pdfUrl)
+  if (previewWindow && !previewWindow.closed) {
+    previewWindow.location.href = pdfUrl
+    previewWindow.focus()
+  } else {
+    const fallbackWindow = window.open(pdfUrl, "_blank", "noopener,noreferrer")
+    if (!fallbackWindow) window.location.assign(pdfUrl)
+  }
 }
 
 function moneyPdf(amount: number): string {
