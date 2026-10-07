@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef } from "react"
 import type { ReactNode } from "react"
 import { formatDateTime } from "../../lib/date"
 import { jsPDF } from "jspdf"
-import autoTable from "jspdf-autotable"
 import {
   CheckCircleIcon,
   ClipboardDocumentListIcon,
@@ -15,6 +14,7 @@ import AppShell from "../../layout/AppShell"
 import { api } from "../../lib/api"
 import { MessageModal } from "../ui/MessageModal"
 import RequestViewModal from "../../components/RequestViewModal"
+import RequestViewContent from "../../components/RequestViewContent"
 import type { RequestStatus } from "../../types/requests"
 import { getStoredAuthUser, type AuthRole } from "../../lib/auth"
 
@@ -111,6 +111,8 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   const [statusUpdateSelection, setStatusUpdateSelection] = useState<RequestStatus | null>(null)
   const [statusUpdateSaving, setStatusUpdateSaving] = useState(false)
   const [statusFilter, setStatusFilter] = useState<null | string>(null) // null means "All"
+  const [printRequest, setPrintRequest] = useState<AdminRequestRecord | null>(null)
+  const printContentRef = useRef<HTMLDivElement>(null)
 
   const allStatuses = [
     "Pending",
@@ -374,8 +376,23 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
   }
 
   function printIssuanceSlip(request: AdminRequestRecord) {
-    generateIssuanceSlipPdf(request)
+    setPrintRequest(request)
   }
+
+  useEffect(() => {
+    if (!printRequest || !printContentRef.current) {
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      if (printContentRef.current) {
+        generateIssuanceSlipPdf(printContentRef.current)
+      }
+      setPrintRequest(null)
+    }, 600)
+
+    return () => window.clearTimeout(timer)
+  }, [printRequest])
 
   return (
     <AppShell role={role}>
@@ -764,6 +781,19 @@ export default function RequestIssuancePage({ role }: { role: Extract<AuthRole, 
           </ModalShell>
         ) : null}
 
+        {printRequest ? (
+          <div
+            ref={printContentRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute -left-[10000px] top-0 w-[794px] bg-white text-left"
+          >
+            <RequestViewContent request={{
+              ...printRequest,
+              items: printRequest.items.map((item) => ({ ...item, customItemName: null })),
+            }} />
+          </div>
+        ) : null}
+
       </div>
     </AppShell>
   );
@@ -973,142 +1003,26 @@ function getActionTitle(action: ActionKind) {
   return "Issue Supplies"
 }
 
-function generateIssuanceSlipPdf(request: AdminRequestRecord) {
+function generateIssuanceSlipPdf(content: HTMLDivElement) {
   const pdf = new jsPDF({ unit: "mm", format: "a4" })
-  const pageWidth = pdf.internal.pageSize.getWidth()
-  const left = 16
-  const right = pageWidth - 16
-  const issuedItems = request.items.map((item) => {
-    const quantity = item.quantityFulfilled > 0
-      ? item.quantityFulfilled
-      : item.quantityApproved ?? item.quantityRequested
-    const unitCost = Number(item.unitCost) || 0
 
-    return {
-      code: item.itemCode || "—",
-      name: item.name || "Unnamed item",
-      quantity,
-      unitCost,
-      amount: quantity * unitCost,
-    }
-  })
-  const totalQuantity = issuedItems.reduce((sum, item) => sum + item.quantity, 0)
-  const issuedTotal = issuedItems.reduce((sum, item) => sum + item.amount, 0)
-  const issuedDate = request.fulfilledAt ? formatDateTime(request.fulfilledAt) : formatDateTime(new Date().toISOString())
-  const slipNumber = request.issuanceSlipNo || request.requestNumber
-  const money = (amount: number) => `PHP ${amount.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  pdf.html(content, {
+    x: 0,
+    y: 0,
+    width: 190,
+    windowWidth: 794,
+    autoPaging: "text",
+    html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+    callback: (generatedPdf) => {
+      generatedPdf.autoPrint()
+      const pdfUrl = generatedPdf.output("bloburl")
+      const previewWindow = window.open(pdfUrl, "_blank", "noopener,noreferrer")
 
-  pdf.setFillColor(31, 78, 121)
-  pdf.rect(0, 0, pageWidth, 30, "F")
-  pdf.setTextColor(255, 255, 255)
-  pdf.setFont("helvetica", "bold")
-  pdf.setFontSize(14)
-  pdf.text("SAINT FRANCIS COLLEGE", left, 12)
-  pdf.setFont("helvetica", "normal")
-  pdf.setFontSize(8)
-  pdf.text("Guihulngan City, Negros Oriental", left, 18)
-  pdf.setFont("helvetica", "bold")
-  pdf.setFontSize(13)
-  pdf.text("ISSUANCE SLIP", right, 14, { align: "right" })
-  pdf.setFont("helvetica", "normal")
-  pdf.setFontSize(8)
-  pdf.text(slipNumber, right, 20, { align: "right" })
-
-  pdf.setTextColor(45, 55, 72)
-  pdf.setFont("helvetica", "bold")
-  pdf.setFontSize(8)
-  pdf.text("ISSUANCE DETAILS", left, 42)
-  pdf.setDrawColor(210, 218, 230)
-  pdf.line(left, 44, right, 44)
-
-  const detailY = 51
-  const details = [
-    ["Request No.", request.requestNumber, "Issuance No.", slipNumber],
-    ["Requester", request.requestedByName || "—", "Department", request.department || "—"],
-    ["ID Number", request.requestedByIdNumber || "—", "Date Issued", issuedDate],
-    ["Purpose", request.purpose || "—", "Issued By", request.fulfilledByName || "—"],
-  ]
-  details.forEach((row, index) => {
-    const y = detailY + index * 8
-    pdf.setFont("helvetica", "bold")
-    pdf.setFontSize(8)
-    pdf.setTextColor(90, 105, 125)
-    pdf.text(row[0], left, y)
-    pdf.text(row[2], 108, y)
-    pdf.setFont("helvetica", "normal")
-    pdf.setTextColor(31, 41, 55)
-    pdf.text(row[1], left + 25, y, { maxWidth: 65 })
-    pdf.text(row[3], 133, y, { maxWidth: 61 })
-  })
-
-  autoTable(pdf, {
-    startY: 88,
-    margin: { left, right: 16 },
-    head: [["#", "ITEM CODE", "ITEM DESCRIPTION", "QTY ISSUED", "UNIT COST", "AMOUNT"]],
-    body: issuedItems.length > 0
-      ? issuedItems.map((item, index) => [
-        String(index + 1),
-        item.code,
-        item.name,
-        String(item.quantity),
-        money(item.unitCost),
-        money(item.amount),
-      ])
-      : [["—", "—", "No items recorded", "0", money(0), money(0)]],
-    theme: "grid",
-    styles: { font: "helvetica", fontSize: 8, cellPadding: 3, textColor: [45, 55, 72], lineColor: [218, 225, 234], lineWidth: 0.2 },
-    headStyles: { fillColor: [31, 78, 121], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
-    columnStyles: {
-      0: { cellWidth: 9, halign: "center" },
-      1: { cellWidth: 28 },
-      2: { cellWidth: "auto" },
-      3: { cellWidth: 22, halign: "right" },
-      4: { cellWidth: 29, halign: "right" },
-      5: { cellWidth: 29, halign: "right" },
+      if (!previewWindow) {
+        window.location.assign(pdfUrl)
+      }
     },
-    alternateRowStyles: { fillColor: [247, 249, 252] },
   })
-
-  const finalY = (pdf as jsPDF & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 100
-  const summaryY = finalY + 10
-  pdf.setFillColor(241, 245, 249)
-  pdf.roundedRect(112, summaryY, right - 112, 24, 2, 2, "F")
-  pdf.setFont("helvetica", "bold")
-  pdf.setFontSize(8)
-  pdf.setTextColor(90, 105, 125)
-  pdf.text("TOTAL QUANTITY", 116, summaryY + 8)
-  pdf.text("TOTAL ISSUED VALUE", 116, summaryY + 17)
-  pdf.setTextColor(31, 41, 55)
-  pdf.text(String(totalQuantity), right - 4, summaryY + 8, { align: "right" })
-  pdf.text(money(issuedTotal), right - 4, summaryY + 17, { align: "right" })
-
-  const footerY = summaryY + 42
-  pdf.setDrawColor(210, 218, 230)
-  pdf.line(left, footerY, right, footerY)
-  pdf.setFont("helvetica", "normal")
-  pdf.setFontSize(8)
-  pdf.setTextColor(90, 105, 125)
-  pdf.text("Received by:", left, footerY + 14)
-  pdf.text("Signature:", 108, footerY + 14)
-  pdf.setDrawColor(130, 145, 165)
-  pdf.line(left + 22, footerY + 14, 88, footerY + 14)
-  pdf.line(128, footerY + 14, right, footerY + 14)
-  pdf.setFontSize(7)
-  pdf.text(request.requestedByName || "Requester", left + 22, footerY + 19, { align: "center" })
-  pdf.text("Authorized signature", 148, footerY + 19, { align: "center" })
-  pdf.setFontSize(7)
-  pdf.text("Generated from the Supply Management System", left, 286)
-  pdf.text(`Page 1 of 1`, right, 286, { align: "right" })
-
-  // Open the generated PDF in the browser's PDF viewer so it can be printed
-  // immediately, without forcing a download to the user's device.
-  pdf.autoPrint()
-  const pdfUrl = pdf.output("bloburl")
-  const previewWindow = window.open(pdfUrl, "_blank", "noopener,noreferrer")
-
-  if (!previewWindow) {
-    window.location.assign(pdfUrl)
-  }
 }
 
 function getActionDescription(action: ActionKind) {
